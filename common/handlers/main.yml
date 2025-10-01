@@ -1,0 +1,11 @@
+- name: Restart service systemd-resolved
+  service: name=systemd-resolved state=restarted
+
+- name: Reload systemd configurations
+  systemd: daemon_reload=true
+
+- name: Reload-motd-updates
+  shell: /usr/lib/update-notifier/update-motd-updates-available --force
+
+- name: Restart service chrony
+  service: name=chrony state=restarted
