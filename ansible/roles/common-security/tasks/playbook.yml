@@ -599,6 +599,19 @@
       - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "172.16.0.0/12" }
     when: ansible_distribution == 'Ubuntu'
 
+  # TODO: FIXME: temp for initial account and packer build setup - remove this
+  - name: Allow all inbound ssh from home address
+    ufw:
+      state: "{{ item.state }}"
+      rule: "{{ item.rule }}"
+      direction: "{{ item.direction }}"
+      proto: "{{ item.proto }}"
+      to_port: "{{ item.to_port }}"
+      from_ip: "{{ item.from_ip }}"
+    loop:
+      - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "71.10.159.255/32" }
+    when: ansible_distribution == 'Ubuntu'
+
   - name: 4.2.7 | Ensure ufw default deny firewall policy
     ufw:
       state: "{{ item.state }}"
