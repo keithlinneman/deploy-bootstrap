@@ -1,0 +1,19 @@
+---
+password_age_max_days: 365
+password_age_min_days: 1
+password_expiration_warn_days: 7
+password_history_remember: 24
+password_quality_character_max_repeat: 3
+password_quality_character_max_sequence: 3
+password_quality_minimum_length: 14
+password_quality_minimum_changed_characters: 2
+password_expired_days_disabled_account: 30
+system_uid_minimum: 1000
+system_filesystem_umask_default: "027"
+system_filesystem_umask_root: "0027"
+sudo_log_file: "/var/log/sudo.log"
+service_audit_logs_max_filesize: 50
+system_logs_size_max: "10G"
+service_ssh_config_kex_algorithms: "diffie-hellman-group18-sha512,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp521,ecdh-sha2-nistp256"
+# su disabled
+system_su_group: "nosugroup"

@@ -1,0 +1,31 @@
+- name: Restart service auditd
+  service: name=auditd state=restarted enabled=true
+
+- name: Restart systemd-journald service
+  service: name=systemd-journald state=restarted enabled=true
+
+- name: Regenerate auditd rules
+  shell:
+    cmd: /usr/sbin/augenrules --load || /usr/sbin/augenrules --check
+  notify: Restart service auditd
+
+- name: Update grub
+  shell:
+    cmd: /usr/sbin/update-grub
+
+- name: Reload sysctl values
+  shell:
+    cmd: /usr/sbin/sysctl -p /etc/sysctl.d/99-phxi.conf
+
+- name: Restart service sshd
+  service: name=ssh state=restarted enabled=true
+
+- name: Generate aide database
+  shell:
+    cmd: /usr/sbin/aideinit && mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+    creates: /var/lib/aide/aide.db
+
+- name: Refresh aide database
+  shell:
+    cmd: /usr/bin/aide --update --config /etc/aide/aide.conf && mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+  when: aidinitstatus is undefined

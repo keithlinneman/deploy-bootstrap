@@ -1,0 +1,5 @@
+---
+aide_package_name: aide
+aide_config_location: /etc/aide.conf
+auditd_package_name: audit
+system_passwd_group: root
