@@ -609,7 +609,7 @@
       to_port: "{{ item.to_port }}"
       from_ip: "{{ item.from_ip }}"
     loop:
-      - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "71.10.159.255/32" }
+      - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "99.99.99.99/32" }
     when: ansible_distribution == 'Ubuntu'
 
   - name: 4.2.7 | Ensure ufw default deny firewall policy
