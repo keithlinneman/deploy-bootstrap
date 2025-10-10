@@ -1,2 +1,7 @@
 - name: Apply sysctl values
   shell: sysctl --system
+
+- name: Reload nftables
+  service:
+    name: nftables
+    state: restarted
