@@ -2,6 +2,7 @@
   shell: sysctl --system
 
 - name: Reload nftables
-  service:
+  systemd:
     name: nftables
     state: restarted
+    daemon_reload: yes

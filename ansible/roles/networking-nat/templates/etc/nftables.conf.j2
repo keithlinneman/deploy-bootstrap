@@ -21,5 +21,8 @@ table inet filter {
     ip saddr {10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16} accept
     drop
   }
-  chain output { type filter hook output priority 0; accept }
+  chain output {
+    type filter hook output priority 0;
+    accept
+  }
 }
