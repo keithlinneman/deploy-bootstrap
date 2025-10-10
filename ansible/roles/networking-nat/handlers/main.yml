@@ -1,2 +1,2 @@
 - name: Apply sysctl values
-  shell: /usr/bin/sysctl --system
+  shell: sysctl --system
