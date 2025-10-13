@@ -33,8 +33,8 @@ if [[ ! "${validenvs[@]}" =~ "${ENVIRONMENT}" ]];then
   exit 1
 fi
 
-# ensure hostname has instanceid and environment in name, and is of format *<instanceid>.<env>.*.* domain name and individual naming schemes can vary by app
-validhost=".*${localinstanceid}\.${ENVIRONMENT}\..*\..*"
+# ensure hostname has instanceid and environment in name, and is of format *<instanceid>.<regionshort>.<env>.*.* domain name and individual naming schemes can vary by app
+validhost=".*${localinstanceid}\.us.*\.${ENVIRONMENT}\..*\..*"
 if [[ ! "${localname}" =~ ${validhost} ]];then
   echo "${localname} did not pass sanity check (${validhost}) - refusing to update dns"
   exit 1
