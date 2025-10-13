@@ -1,0 +1,89 @@
+localname="$( hostname )"
+localip="$( ip addr show primary scope global | awk '/inet/ { print $2 }' | cut -d "/" -f 1 )"
+
+# Lots of sanity checks - dns is critical
+
+# check that we have a valid ip
+validip="^10\.[0-9]+\.[0-9]+\.[0-9]+$"
+if [[ ! "${localip}" =~ ${validip} ]];then
+  echo "${localip} did not pass sanity check (${validip}) - refusing to update dns"
+  exit 1
+fi
+
+# check that we have a valid instance id
+localinstanceid="$( ec2metadata --instance-id | awk -F '-' '{ print $2 }' )"
+if [ "${localinstanceid}x" == "x" ];then
+  echo "Failed to get instanceid from ec2metadata"
+  exit 1
+fi
+localinstanceidlen="$( echo -n "${localinstanceid}" | wc -c )"
+if [ "${localinstanceidlen}" != "17" ];then
+  echo "Expected localinstanceid length to be 17"
+  exit 1
+fi
+
+# check that we have a valid env
+if [ "${ENVIRONMENT}x" == "x" ];then
+  echo "Failed to find environment name"
+  exit 1
+fi
+validenvs=("prod" "dev" "qa" "staging" "testing")
+if [[ ! "${validenvs[@]}" =~ "${ENVIRONMENT}" ]];then
+  echo "Environment (${ENVIRONMENT}) is not in the list of valid environments (${validenvs[@]})"
+  exit 1
+fi
+
+# ensure hostname has instanceid and environment in name, and is of format *<instanceid>.<env>.*.* domain name and individual naming schemes can vary by app
+validhost=".*${localinstanceid}\.${ENVIRONMENT}\..*\..*"
+if [[ ! "${localname}" =~ ${validhost} ]];then
+  echo "${localname} did not pass sanity check (${validhost}) - refusing to update dns"
+  exit 1
+fi
+
+# get local hostname without instanceid for CNAME alias
+localcname="$( echo "${localname}" | sed "s/-${localinstanceid}//" )"
+if [ "${localcname}x" == "x" ];then
+  echo "Failed to generate localcname from ${localname}"
+  exit 1
+fi
+if [ "${localcname}" == "${localname}" ];then
+  echo "Failed to generate unique localcname from localname - both are identical (${localname})"
+  exit 1
+fi
+
+# ensure this zone is in deploymentsystem hosted zone, also get hostedzoneid from ssm parameter store
+localdomain="$( hostname -d )"
+hostedzoneid="$( aws ssm get-parameter --name /${ENVIRONMENT}/DeploymentSystem/Dns/Domains/${localdomain}/HostedZoneId --query "Parameter.Value" --output text )"
+if [ "${hostedzoneid}x" == "x" ];then
+  echo "Failed to find ssm parameter for HostedZoneId from (/${ENVIRONMENT}/DeploymentSystem/Dns/Domains/${localdomain}/HostedZoneId)"
+  exit 1
+fi
+
+echo "Upserting route53 role CNAME ${localcname} to ${localmodename}"
+changeset='{
+ "Changes": [
+  {
+   "Action": "UPSERT",
+   "ResourceRecordSet": {
+    "Name": "'${localcname}'",
+    "Type": "CNAME",
+    "TTL": 60,
+    "ResourceRecords": [{ "Value": "'${localname}'" }]
+   }
+  }
+ ]
+}'
+#echo "changeset: ${changeset}"
+#echo "AWS route53 call: aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch ${changeset}"
+awsout="$( aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch "${changeset}" )"
+if [[ ! "${awsout}" =~ \"PENDING\" ]];then
+  echo "Failed to create CNAME record! changeset was ${changeset}"
+  echo "aws response: ${awsout}"
+  exit 1
+fi
+echo "Success creating cname record for ${localcname} to ${localname}"
+
+# Set ec2 instance Name tag
+aws ec2 create-tags --resources i-${localinstanceid} --tags Key=Name,Value="${localcname}"
+
+exit 0
