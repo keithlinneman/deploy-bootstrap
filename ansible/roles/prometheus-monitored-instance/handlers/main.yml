@@ -1,0 +1,15 @@
+- name: restart prometheus node_exporter systemd service
+  service:
+    name: "{{ prometheus_node_exporter_systemd_service_name }}"
+    state: restarted
+    enabled: true
+
+- name: restart ebpf_exporter systemd service
+  service:
+    name: "{{ ebpf_exporter_systemd_service_name }}"
+    state: restarted
+    enabled: true
+
+- name: reload systemd daemon files
+  systemd_service:
+    - daemon_reload: true
