@@ -1,19 +1,220 @@
--
-  hosts: all
-  become: true
-  vars_files:
-    - ../vars/global.yml
-  handlers:
-    - import_tasks: ../handlers/main.yml
+---
+ - name: sitesuper-frontend playbook
+   hosts: all
+   become: true
+   vars_files:
+     - ../vars/default.yml
+     - ../vars/{{ ansible_os_family }}.yml
 
-  tasks:
-  - name: Include OS variables
-    include_vars: "{{ item }}"
-    with_first_found:
-      - "../vars/{{ ansible_distribution }}.yml"
-      - "../vars/{{ ansible_os_family }}.yml"
+   tasks:
+     - name: Get instance metadata
+       ec2_metadata_facts:
 
-  - name: print all variables for debugging
-    debug:
-      var: hostvars[inventory_hostname]
-      verbosity: 1
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
+
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value"
+       when: (lookup('vars', item, default=None)) is none
+       loop:
+         - env
+
+     - name: Create sitesuper-frontend user
+       user:
+         name: "{{ sitesuper_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Create sitesuper bin, log directories
+       file:
+         path: /home/{{ sitesuper_frontend_system_user }}/{{ item }}
+         owner: "{{ sitesuper_frontend_system_user }}"
+         group: "{{ sitesuper_frontend_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - log
+
+     - name: Set release tag fact
+       set_fact:
+         sitesuper_frontend_release_tag: "{{ sitesuper_frontend_release_info.json.tag_name }}"
+
+     - name: Get latest sitesuper-frontend release info from parameter store
+       uri:
+         url: https://api.github.com/repos/FIXME/sitesuper-frontend/releases/latest
+         return_content: yes
+       register: sitesuper_release_info
+
+     - name: Get sitesuper-frontend release from s3
+       uri:
+         url: https://api.github.com/repos/FIXME/sitesuper-frontend/releases/latest
+         return_content: yes
+       register: sitesuper_release_info
+
+     - name: Set filename based on architecture
+       set_fact:
+         sitesuper_frontend_filename: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           linux-arm64
+           {%- else -%}
+           linux-amd64
+           {%- endif -%}
+
+     - name: Download the latest sitesuper-frontend ({{ sitesuper_frontend_release_tag }}) linux-amd64 release from s3 ({{ sitesuper_frontend_asset_url }})
+       get_url:
+         url: "{{ sitesuper_frontend_asset_url }}"
+         dest: /home/{{ sitesuper_frontend_system_user }}/bin/sitesuper-frontend
+
+     - name: Create sitesuper-frontend systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ sitesuper_frontend_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ sitesuper_frontend_systemd_service_name }}.service
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Enable sitesuper-frontend systemd service
+       service:
+         name: "{{ sitesuper_frontend_systemd_service_name }}"
+         state: started
+         enabled: true
+
+     - name: Allow sitesuper-frontend traffic through firewall
+       ufw:
+         port: "{{ sitesuper_frontend_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Create oauth2-proxy user
+       user:
+         name: "{{ oauth2proxy_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Get latest oauth2-proxy release name from github redirect
+       uri:
+         url: https://github.com/oauth2-proxy/oauth2-proxy/releases/latest
+         method: HEAD
+         return_content: no
+       register: latest_release_redirect
+
+     - name: Get release version from URL
+       set_fact:
+         latest_version: "{{ latest_release_redirect.url | regex_replace('^.*/tag/', '') }}"
+
+     - name: Set filename based on architecture
+       set_fact:
+         oauth_arch: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           linux-arm64
+           {%- else -%}
+           linux-amd64
+           {%- endif -%}
+
+     - name: Build download url for latest release
+       set_fact:
+         download_url: "https://github.com/oauth2-proxy/oauth2-proxy/releases/download/{{ latest_version }}/oauth2-proxy-{{ latest_version }}.{{ oauth_arch }}.tar.gz"
+
+     - name: Download the latest oauth2-proxy release
+       get_url:
+         url: "{{ download_url }}"
+         dest: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+
+     - name: Create oauth2-proxy bin, conf, log directories
+       file:
+         path: /home/{{ oauth2proxy_system_user }}/{{ item }}
+         owner: "{{ oauth2proxy_system_user }}"
+         group: "{{ oauth2proxy_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - conf
+         - log
+
+     - name: Decompress oauth2proxy package
+       unarchive:
+         src: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+         dest: /home/{{ oauth2proxy_system_user }}/bin
+         extra_opts: ['--strip-components=1','--show-stored-names']
+         owner: "{{ oauth2proxy_system_user }}"
+         group: "{{ oauth2proxy_system_user }}"
+         mode: 0750
+         creates: /home/{{ oauth2proxy_system_user }}/bin/oauth2-proxy
+
+     - name: Remove the oauth2-proxy installation package
+       file:
+         path: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+         state: absent
+
+     - name: Create oauth2-proxy systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Modify oauth2-proxy main configuration
+       template:
+         src: ../templates/oauth2-proxy/conf/oauth2-proxy.conf.j2
+         dest: /home/{{ oauth2proxy_system_user }}/conf/oauth2-proxy.conf
+         mode: 0644
+       notify: restart oauth2-proxy service
+       when: ansible_os_family == 'Debian'
+
+     - name: Run handlers immediately to refresh systemd daemon configuration
+       meta: flush_handlers
+
+     - name: Enable oauth2-proxy systemd service
+       service:
+         name: "{{ oauth2proxy_systemd_service_name }}"
+         state: started
+         enabled: true
+
+     - name: Allow oauth2-proxy traffic through firewall
+       ufw:
+         port: "{{ oauth2proxy_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Tune some sysctl parameters for networking
+       sysctl:
+         name: "{{ item.name }}"
+         state: present
+         value: "{{ item.value }}"
+         sysctl_file: /etc/sysctl.conf
+       loop:
+        - { name: net.ipv4.icmp_ratelimit, value: 0 }
+        - { name: net.ipv4.icmp_msgs_burst, value: 0 }
+        - { name: net.ipv4.icmp_msgs_per_sec, value: 0 }
+        - { name: net.ipv4.icmp_ratemask, value: 0 }
+        - { name: net.core.rmem_max, value: 26214400 }
+        - { name: net.core.wmem_max, value: 26214400 }
+        - { name: net.core.rmem_default, value: 26214400 }
+        - { name: net.core.wmem_default, value: 26214400 }
+        - { name: net.core.netdev_max_backlog, value: 5000 }
+
+   handlers:
+     - name: restart oauth2-proxy service
+       service:
+         name: "{{ oauth2proxy_systemd_service_name }}"
+         state: restarted
+         enabled: true
+
+     - name: restart sitesuper-frontend service
+       service:
+         name: "{{ sitesuper_frontend_systemd_service_name }}"
+         state: restarted
+         enabled: true
+
+     - name: reload systemd daemon configurations
+       command: systemctl daemon-reload

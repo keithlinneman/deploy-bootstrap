@@ -1,0 +1,22 @@
+[Unit]
+Description=Provides web frontend for sitesuper application
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ sitesuper_frontend_system_user }}
+User={{ sitesuper_frontend_system_user }}
+Group={{ sitesuper_frontend_system_user }}
+ExecStart=/home/{{ sitesuper_frontend_system_user }}/bin/sitesuper-frontend
+StandardOutput=append:/var/log/{{ sitesuper_frontend_systemd_service_name }}.log
+StandardError=append:/var/log/{{ sitesuper_frontend_systemd_service_name }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

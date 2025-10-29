@@ -1,0 +1,11 @@
+---
+  oauth2proxy_config_cookie_secret: "{{ lookup('amazon.aws.aws_ssm', '/Application/sitesuper/oauth2_proxy_cookie_secret', region=ansible_ec2_instance_identity_document_region ) }}"
+  oauth2proxy_config_okta_oidc_issuer_url: "{{ lookup('amazon.aws.aws_ssm', '/Application/sitesuper/okta_oidc_issuer_url', region=ansible_ec2_instance_identity_document_region ) }}"
+  oauth2proxy_config_okta_client_id: "{{ lookup('amazon.aws.aws_ssm', '/Application/sitesuper/okta_client_id', region=ansible_ec2_instance_identity_document_region ) }}"
+  oauth2proxy_config_okta_client_secret: "{{ lookup('amazon.aws.aws_ssm', '/Application/sitesuper/okta_client_secret', region=ansible_ec2_instance_identity_document_region ) }}"
+  oauth2proxy_system_user: oauth2-proxy
+  oauth2proxy_tcp_port: 4180
+  oauth2_redirect_tcp_port: 9100
+  sitesuper_frontend_tcp_port: 8080
+  sitesuper_frontend_system_user: sitesuper-frontend
+  sitesuper_frontend_systemd_service_name: sitesuper-frontend
