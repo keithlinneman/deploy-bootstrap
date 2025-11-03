@@ -1,4 +1,3 @@
----
 - name Restart service sshd
   systemd:
     name: sshd
