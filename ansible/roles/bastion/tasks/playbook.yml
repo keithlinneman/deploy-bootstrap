@@ -2,6 +2,8 @@
  - name: jump bastion playbook
    hosts: all
    become: true
+   handlers:
+     - import_tasks: ../handlers/main.yml
    vars_files:
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
