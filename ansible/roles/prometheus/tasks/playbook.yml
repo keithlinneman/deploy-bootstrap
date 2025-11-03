@@ -2,6 +2,8 @@
  - name: prometheus playbook
    hosts: all
    become: true
+   handlers:
+     - import_tasks: ../handlers/main.yml
    vars_files:
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
@@ -146,48 +148,12 @@
          mode: 0644
        notify: reload systemd daemon configurations
 
-     - name: Copy prometheus/bin/sd-wrapper.sh
-       template:
-         src: ../templates/prometheus/bin/sd-wrapper.sh.j2
-         dest: /home/{{ prometheus_system_user }}/bin/sd-wrapper.sh
-         owner: "{{ prometheus_system_user }}"
-         group: "{{ prometheus_system_user }}"
-         mode: 0750
-
-     - name: Create prometheus-sd systemd service
-       template:
-         src: ../templates/etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.service.j2
-         dest: /etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.service
-         mode: 0644
-       notify: reload systemd daemon configurations
-
-     - name: Create prometheus-sd systemd timer
-       template:
-         src: ../templates/etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.timer.j2
-         dest: /etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.timer
-         mode: 0644
-       notify: reload systemd daemon configurations
-
-     - name: Run handlers immediately to refresh systemd daemon configuration
-       meta: flush_handlers
-
      - name: Enable prometheus systemd service
-       service:
+       systemd:
          name: "{{ prometheus_systemd_service_name }}"
          state: started
          enabled: true
-
-     - name: Disable prometheus-sd systemd service (timer runs it) but run it one time
-       service:
-         name: "{{ prometheus_sd_systemd_service_name }}"
-         state: started
-         enabled: false
-
-     - name: Enable prometheus-sd systemd service timer
-       service:
-         name: "{{ prometheus_sd_systemd_service_name }}.timer"
-         state: started
-         enabled: true
+         daemon_reload: true
 
      - name: Allow prometheus traffic through firewall
        ufw:
@@ -275,14 +241,12 @@
        notify: restart oauth2-proxy service
        when: ansible_os_family == 'Debian'
 
-     - name: Run handlers immediately to refresh systemd daemon configuration
-       meta: flush_handlers
-
      - name: Enable oauth2-proxy systemd service
-       service:
+       systemd:
          name: "{{ oauth2proxy_systemd_service_name }}"
          state: started
          enabled: true
+         daemon_reload: true
 
      - name: Allow oauth2-proxy traffic through firewall
        ufw:
@@ -307,19 +271,3 @@
         - { name: net.core.rmem_default, value: 26214400 }
         - { name: net.core.wmem_default, value: 26214400 }
         - { name: net.core.netdev_max_backlog, value: 5000 }
-
-   handlers:
-     - name: restart oauth2-proxy service
-       service:
-         name: "{{ oauth2proxy_systemd_service_name }}"
-         state: restarted
-         enabled: true
-
-     - name: restart prometheus service
-       service:
-         name: "{{ prometheus_systemd_service_name }}"
-         state: restarted
-         enabled: true
-
-     - name: reload systemd daemon configurations
-       command: systemctl daemon-reload
