@@ -7,7 +7,7 @@ scrape_configs:
           - name: tag:AppName
             values: ["mimir"]
           - name: tag:Environment
-            values: ["{{ env }}"]
+            values: ["{{ platform_env }}"]
           - name: tag:PrometheusMonitored
             values: ["True"]
     relabel_configs:

@@ -15,18 +15,12 @@
          var: hostvars[inventory_hostname]
          verbosity: 2
 
-     - name: Ensure required variables are defined
-       fail:
-         msg: "{{ item }} must be defined use -e {{ item }}=value"
-       when: (lookup('vars', item, default=None)) is none
-       loop:
-         - env
-
-     # 2/22/25 - keith - ubuntu repos have prometheus2 we want prometheus3
-     #- name: Install prometheus package
-     #  package:
-     #    name: "{{ prometheus_package_name }}"
-     #    state: present
+     #- name: Ensure required variables are defined
+     #  fail:
+     #    msg: "{{ item }} must be defined use -e {{ item }}=value"
+     #  when: (lookup('vars', item, default=None)) is none
+     #  loop:
+     #    - env
 
      - name: Get latest Prometheus release info from github
        uri:
