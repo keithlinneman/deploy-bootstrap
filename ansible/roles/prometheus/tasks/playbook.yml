@@ -119,9 +119,8 @@
        notify: restart prometheus service
        when: ansible_os_family == 'Debian'
        loop:
-         - aws-sd-obs
+         - aws-sd-obs-infra
          - aws-sd-obs-ebpf
-
      - name: Create prometheus apps scrape target configurations
        template:
          src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
