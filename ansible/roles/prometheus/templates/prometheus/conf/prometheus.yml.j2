@@ -32,7 +32,7 @@ global:
 alerting:
   alertmanagers:
   - static_configs:
-      - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093']
+      - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
 
 # Alerting rules loaded once, evaluated every 'evaluation_interval'.
 rule_files:
@@ -45,10 +45,10 @@ scrape_config_files:
 
 # For storage in mimir
 remote_write:
-  - url: "https://mimir-distributor.{{ hosted_zone_name }}:9009/api/v1/push"
+  - url: "https://mimir-distributor.{{ hosted_zone_name }}/api/v1/push"
     headers:
       X-Scope-OrgID: "{{ prometheus_tenant_name }}"
-    name: mimir-prod
+    name: mimir-{{ platform_env }}
     send_exemplars: true
     remote_timeout: 30s
     queue_config:
