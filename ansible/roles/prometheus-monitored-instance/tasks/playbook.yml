@@ -97,18 +97,14 @@
          dest: /etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service
          mode: 0644
        notify:
-         - reload systemd daemon files
          - restart prometheus node_exporter systemd service
 
-     - name: Reload systemd daemons in case they changed
-       shell:
-         cmd: "systemctl daemon-reload"
-
      - name: Enable prometheus node_exporter systemd service
-       service:
+       systemd:
          name: "{{ prometheus_node_exporter_systemd_service_name }}"
          state: started
          enabled: true
+         daemon_reload: yes
 
      - name: Allow prometheus node_exporter traffic through firewall
        ufw:
@@ -170,18 +166,14 @@
          dest: /etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service
          mode: 0644
        notify:
-         - reload systemd daemon files
          - restart ebpf_exporter systemd service
 
-     - name: Reload systemd daemons in case they changed
-       shell:
-         cmd: "systemctl daemon-reload"
-
      - name: Enable prometheus ebpf_exporter systemd service
-       service:
+       systemd:
          name: "{{ ebpf_exporter_systemd_service_name }}"
          state: started
          enabled: true
+         daemon_reload: yes
 
      - name: Allow ebpf_exporter traffic through firewall
        ufw:
