@@ -1,0 +1,79 @@
+runtime:
+  # https://tip.golang.org/doc/gc-guide#GOGC
+  #gogc: 75
+
+# Global configuration
+global:
+  # How often to collect metrics
+  scrape_interval:     {{ prometheus_scrape_interval }}
+  scrape_timeout:      {{ prometheus_scrape_timeout }}
+  # How often to evaluate metrics vs alert rules
+  evaluation_interval: {{ prometheus_scrape_interval }}
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+      region: "{{ ansible_ec2_instance_identity_document_region }}"
+      environment: "{{ platform_env }}"
+      company: "{{ company_name }}"
+      __replica__: "{{ ansible_ec2_instance_identity_document_availabilityzone }}"
+      monitor: "prometheus-ha-{{ ansible_ec2_instance_identity_document_region }}"
+
+  #scrape_failure_log_file: 
+  # The max number of samples that can be returned per scrape or it will be rejected
+  #sample_limit: 
+  # The max number of labels that can be returned per scrape or it will be rejected
+  #label_limit: 
+  ##metrics_path: "/metrics"
+  metric_name_validation_scheme: utf8
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+      - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093']
+
+# Alerting rules loaded once, evaluated every 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_config_files:
+  - /home/{{ prometheus_system_user }}/conf/scrape.d/apps/*.yml
+  - /home/{{ prometheus_system_user }}/conf/scrape.d/infra/*.yml
+
+# For storage in mimir
+remote_write:
+  - url: "https://mimir-distributor.{{ hosted_zone_name }}:9009/api/v1/push"
+    headers:
+      X-Scope-OrgID: "{{ prometheus_tenant_name }}"
+    name: mimir-prod
+    send_exemplars: true
+    remote_timeout: 30s
+    queue_config:
+      batch_send_deadline: 2s
+      max_samples_per_send: 2000
+      # attempting a really high value that should work out to around 2gb memory max
+      # will give mimir maximum time to recover if it is ever down without having to manually feed data in from prometheus
+      #capacity: 25000
+      capacity: 134217728
+      max_shards: 9
+    #write_relabel_configs:
+
+# For accepting data from OpenTelemetry collectors
+otlp:
+  # Attributes to be promoted to labels.
+  promote_resource_attributes:
+    - service.instance.id
+    - service.name
+    - service.namespace
+    - cloud.availability_zone
+    - cloud.region
+    - deployment.environment.name
+
+# Storage configuration
+storage:
+  tsdb:
+    # Allow remote_write from OpenTelemetry collectors that may be delayed since they are batched or out of order coming from different collectors
+    out_of_order_time_window: 10m

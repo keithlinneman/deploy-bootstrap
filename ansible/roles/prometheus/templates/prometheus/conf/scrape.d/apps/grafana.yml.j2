@@ -1,0 +1,50 @@
+scrape_configs:
+  - job_name: 'app-grafana'
+    scrape_interval: 15s
+    ec2_sd_configs:
+      - region: {{ ansible_ec2_instance_identity_document_region }}
+        filters:
+          - name: tag:AppName
+            values: ["grafana"]
+          - name: tag:Environment
+            values: ["{{ env }}"]
+          - name: tag:PrometheusMonitored
+            values: ["True"]
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_AppName]
+        action: keep
+
+      - source_labels: [__meta_ec2_tag_Environment]
+        action: keep
+
+      - source_labels: [__meta_ec2_tag_AppName]
+        target_label: app_name
+
+      - source_labels: [__meta_ec2_tag_AppRole]
+        target_label: app_role
+
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: env
+
+      - source_labels: [__meta_ec2_tag_Name]
+        regex: "([^.]*)\\.?.*"
+        target_label: instance
+
+      - source_labels: [__meta_ec2_tag_Project]
+        target_label: project
+
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: availability_zone
+
+      - source_labels: [__meta_ec2_region]
+        target_label: region
+
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: __address__
+        replacement: "$1:3000"
+
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+
+      - source_labels: [__meta_ec2_tag_aws_cloudformation_stack_name]
+        target_label: stack_name

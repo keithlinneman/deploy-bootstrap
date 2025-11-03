@@ -1,0 +1,332 @@
+---
+ - name: prometheus playbook
+   hosts: all
+   become: true
+   vars_files:
+     - ../vars/default.yml
+     - ../vars/{{ ansible_os_family }}.yml
+
+   tasks:
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
+
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value"
+       when: (lookup('vars', item, default=None)) is none
+       loop:
+         - env
+
+     # 2/22/25 - keith - ubuntu repos have prometheus2 we want prometheus3
+     #- name: Install prometheus package
+     #  package:
+     #    name: "{{ prometheus_package_name }}"
+     #    state: present
+
+     - name: Get latest Prometheus release info from github
+       uri:
+         url: https://api.github.com/repos/prometheus/prometheus/releases/latest
+         return_content: yes
+       register: prometheus_release_info
+
+     - name: Set release tag fact
+       set_fact:
+         prometheus_release_tag: "{{ prometheus_release_info.json.tag_name }}"
+
+     - name: Set filename based on architecture
+       set_fact:
+         prometheus_filename: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           linux-arm64.tar.gz
+           {%- else -%}
+           linux-amd64.tar.gz
+           {%- endif -%}
+
+     - name: Find {{ ansible_architecture }} asset URL from release assets
+       set_fact:
+         prometheus_asset_url: "{{ item.browser_download_url }}"
+       loop: "{{ prometheus_release_info.json.assets }}"
+       when: "prometheus_filename in item.name"
+
+     - name: Fail if {{ ansible_architecture }} asset not found
+       fail:
+         msg: "No {{ ansible_architecture }} asset found github latest release response."
+       when: prometheus_asset_url is not defined
+
+     - name: Create prometheus user
+       user:
+         name: "{{ prometheus_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Download the latest Prometheus ({{ prometheus_release_tag }}) linux-amd64 release from github ({{ prometheus_asset_url }})
+       get_url:
+         url: "{{ prometheus_asset_url }}"
+         dest: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+
+     - name: Create prometheus bin, conf, data, scrapedata directories
+       file:
+         path: /home/{{ prometheus_system_user }}/{{ item }}
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - bin/sd
+         - conf
+         - conf/scrape.d/
+         - conf/scrape.d/apps
+         - conf/scrape.d/infra
+         - conf/file_sd.d/
+         - data
+         - scrapedata
+
+     - name: Decompress prometheus installation package
+       unarchive:
+         src: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+         dest: /home/{{ prometheus_system_user }}/bin
+         extra_opts: ['--wildcards', '--strip-components=1','--show-stored-names']
+         include: ["*/prometheus", "*/promtool"]
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+         mode: 0750
+         creates: /home/{{ prometheus_system_user }}/bin/prometheus
+
+     - name: Remove the prometheus installation package
+       file:
+         path: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+         state: absent
+
+     - name: Modify prometheus main configuration
+       template:
+         src: ../templates/prometheus/conf/prometheus.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/prometheus.yml
+         mode: 0644
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+       notify: restart prometheus service
+       when: ansible_os_family == 'Debian'
+
+     - name: Create prometheus infra scrape target configurations
+       template:
+         src: ../templates/prometheus/conf/scrape.d/infra/{{ item }}.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/infra/{{ item }}.yml
+         mode: 0644
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+       notify: restart prometheus service
+       when: ansible_os_family == 'Debian'
+       loop:
+         - aws-sd-obs
+         - aws-sd-obs-ebpf
+
+     - name: Create prometheus apps scrape target configurations
+       template:
+         src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/apps/{{ item }}.yml
+         mode: 0644
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+       notify: restart prometheus service
+       when: ansible_os_family == 'Debian'
+       loop:
+         - alertmanager
+         - grafana
+         - mimir
+         - monitoring-etcd
+         - memcached-mimir
+         - memcached-loki
+         - prometheus
+
+     - name: Create prometheus systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ prometheus_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ prometheus_systemd_service_name }}.service
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Copy prometheus/bin/sd-wrapper.sh
+       template:
+         src: ../templates/prometheus/bin/sd-wrapper.sh.j2
+         dest: /home/{{ prometheus_system_user }}/bin/sd-wrapper.sh
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+         mode: 0750
+
+     - name: Create prometheus-sd systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.service
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Create prometheus-sd systemd timer
+       template:
+         src: ../templates/etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.timer.j2
+         dest: /etc/systemd/system/{{ prometheus_sd_systemd_service_name }}.timer
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Run handlers immediately to refresh systemd daemon configuration
+       meta: flush_handlers
+
+     - name: Enable prometheus systemd service
+       service:
+         name: "{{ prometheus_systemd_service_name }}"
+         state: started
+         enabled: true
+
+     - name: Disable prometheus-sd systemd service (timer runs it) but run it one time
+       service:
+         name: "{{ prometheus_sd_systemd_service_name }}"
+         state: started
+         enabled: false
+
+     - name: Enable prometheus-sd systemd service timer
+       service:
+         name: "{{ prometheus_sd_systemd_service_name }}.timer"
+         state: started
+         enabled: true
+
+     - name: Allow prometheus traffic through firewall
+       ufw:
+         port: "{{ prometheus_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Create oauth2-proxy user
+       user:
+         name: "{{ oauth2proxy_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Get latest release name from github redirect
+       uri:
+         url: https://github.com/oauth2-proxy/oauth2-proxy/releases/latest
+         method: HEAD
+         return_content: no
+       register: latest_release_redirect
+
+     - name: Get release version from URL
+       set_fact:
+         latest_version: "{{ latest_release_redirect.url | regex_replace('^.*/tag/', '') }}"
+
+     - name: Set filename based on architecture
+       set_fact:
+         oauth_arch: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           linux-arm64
+           {%- else -%}
+           linux-amd64
+           {%- endif -%}
+
+     - name: Build download url for latest release
+       set_fact:
+         download_url: "https://github.com/oauth2-proxy/oauth2-proxy/releases/download/{{ latest_version }}/oauth2-proxy-{{ latest_version }}.{{ oauth_arch }}.tar.gz"
+
+     - name: Download the latest oauth2-proxy release
+       get_url:
+         url: "{{ download_url }}"
+         dest: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+
+     - name: Create oauth2-proxy bin, conf, log directories
+       file:
+         path: /home/{{ oauth2proxy_system_user }}/{{ item }}
+         owner: "{{ oauth2proxy_system_user }}"
+         group: "{{ oauth2proxy_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - conf
+         - log
+
+     - name: Decompress oauth2proxy package
+       unarchive:
+         src: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+         dest: /home/{{ oauth2proxy_system_user }}/bin
+         extra_opts: ['--strip-components=1','--show-stored-names']
+         owner: "{{ oauth2proxy_system_user }}"
+         group: "{{ oauth2proxy_system_user }}"
+         mode: 0750
+         creates: /home/{{ oauth2proxy_system_user }}/bin/oauth2-proxy
+
+     - name: Remove the oauth2-proxy installation package
+       file:
+         path: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
+         state: absent
+
+     - name: Create oauth2-proxy systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Modify oauth2-proxy main configuration
+       template:
+         src: ../templates/oauth2-proxy/conf/oauth2-proxy.conf.j2
+         dest: /home/{{ oauth2proxy_system_user }}/conf/oauth2-proxy.conf
+         mode: 0644
+       notify: restart oauth2-proxy service
+       when: ansible_os_family == 'Debian'
+
+     - name: Run handlers immediately to refresh systemd daemon configuration
+       meta: flush_handlers
+
+     - name: Enable oauth2-proxy systemd service
+       service:
+         name: "{{ oauth2proxy_systemd_service_name }}"
+         state: started
+         enabled: true
+
+     - name: Allow oauth2-proxy traffic through firewall
+       ufw:
+         port: "{{ oauth2proxy_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Tune some sysctl parameters for networking
+       sysctl:
+         name: "{{ item.name }}"
+         state: present
+         value: "{{ item.value }}"
+         sysctl_file: /etc/sysctl.conf
+       loop:
+        - { name: net.ipv4.icmp_ratelimit, value: 0 }
+        - { name: net.ipv4.icmp_msgs_burst, value: 0 }
+        - { name: net.ipv4.icmp_msgs_per_sec, value: 0 }
+        - { name: net.ipv4.icmp_ratemask, value: 0 }
+        - { name: net.core.rmem_max, value: 26214400 }
+        - { name: net.core.wmem_max, value: 26214400 }
+        - { name: net.core.rmem_default, value: 26214400 }
+        - { name: net.core.wmem_default, value: 26214400 }
+        - { name: net.core.netdev_max_backlog, value: 5000 }
+
+   handlers:
+     - name: restart oauth2-proxy service
+       service:
+         name: "{{ oauth2proxy_systemd_service_name }}"
+         state: restarted
+         enabled: true
+
+     - name: restart prometheus service
+       service:
+         name: "{{ prometheus_systemd_service_name }}"
+         state: restarted
+         enabled: true
+
+     - name: reload systemd daemon configurations
+       command: systemctl daemon-reload
