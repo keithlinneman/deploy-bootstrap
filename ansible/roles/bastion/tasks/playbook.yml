@@ -30,4 +30,4 @@
          #backup: true
          backrefs: false
          create: true
-      notify: Restart service sshd
+       notify: Restart service sshd
