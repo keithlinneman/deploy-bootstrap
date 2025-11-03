@@ -21,3 +21,13 @@
        when: (lookup('vars', item, default=None)) is none
        loop:
          - env
+
+     - name: Ensure sshd DisableForwarding is not active (undoes CIS 5.1.8 set in common-security)
+       lineinfile:
+         path: /etc/ssh/sshd_config
+         regexp: '^.*DisableForwarding .*'
+         line: 'DisableForwarding no'
+         #backup: true
+         backrefs: false
+         create: true
+      notify: Restart service sshd
