@@ -1,1 +1,3 @@
 ---
+  - wireguard_server_private_key: "{{ lookup('amazon.aws.aws_ssm', '/app/vpn/wireguard/key/server/private', region=ansible_ec2_instance_identity_document_region ) }}"
+  - wireguard_client_k_public_key: "{{ lookup('amazon.aws.aws_ssm', '/app/vpn/wireguard/key/client/k/public', region=ansible_ec2_instance_identity_document_region ) }}"
