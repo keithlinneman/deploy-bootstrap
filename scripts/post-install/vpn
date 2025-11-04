@@ -1,6 +1,6 @@
 localname="$( hostname )"
-localip="$( ip addr show primary scope global | awk '/inet/ { print $2 }' | cut -d "/" -f 1 )"
-
+#localip="$( ip addr show primary scope global | awk '/inet/ { print $2 }' | cut -d "/" -f 1 )"
+localip="$( ec2metadata --local-ipv4 )"
 # Lots of sanity checks - dns is critical
 
 # check that we have a valid ip
