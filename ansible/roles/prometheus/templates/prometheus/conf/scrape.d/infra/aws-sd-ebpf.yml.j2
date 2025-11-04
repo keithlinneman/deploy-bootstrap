@@ -1,5 +1,5 @@
 scrape_configs:
-  - job_name: 'aws-sd-obs-ebpf'
+  - job_name: 'aws-sd-ebpf'
     scrape_interval: 15s
     ec2_sd_configs:
       - region: {{ ansible_ec2_instance_identity_document_region }}
@@ -14,29 +14,29 @@ scrape_configs:
         action: drop
         regex: windows
       
-      - source_labels: [__meta_ec2_tag_PrometheusMonitored]
-        action: keep
-        regex: True
+      #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
+      #  action: keep
+      #  regex: True
 
       #- source_labels: [__meta_ec2_tag_Environment]
       #  action: keep
       #  regex: {{ platform_env }}
 
       - source_labels: [__meta_ec2_tag_AppName]
-        target_label: app_name
+        target_label: app
 
-      - source_labels: [app_name]
+      - source_labels: [app]
         regex: ^$
         replacement: unknown
-        target_label: app_name
+        target_label: app
 
       - source_labels: [__meta_ec2_tag_AppRole]
-        target_label: app_role
+        target_label: role
 
-      - source_labels: [app_role]
+      - source_labels: [role]
         regex: ^$
         replacement: unknown
-        target_label: app_role
+        target_label: role
 
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: env
@@ -64,4 +64,4 @@ scrape_configs:
         target_label: instance_id
 
       - source_labels: [__meta_ec2_tag_aws_cloudformation_stack_name]
-        target_label: stack_name
+        target_label: stack
