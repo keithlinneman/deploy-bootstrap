@@ -45,6 +45,7 @@
   - name: Generate wireguard sever.key
     shell:
       cmd: wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub && chmod 600 /etc/wireguard/server.key /etc/wireguard/server.pub
+      creates: /etc/wireguard/server.key
 
   - name: Configure /etc/wireguard/wg0.conf
     template:
