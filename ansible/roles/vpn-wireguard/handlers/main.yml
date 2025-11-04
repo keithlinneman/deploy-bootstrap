@@ -6,3 +6,9 @@
     name: nftables
     state: restarted
     daemon_reload: yes
+
+- name: Restart wireguard
+  systemd:
+    name: wireguard
+    state: restarted
+    daemon_reload: yes

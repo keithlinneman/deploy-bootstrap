@@ -49,14 +49,16 @@
   - name: Configure /etc/wireguard/wg0.conf
     template:
       src: ../templates/etc/wireguard/wg0.conf.j2
-      dst: /etc/wireguard/wg0.conf
+      dest: /etc/wireguard/wg0.conf
       mode: 0600
+    notify: Restart wireguard
 
   - name: Copy k.key for wireguard
     copy:
       src: ../files/etc/wireguard/k.key
-      dst: /etc/wireguard/k.key
+      dest: /etc/wireguard/k.key
       mode: 0600
+    notify: Restart wireguard
 
   - name: Allow all inbound wireguard (let sg handle finer-grained access)
     ufw:
