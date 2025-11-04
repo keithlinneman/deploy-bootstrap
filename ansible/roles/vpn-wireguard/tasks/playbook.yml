@@ -71,5 +71,4 @@
       route: yes
       from_ip: "{{ vpn_cidr }}"
       to_ip: "{{ item.cidr }}"
-    loop:
-      - "{{ vpn_networks }}"
+    loop: "{{ vpn_networks }}"
