@@ -2,16 +2,14 @@
   hosts: all
   become: true
   vars_files:
-    - ../vars/global.yml
+    - ../vars/default.yml
+    - ../vars/{{ ansible_os_family }}.yml
   handlers:
     - import_tasks: ../handlers/main.yml
 
   tasks:
-  - name: Include OS variables
-    include_vars: "{{ item }}"
-    with_first_found:
-      - "../vars/{{ ansible_distribution }}.yml"
-      - "../vars/{{ ansible_os_family }}.yml"
+  - name: Get instance metadata
+    ec2_metadata_facts:
 
   - name: Print all variables for debugging
     debug:
