@@ -4,12 +4,8 @@ ListenPort = 51820
 PrivateKey = {{ wireguard_server_private_key }}
 SaveConfig = true
 
-PostUp   = iptables -t nat -A POSTROUTING -s 10.66.0.0/24 -o eth0 -j MASQUERADE; \
-           iptables -A FORWARD -i %i -j ACCEPT; \
-           iptables -A FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
-PostDown = iptables -t nat -D POSTROUTING -s 10.66.0.0/24 -o eth0 -j MASQUERADE; \
-           iptables -D FORWARD -i %i -j ACCEPT; \
-           iptables -D FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
+PostUp   = iptables -t nat -A POSTROUTING -s 10.66.0.0/24 -o ens5 -j MASQUERADE;iptables -A FORWARD -i %i -j ACCEPT;iptables -A FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -s 10.66.0.0/24 -o ens5 -j MASQUERADE;iptables -D FORWARD -i %i -j ACCEPT;iptables -D FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 [Peer]
 PublicKey = {{ wireguard_client_k_public_key }}

@@ -44,18 +44,12 @@
     shell:
       cmd: wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub && chmod 600 /etc/wireguard/server.key /etc/wireguard/server.pub
       creates: /etc/wireguard/server.key
+    notify: Restart wireguard
 
   - name: Configure /etc/wireguard/wg0.conf
     template:
       src: ../templates/etc/wireguard/wg0.conf.j2
       dest: /etc/wireguard/wg0.conf
-      mode: 0600
-    notify: Restart wireguard
-
-  - name: Copy k.key for wireguard
-    copy:
-      src: ../files/etc/wireguard/k.key
-      dest: /etc/wireguard/k.key
       mode: 0600
     notify: Restart wireguard
 
@@ -70,3 +64,12 @@
     loop:
       - { state: "enabled", rule: "allow", direction: "in", proto: "udp", to_port: "51820", from_ip: "0.0.0.0/0" }
     when: ansible_distribution == 'Ubuntu'
+
+  - name: Allow traffic routing through wireguard cidr to aws network cidrs
+    ufw:
+      rule: allow
+      route: yes
+      from_ip: "{{ vpn_cidr }}"
+      to_ip: "{{ item.cidr }}"
+    loop:
+      - "{{ vpn_networks }}"
