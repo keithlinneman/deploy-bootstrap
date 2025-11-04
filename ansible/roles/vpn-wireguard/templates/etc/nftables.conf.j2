@@ -1,0 +1,28 @@
+flush ruleset
+
+table ip nat {
+  chain postrouting {
+    type nat hook postrouting priority 100;
+    oifname "{{ wan_if }}" masquerade
+  }
+}
+
+table inet filter {
+  chain input {
+    type filter hook input priority 0;
+    ct state established,related accept
+    iifname "lo" accept
+    ip saddr {10.0.0.0/8} accept
+    drop
+  }
+  chain forward {
+    type filter hook forward priority 0;
+    ct state established,related accept
+    ip saddr {10.0.0.0/8} accept
+    drop
+  }
+  chain output {
+    type filter hook output priority 0;
+    accept
+  }
+}

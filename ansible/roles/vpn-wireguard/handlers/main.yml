@@ -1,0 +1,8 @@
+- name: Apply sysctl values
+  shell: sysctl --system
+
+- name: Reload nftables
+  systemd:
+    name: nftables
+    state: restarted
+    daemon_reload: yes
