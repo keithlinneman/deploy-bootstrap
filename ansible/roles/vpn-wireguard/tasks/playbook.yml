@@ -29,22 +29,10 @@
            | default(ansible_facts.default_ipv4.interface, true)
            | default(ansible_default_ipv6.interface, true) }}
 
-  - name: Configure nftables to allow forwarding
-    template:
-      src: ../templates/etc/nftables.conf.j2
-      dest: /etc/nftables.conf
-    notify: Reload nftables
-
   - name: Install wireguard package
     package:
      name: wireguard
      state: present
-
-  - name: Generate wireguard sever.key
-    shell:
-      cmd: wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub && chmod 600 /etc/wireguard/server.key /etc/wireguard/server.pub
-      creates: /etc/wireguard/server.key
-    notify: Restart wireguard
 
   - name: Configure /etc/wireguard/wg0.conf
     template:
