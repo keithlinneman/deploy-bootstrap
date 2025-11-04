@@ -18,19 +18,54 @@
       var: hostvars[inventory_hostname]
       verbosity: 1
 
-  - name: Install wireguard package
-    package:
-     name: wireguard
-     state: installed
-
   - name: Configure sysctl settings to allow forwarding
     template:
       src: ../templates/etc/sysctl.d/999-wireguard.conf.j2
       dest: /etc/sysctl.d/999-wireguard.conf
     notify: Apply sysctl values
 
+  - name: Find wan interface from default route
+    set_fact:
+      wan_if: >-
+        {{ ansible_default_ipv4.interface
+           | default(ansible_facts.default_ipv4.interface, true)
+           | default(ansible_default_ipv6.interface, true) }}
+
   - name: Configure nftables to allow forwarding
     template:
       src: ../templates/etc/nftables.conf.j2
       dest: /etc/nftables.conf
     notify: Reload nftables
+
+  - name: Install wireguard package
+    package:
+     name: wireguard
+     state: present
+
+  - name: Generate wireguard sever.key
+    shell:
+      cmd: wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub && chmod 600 /etc/wireguard/server.key /etc/wireguard/server.pub
+
+  - name: Configure /etc/wireguard/wg0.conf
+    template:
+      src: ../templates/etc/wireguard/wg0.conf.j2
+      dst: /etc/wireguard/wg0.conf
+      mode: 0600
+
+  - name: Copy k.key for wireguard
+    copy:
+      src: ../files/etc/wireguard/k.key
+      dst: /etc/wireguard/k.key
+      mode: 0600
+
+  - name: Allow all inbound wireguard (let sg handle finer-grained access)
+    ufw:
+      state: "{{ item.state }}"
+      rule: "{{ item.rule }}"
+      direction: "{{ item.direction }}"
+      proto: "{{ item.proto }}"
+      to_port: "{{ item.to_port }}"
+      from_ip: "{{ item.from_ip }}"
+    loop:
+      - { state: "enabled", rule: "allow", direction: "in", proto: "udp", to_port: "51820", from_ip: "0.0.0.0/0" }
+    when: ansible_distribution == 'Ubuntu'

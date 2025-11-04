@@ -1,0 +1,17 @@
+[Interface]
+Address = 10.66.0.1/24
+ListenPort = 51820
+PrivateKey = /etc/wireguard/server.key
+SaveConfig = true
+
+PostUp   = iptables -t nat -A POSTROUTING -s 10.66.0.0/24 -o eth0 -j MASQUERADE; \
+           iptables -A FORWARD -i %i -j ACCEPT; \
+           iptables -A FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -s 10.66.0.0/24 -o eth0 -j MASQUERADE; \
+           iptables -D FORWARD -i %i -j ACCEPT; \
+           iptables -D FORWARD -o %i -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+[Peer]
+PublicKey = /etc/wireguard/k.key
+AllowedIPs = 10.66.0.10/32
+PersistentKeepalive = 25
