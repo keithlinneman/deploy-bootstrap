@@ -9,6 +9,6 @@
 
 - name: Restart wireguard
   systemd:
-    name: wireguard
+    name: wg-quick@wg0
     state: restarted
     daemon_reload: yes
