@@ -1,26 +1,41 @@
 scrape_configs:
-  - job_name: 'app-grafana'
+  - job_name: 'aws-sd-obs-ebpf'
     scrape_interval: 15s
     ec2_sd_configs:
       - region: {{ ansible_ec2_instance_identity_document_region }}
         filters:
-          - name: tag:AppName
-            values: ["grafana"]
-          - name: tag:Environment
-            values: ["{{ platform_env }}"]
           - name: tag:PrometheusMonitored
             values: ["True"]
+          #- name: tag:Environment
+          #  values: ["{{ platform_env }}"]
     relabel_configs:
-      - source_labels: [__meta_ec2_tag_AppName]
+      # do not scrape windows servers for ebpf data
+      - source_labels: [__meta_ec2_platform]
+        action: drop
+        regex: windows
+      
+      - source_labels: [__meta_ec2_tag_PrometheusMonitored]
         action: keep
+        regex: True
 
-      - source_labels: [__meta_ec2_tag_Environment]
-        action: keep
+      #- source_labels: [__meta_ec2_tag_Environment]
+      #  action: keep
+      #  regex: {{ platform_env }}
 
       - source_labels: [__meta_ec2_tag_AppName]
         target_label: app_name
 
+      - source_labels: [app_name]
+        regex: ^$
+        replacement: unknown
+        target_label: app_name
+
       - source_labels: [__meta_ec2_tag_AppRole]
+        target_label: app_role
+
+      - source_labels: [app_role]
+        regex: ^$
+        replacement: unknown
         target_label: app_role
 
       - source_labels: [__meta_ec2_tag_Environment]
@@ -33,15 +48,17 @@ scrape_configs:
       - source_labels: [__meta_ec2_tag_Project]
         target_label: project
 
+      - source_labels: [project]
+        regex: ^$
+        replacement: unknown
+        target_label: project
+
       - source_labels: [__meta_ec2_availability_zone]
         target_label: availability_zone
 
-      - source_labels: [__meta_ec2_region]
-        target_label: region
-
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
-        replacement: "$1:3000"
+        replacement: "$1:{{ ebpf_exporter_tcp_port }}"
 
       - source_labels: [__meta_ec2_instance_id]
         target_label: instance_id

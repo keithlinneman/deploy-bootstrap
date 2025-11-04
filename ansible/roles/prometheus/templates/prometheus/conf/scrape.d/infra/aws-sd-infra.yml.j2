@@ -1,27 +1,29 @@
 scrape_configs:
-  - job_name: 'app-mimir'
+  - job_name: 'aws-sd-obs-infra'
     scrape_interval: 15s
     ec2_sd_configs:
       - region: {{ ansible_ec2_instance_identity_document_region }}
         filters:
-          - name: tag:AppName
-            values: ["mimir"]
-          - name: tag:Environment
-            values: ["{{ platform_env }}"]
           - name: tag:PrometheusMonitored
             values: ["True"]
+          - instance-state-name
+            values: ["running"]
+          #- name: tag:Environment
+          #  values: ["{{ platform_env }}"]
     relabel_configs:
-      - source_labels: [__meta_ec2_tag_AppName]
-        action: keep
+      #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
+      #  action: keep
+      #  regex: True
 
-      - source_labels: [__meta_ec2_tag_Environment]
-        action: keep
+      #- source_labels: [__meta_ec2_tag_Environment]
+      #  action: keep
+      #  regex: {{ platform_env }}
 
       - source_labels: [__meta_ec2_tag_AppName]
-        target_label: app_name
+        target_label: app
 
       - source_labels: [__meta_ec2_tag_AppRole]
-        target_label: app_role
+        target_label: role
 
       - source_labels: [__meta_ec2_tag_Environment]
         target_label: env
@@ -33,18 +35,20 @@ scrape_configs:
       - source_labels: [__meta_ec2_tag_Project]
         target_label: project
 
+      - source_labels: [project]
+        regex: ^$
+        replacement: unknown
+        target_label: project
+
       - source_labels: [__meta_ec2_availability_zone]
         target_label: availability_zone
 
-      - source_labels: [__meta_ec2_region]
-        target_label: region
-
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
-        replacement: "$1:8080"
+        replacement: "$1:{{ prometheus_node_exporter_tcp_port }}"
 
       - source_labels: [__meta_ec2_instance_id]
         target_label: instance_id
 
-      - source_labels: [__meta_ec2_tag_aws_cloudformation_stack_name]
-        target_label: stack_name
+      #- source_labels: [__meta_ec2_tag_aws_cloudformation_stack_name]
+      #  target_label: stack_name
