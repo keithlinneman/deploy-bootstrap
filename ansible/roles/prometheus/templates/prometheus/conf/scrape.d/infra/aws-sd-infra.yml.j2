@@ -22,7 +22,17 @@ scrape_configs:
       - source_labels: [__meta_ec2_tag_AppName]
         target_label: app
 
+      - source_labels: [app]
+        regex: ^$
+        replacement: unknown
+        target_label: app
+
       - source_labels: [__meta_ec2_tag_AppRole]
+        target_label: role
+
+      - source_labels: [role]
+        regex: ^$
+        replacement: unknown
         target_label: role
 
       - source_labels: [__meta_ec2_tag_Environment]
