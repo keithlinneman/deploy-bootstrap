@@ -26,17 +26,25 @@ distributor:
   # charts refresh for the first 12h is probably a poor user experience
   ha_tracker:
     enable_ha_tracker: true
+    enable_for_all_users: true 
     kvstore:
-     store: etcd
-     prefix: mimir-ha-tracker/
-     etcd:
-       endpoints:
-         - monitoring-etcd-2a.{{ hosted_zone_name }}:2379
-         - monitoring-etcd-2b.{{ hosted_zone_name }}:2379
-         - monitoring-etcd-2c.{{ hosted_zone_name }}:2379
-    ha_tracker_update_timeout: 12s
-    ha_tracker_update_timeout_jitter_max: 2s
-    ha_tracker_failover_timeout: 20s
+      store: memberlist
+    update_timeout: 15s
+    update_timeout_jitter_max: 5s
+    failover_timeout: 30s
+  #ha_tracker:
+  #  enable_ha_tracker: true
+  #  kvstore:
+  #   store: etcd
+  #   prefix: mimir-ha-tracker/
+  #   etcd:
+  #     endpoints:
+  #       - monitoring-etcd-2a.{{ hosted_zone_name }}:2379
+  #       - monitoring-etcd-2b.{{ hosted_zone_name }}:2379
+  #       - monitoring-etcd-2c.{{ hosted_zone_name }}:2379
+  #  ha_tracker_update_timeout: 12s
+  #  ha_tracker_update_timeout_jitter_max: 2s
+  #  ha_tracker_failover_timeout: 20s
   ring:
     kvstore:
       store: memberlist
@@ -50,11 +58,13 @@ ingester:
     replication_factor: {{ mimir_replication_factor }}
     instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
     unregister_on_shutdown: true
+    zone_awareness_enabled: true
   partition_ring:
     kvstore:
       store: memberlist
   instance_limits:
-    max_inflight_push_requests: 30000
+    #max_inflight_push_requests: 30000
+    max_inflight_push_requests: 8192
   error_sample_rate: 0
 
 ingester_client:
@@ -73,6 +83,10 @@ querier:
   max_concurrent: 20
   # 2m default timeout
   timeout: 60s
+  sharding_ring:
+    zone_awareness_enabled: true
+    instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+
 
 frontend:
   max_outstanding_per_tenant: 10000
@@ -103,6 +117,8 @@ query_scheduler:
       store: memberlist
     heartbeat_period: 15s
     heartbeat_timeout: 30s
+    zone_awareness_enabled: true
+    instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
   grpc_client_config:
     max_send_msg_size: 104857600
     max_recv_msg_size: 104857600
@@ -130,7 +146,7 @@ limits:
   ingestion_burst_factor: 2
   #ingestion_burst_size: 20000
   #ha_cluster_label: cluster
-  #ha_replica_label: replica
+  #ha_replica_label: __replica__
   # labels to drop from all ingested samples, list of strings
   #drop_labels: 
   max_cache_freshness: 10m
@@ -170,13 +186,20 @@ blocks_storage:
   bucket_store:
     sync_interval: 10m
     max_concurrent: 200
+    #index_cache:
+    #  #backend: memcached
+    #  backend: inmemory
+    #  inmemory:
+    #    #max_size_bytes: 2147483648
+    #    #max_size_bytes: 1073741824
+    #    max_size_bytes: 10737418240
     index_cache:
-      #backend: memcached
-      backend: inmemory
-      inmemory:
-        #max_size_bytes: 2147483648
-        #max_size_bytes: 1073741824
-        max_size_bytes: 10737418240
+      backend: memcached
+      memcached:
+        addresses: memcached-mimir-2a.{{ hosted_zone_name }}:11211,memcached-mimir-2b.{{ hosted_zone_name }}:11211,memcached-mimir-2c.{{ hosted_zone_name }}:11211
+        timeout: 200ms
+        connect_timeout: 200ms
+        max_item_size: 8388608
     chunks_cache:
       backend: memcached
       memcached:
@@ -232,6 +255,8 @@ store_gateway:
   sharding_ring:
     kvstore:
       store: memberlist
+    zone_awareness_enabled: true
+    instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
 
 memberlist:
   join_members:
@@ -258,4 +283,3 @@ memberlist:
     - mimir-store-gateway-2c.{{ hosted_zone_name }}
   bind_port: 7946
   abort_if_cluster_join_fails: true
- 
