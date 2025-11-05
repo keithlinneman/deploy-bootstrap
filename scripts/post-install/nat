@@ -53,9 +53,9 @@ fi
 
 # ensure this zone is in deploymentsystem hosted zone, also get hostedzoneid from ssm parameter store
 localdomain="$( hostname -d )"
-hostedzonename="$( aws ssm get-parameter --name /Config/Dns/HostedZoneName --query "Parameter.Value" --output text )"
+hostedzonename="$( aws ssm get-parameter --name /platform/dns/hosted_zone/name --query "Parameter.Value" --output text )"
 if [ "${hostedzonename}x" == "x" ];then
-  echo "Failed to find ssm parameter for HostedZoneId from (/Config/Dns/HostedZoneName)"
+  echo "Failed to find ssm parameter for HostedZoneId from (/platform/dns/hosted_zone/name)"
   exit 1
 fi
 if [ "${hostedzonename}" != "${localdomain}" ];then
@@ -63,15 +63,9 @@ if [ "${hostedzonename}" != "${localdomain}" ];then
   exit 1
 fi
 
-hostedzoneid="$( aws ssm get-parameter --name /Config/Dns/HostedZoneId --query "Parameter.Value" --output text )"
+hostedzoneid="$( aws ssm get-parameter --name /platform/dns/hosted_zone/id --query "Parameter.Value" --output text )"
 if [ "${hostedzoneid}x" == "x" ];then
-  echo "Failed to find ssm parameter for HostedZoneId from (/Config/Dns/HostedZoneId)"
-  exit 1
-fi
-
-hostedzoneid="$( aws ssm get-parameter --name /Config/Dns/HostedZoneId --query "Parameter.Value" --output text )"
-if [ "${hostedzoneid}x" == "x" ];then
-  echo "Failed to find ssm parameter for HostedZoneId from (/Config/Dns/HostedZoneId)"
+  echo "Failed to find ssm parameter for HostedZoneId from (/platform/dns/hosted_zone/id)"
   exit 1
 fi
 
