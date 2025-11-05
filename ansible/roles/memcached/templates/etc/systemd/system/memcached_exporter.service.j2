@@ -1,0 +1,21 @@
+[Unit]
+Description=memcached_exporter collects memcached server statistics for prometheus to scrape
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ memcached_system_user }}
+User={{ memcached_system_user }}
+Group={{ memcached_system_user }}
+ExecStart=/usr/bin/memcached_exporter --memcached.pid-file=/var/run/memcached/memcached.pid --web.listen-address=:11212
+StandardOutput=append:/var/log/{{ memcached_exporter_systemd_service_name }}.log
+StandardError=append:/var/log/{{ memcached_exporter_systemd_service_name }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
