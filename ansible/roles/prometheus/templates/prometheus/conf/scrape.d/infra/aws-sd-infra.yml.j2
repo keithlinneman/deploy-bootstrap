@@ -6,7 +6,7 @@ scrape_configs:
         filters:
           - name: tag:PrometheusMonitored
             values: ["True"]
-          - instance-state-name
+          - name: instance-state-name
             values: ["running"]
           #- name: tag:Environment
           #  values: ["{{ platform_env }}"]
