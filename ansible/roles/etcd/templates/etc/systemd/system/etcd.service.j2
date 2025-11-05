@@ -1,0 +1,23 @@
+[Unit]
+Description=etcd is a keystore currently used for mimir to de-duplicate HA prometheus scrapes
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ etcd_system_user }}
+User={{ etcd_system_user }}
+Group={{ etcd_system_user }}
+ExecStart=/home/{{ etcd_system_user }}/bin/etcd --config-file=/home/{{ etcd_system_user }}/conf/etcd.conf.yml
+StandardOutput=append:/var/log/{{ etcd_systemd_service_name }}.log
+StandardError=append:/var/log/{{ etcd_systemd_service_name }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+#Environment=LOG_DIR="/home/{{ etcd_system_user }}/logs/"
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

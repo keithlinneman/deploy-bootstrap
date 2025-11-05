@@ -1,0 +1,2 @@
+---
+  etcd_systemd_service_name: etcd

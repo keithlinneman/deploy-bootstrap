@@ -1,0 +1,19 @@
+name: "monitoring-{{ ansible_ec2_instance_identity_document_availabilityzone }}"
+
+data-dir: /home/{{ etcd_system_user }}/data/
+wal-dir: /home/{{ etcd_system_user }}/data/wal
+
+initial-cluster: "{{ etcd_cluster_initial_peers }}"
+
+listen-peer-urls: http://0.0.0.0:{{ etcd_cluster_tcp_port }}
+listen-client-urls: http://0.0.0.0:{{ etcd_tcp_port }}
+
+#initial-advertise-peer-urls: http://monitoring-etcd-{{ ansible_ec2_instance_identity_document_availabilityzone }}.{{ hosted_zone_name }}:{{ etcd_cluster_tcp_port }}
+#advertise-client-urls: http://monitoring-etcd-{{ ansible_ec2_instance_identity_document_availabilityzone }}.{{ hosted_zone_name }}:{{ etcd_tcp_port }}
+initial-advertise-peer-urls: http://{{ ansible_ec2_local_ipv4 }}:{{ etcd_cluster_tcp_port }}
+advertise-client-urls: http://{{ ansible_ec2_local_ipv4 }}:{{ etcd_tcp_port }}
+
+enable-pprof: true
+log-level: info
+logger: zap
+log-outputs: [stderr]
