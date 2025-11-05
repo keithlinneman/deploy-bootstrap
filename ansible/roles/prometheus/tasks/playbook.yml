@@ -121,25 +121,25 @@
        notify: restart prometheus service
        when: ansible_os_family == 'Debian'
        loop:
-         - aws-sd-obs-infra
-         - aws-sd-obs-ebpf
-     - name: Create prometheus apps scrape target configurations
-       template:
-         src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
-         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/apps/{{ item }}.yml
-         mode: 0644
-         owner: "{{ prometheus_system_user }}"
-         group: "{{ prometheus_system_user }}"
-       notify: restart prometheus service
-       when: ansible_os_family == 'Debian'
-       loop:
-         - alertmanager
-         - grafana
-         - mimir
-         - monitoring-etcd
-         - memcached-mimir
-         - memcached-loki
-         - prometheus
+         - aws-sd-infra
+         - aws-sd-ebpf
+     #- name: Create prometheus apps scrape target configurations
+     #  template:
+     #    src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
+     #    dest: /home/{{ prometheus_system_user }}/conf/scrape.d/apps/{{ item }}.yml
+     #    mode: 0644
+     #    owner: "{{ prometheus_system_user }}"
+     #    group: "{{ prometheus_system_user }}"
+     #  notify: restart prometheus service
+     #  when: ansible_os_family == 'Debian'
+     #  loop:
+     #    - alertmanager
+     #    - grafana
+     #    - mimir
+     #    - monitoring-etcd
+     #    - memcached-mimir
+     #    - memcached-loki
+     #    - prometheus
 
      - name: Create prometheus systemd service
        template:
