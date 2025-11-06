@@ -1,5 +1,5 @@
 ---
-  grafana_config_secret_key: CkhHqAXQTbbzeHKBWIjav85Ts3q4Bk3Fel9dL5SXLF
+  grafana_config_secret_key: dHGQpcZavIcqOAOkRAas0as3g4Q1vVxXsTTtiCYl8m
   grafana_system_user: grafana
   grafana_tcp_port: 8080
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
