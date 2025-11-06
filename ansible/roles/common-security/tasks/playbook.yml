@@ -586,7 +586,7 @@
     when: ansible_distribution == 'Ubuntu'
 
   # TODO: FIXME: revisit this later to restrict further
-  - name: Allow all inbound ssh from 10.x and 172.x non-routable IP addresses
+  - name: Allow all inbound ssh from 10.x non-routable IP addresses
     ufw:
       state: "{{ item.state }}"
       rule: "{{ item.rule }}"
@@ -596,7 +596,7 @@
       from_ip: "{{ item.from_ip }}"
     loop:
       - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "10.0.0.0/8" }
-      - { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "172.16.0.0/12" }
+      #- { state: "enabled", rule: "allow", direction: "in", proto: "tcp", to_port: "22", from_ip: "172.16.0.0/12" }
     when: ansible_distribution == 'Ubuntu'
 
   # TODO: FIXME: temp for initial account and packer build setup - remove this
