@@ -276,7 +276,7 @@ check_for_updates = false
 ;admin_password = admin
 
 # default admin email, created on startup
-admin_email = k@phxi.net
+admin_email = admin@localhost
 
 # used for signing
 secret_key = {{ grafana_config_secret_key }}
@@ -563,8 +563,8 @@ disable_login_form = true
 ;azure_auth_enabled = false
 
 # Use email lookup in addition to the unique ID provided by the IdP
-;oauth_allow_insecure_email_lookup = false
-oauth_allow_insecure_email_lookup = true
+;oauth_allow_insecure_email_lookup = true
+oauth_allow_insecure_email_lookup = false
 
 # Set to true to include id of identity as a response header
 ;id_response_header_enabled = false
@@ -746,13 +746,14 @@ api_url = https://{{ okta_oidc_issuer_domain }}/oauth2/v1/userinfo
 ; org_attribute_path =
 ; org_mapping =
 ;allow_assign_grafana_admin = false
-;skip_org_role_sync = false
+skip_org_role_sync = false
 ;tls_skip_verify_insecure = false
 ;tls_client_cert =
 ;tls_client_key =
 ;tls_client_ca =
 use_pkce = true
 use_refresh_token = true
+role_attribute_path = contains(groups[*], 'Grafana Admins') && 'Admin' || contains(groups[*], 'Observability Admins') && 'Admin' || contains(groups[*], 'Grafana Users') && 'Viewer' || 'Viewer'
 
 #################################### Okta OAuth (dist) #######################
 #[auth.okta]
