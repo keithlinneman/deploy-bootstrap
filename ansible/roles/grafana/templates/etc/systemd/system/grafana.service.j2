@@ -1,0 +1,25 @@
+[Unit]
+Description=Grafana handles visualizations for prometheus metrics, loki logs, pyroscope traces, and tempo traces
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ grafana_system_user }}
+User={{ grafana_system_user }}
+Group={{ grafana_system_user }}
+#ExecStart=/home/{{ grafana_system_user }}/bin/grafana --config.file=/home/{{ grafana_system_user }}/conf/grafana.yml --cluster.peer={{ grafana_cluster_peers[ansible_ec2_instance_identity_document_availabilityzone] }} --storage.path /home/{{ grafana_system_user}}/data
+#ExecStop=/home/{{ grafana_system_user }}/bin/grafana --remove-pidfile
+ExecStart=/home/{{ grafana_system_user }}/bin/grafana
+StandardOutput=append:/var/log/{{ grafana_systemd_service_name }}.log
+StandardError=append:/var/log/{{ grafana_systemd_service_name }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+#Environment=LOG_DIR="/home/{{ grafana_system_user }}/logs/"
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

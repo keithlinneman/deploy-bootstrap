@@ -90,7 +90,8 @@
 
    handlers:
      - name: restart grafana service
-       service:
+       systemd:
          name: "{{ grafana_systemd_service_name }}"
          state: restarted
          enabled: true
+         daemon_reload: true
