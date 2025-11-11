@@ -1,0 +1,2 @@
+---
+  otel_collector_systemd_service_name: otel_collector

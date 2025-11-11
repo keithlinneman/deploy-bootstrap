@@ -1,0 +1,278 @@
+extensions:
+  health_check:
+  pprof:
+  zpages:
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:4317
+      http:
+        endpoint: 127.0.0.1:4318
+
+  journald:
+    directory: /var/log/journal
+    start_at: end
+
+  filelog/cloudinit_output:
+    include:
+      - /var/log/cloud-init-output.log
+    start_at: beginning
+    include_file_path: true
+    include_file_name: true
+    operators:
+      - type: move
+        from: body
+        to: attributes.message
+
+      - type: router
+        routes:
+          - output: error_detected
+            expr: body matches "(?i)error"
+          - output: normal
+            expr: "true"
+
+      - id: error_detected
+        type: add
+        field: attributes.log.level
+        value: error
+
+      - id: error_detected_copy
+        type: copy
+        from: attributes.log.level
+        to: attributes.level
+
+      - id: normal
+        type: add
+        field: attributes.log.level
+        value: info
+
+      - id: normal_copy
+        type: copy
+        from: attributes.log.level
+        to: attributes.level
+
+      - type: add
+        field: attributes.log_format
+        value: plaintext
+      - type: add
+        field: attributes.log_source
+        value: filelog
+      - type: add
+        field: attributes.source_type
+        value: cloud-init
+      - type: add
+        field: attributes.service.name
+        value: cloud-init
+      - type: copy
+        from: attributes.service.name
+        to: attributes.service_name
+      - type: move
+        from: attributes.message
+        to: body
+
+  filelog/apt_logs:
+    include:
+      - /var/log/apt/*.log
+      - /var/log/dpkg.log
+    start_at: end
+    include_file_path: true
+    include_file_name: true
+    operators:
+      - type: move
+        from: body
+        to: attributes.message
+
+      - type: router
+        routes:
+          - output: error_detected
+            expr: body matches "(?i)error"
+          - output: warning_detected
+            expr: body matches "(?i)warn"
+          - output: normal
+            expr: "true"
+
+      - id: error_detected
+        type: add
+        field: attributes.log.level
+        value: error
+
+      - id: warning_detected
+        type: add
+        field: attributes.log.level
+        value: warn
+
+      - id: normal
+        type: add
+        field: attributes.log.level
+        value: info
+
+      - type: copy
+        from: attributes.log.level
+        to: attributes.level
+
+      - type: add
+        field: attributes.log_format
+        value: plaintext
+      - type: add
+        field: attributes.log_source
+        value: filelog
+      - type: add
+        field: attributes.source_type
+        value: system-update
+      - type: add
+        field: attributes.service.name
+        value: apt
+      - type: copy
+        from: attributes.service.name
+        to: attributes.service_name
+      - type: move
+        from: attributes.message
+        to: body
+
+  #filelog/aide:
+  #  include:
+  #    - /var/log/aide/aide.log
+  #  start_at: end
+  #  poll_interval: 5s
+  #  include_file_path: true
+  #  operators:
+  #    - type: multiline
+  #      match_type: after
+  #      pattern: '^(aide run|End of AIDE|\*{5,}|Fatal error:|AIDE produced|AIDE detected)'
+  #    - type: add_attributes
+  #      attributes:
+  #        log_format: aide
+  #        filename: '${file.name}'
+
+processors:
+  resource/system_metadata:
+    attributes:
+      - key: instance_id
+        value: {{ ansible_board_asset_tag }}
+        action: upsert
+      - key: instance
+        value: {{ hostname_no_instanceid }}
+        action: upsert
+      - key: env
+        value: {{ platform_env }}
+        action: upsert
+      - key: app_name
+        value: {{ app_name }}
+        action: upsert
+      - key: app_role
+        value: {{ app_role }}
+        action: upsert
+      - key: project
+        value: {{ project }}
+        action: upsert
+
+  transform/extract_journald_body:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["log.level"], body["PRIORITY"])
+          - set(attributes["service.name"], body["_SYSTEMD_UNIT"])
+          - set(attributes["service_name"], attributes["service.name"])
+          - set(attributes["exe"], body["_EXE"])
+          - set(attributes["cmdline"], body["_CMDLINE"])
+          - set(attributes["app_name"], body["SYSLOG_IDENTIFIER"])
+          - set(attributes["log_format"], "journald")
+          - set(attributes["log_source"], "journald")
+          - set(attributes["source_type"], "system")
+          - set(body, body["MESSAGE"])
+
+  transform/map_log_level:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["log.level"], "emergency") where attributes["log.level"] == "0"
+          - set(attributes["log.level"], "alert")     where attributes["log.level"] == "1"
+          - set(attributes["log.level"], "critical")  where attributes["log.level"] == "2"
+          - set(attributes["log.level"], "error")     where attributes["log.level"] == "3"
+          - set(attributes["log.level"], "warning")   where attributes["log.level"] == "4"
+          - set(attributes["log.level"], "notice")    where attributes["log.level"] == "5"
+          - set(attributes["log.level"], "info")      where attributes["log.level"] == "6"
+          - set(attributes["log.level"], "debug")     where attributes["log.level"] == "7"
+          - set(attributes["level"], attributes["log.level"])
+
+  transform/normalize_log_level:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["log.level"], "warn") where attributes["log.level"] == "warning"
+          - set(attributes["log.level"], "info") where attributes["log.level"] == "notice"
+          - set(attributes["level"], attributes["log.level"])
+
+  transform/clean_service_name:
+    log_statements:
+      - context: log
+        statements:
+          - replace_pattern(attributes["service_name"], "@.*", "")
+          - replace_pattern(attributes["service_name"], ".service$", "")
+          - replace_pattern(attributes["service_name"], ".scope$", "")
+          - replace_pattern(attributes["service_name"], ".slice\d+$", "")
+
+  batch:
+
+exporters:
+  otlphttp/loki:
+    endpoint: "{{ loki_ingestion_endpoint }}"
+    headers:
+      X-Scope-OrgID: "{{ loki_tenant_name }}"
+    tls:
+      insecure: false
+
+  otlphttp/tempo:
+    endpoint: "{{ tempo_ingestion_endpoint }}"
+    headers:
+      X-Scope-OrgID: "{{ loki_tenant_name }}"
+    tls:
+      insecure: false
+
+  debug:
+    verbosity: detailed
+
+service:
+  extensions:
+    - health_check
+    - pprof
+    - zpages
+
+  pipelines:
+    logs:
+      receivers:
+        - journald
+      processors:
+        - resource/system_metadata
+        - transform/extract_journald_body
+        - transform/map_log_level
+        - transform/normalize_log_level
+        - transform/clean_service_name
+        - batch
+      exporters:
+        - otlphttp/loki
+        #- debug
+
+    logs/cloudinit_output:
+      receivers:
+        - filelog/cloudinit_output
+      processors:
+        - resource/system_metadata
+        - transform/normalize_log_level
+        - batch
+      exporters:
+        - otlphttp/loki
+        #- debug
+
+    logs/apt_logs:
+      receivers:
+        - filelog/apt_logs
+      processors:
+        - resource/system_metadata
+        - transform/normalize_log_level
+        - batch
+      exporters:
+        - otlphttp/loki
+        #- debug

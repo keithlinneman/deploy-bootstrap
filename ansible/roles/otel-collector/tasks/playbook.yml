@@ -1,0 +1,147 @@
+---
+ - name: otel-collector playbook
+   hosts: all
+   become: true
+   vars_files:
+     - ../vars/default.yml
+     - ../vars/{{ ansible_os_family }}.yml
+
+   tasks:
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
+
+     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+       set_fact:
+         hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         app_name: "{{ ansible_env.APPNAME | default('unknown') }}"
+         app_role: "{{ ansible_env.APPROLE | default('unknown') }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
+       when: vars[item] is not defined or vars[item] is none
+       with_items:
+         - platform_env
+         - app_name
+         - app_role
+         - project
+         - hostname_no_instanceid
+
+     - name: Create otel user
+       user:
+         name: "{{ otel_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Create otel directories
+       file:
+         path: /home/{{ otel_system_user }}/{{ item }}
+         owner: "{{ otel_system_user }}"
+         group: "{{ otel_system_user }}"
+         mode: 0750
+         state: directory
+       with_items:
+         - bin
+         - conf
+         - conf.d
+
+     # moved to tagged release versions to avoid 'latest' frequently being broken for otel-contrib
+     #- name: Get latest otel_collector release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest
+     #    return_content: yes
+     #  register: otel_collector_release_info
+
+     #- name: Set release tag fact
+     #  set_fact:
+     #    otel_collector_release_tag: "{{ otel_collector_release_info.json.tag_name }}"
+
+     #- name: Fail if otel_collector_release_tag asset not found
+     #  fail:
+     #    msg: "No asset found github latest release response"
+     #  when: otel_collector_release_tag is not defined
+
+     - name: Set filename based on architecture
+       set_fact:
+         otelcollector_asset_url: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{ otel_collector_release_tag }}/otelcol-contrib_{{ otel_collector_release_tag[1:] }}_linux_arm64.tar.gz
+           {%- else -%}
+           https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{ otel_collector_release_tag }}/otelcol-contrib_{{ otel_collector_release_tag[1:] }}_linux_amd64.tar.gz
+           {%- endif -%}
+
+     - name: Download the latest otel_collector release from github
+       get_url:
+         url: "{{ otelcollector_asset_url }}"
+         dest: /home/{{ otel_system_user }}/otel_collector.tar.gz
+       register: download_result
+       retries: 5
+       delay: 10
+       until: download_result is succeeded
+
+     - name: Decompress otel_collector installation package
+       unarchive:
+         src: /home/{{ otel_system_user }}/otel_collector.tar.gz
+         dest: /home/{{ otel_system_user }}/bin
+         extra_opts: ['--show-stored-names']
+         include: "otelcol-contrib"
+         owner: "{{ otel_system_user }}"
+         group: "{{ otel_system_user }}"
+         mode: 0750
+         creates: /home/{{ otel_system_user }}/bin/otelcol-contrib
+
+     - name: Remove the otel_collector package
+       file:
+         path: /home/{{ otel_system_user }}/otel_collector.tar.gz
+         state: absent
+
+     - name: Create otel_collector configuration
+       template:
+         src: ../templates/otel/conf/collector.yaml.j2
+         dest: /home/{{ otel_system_user }}/conf/collector.yaml
+         mode: 0644
+       notify: restart otel_collector service
+
+     - name: Create otel_collector systemd service
+       template:
+         src: ../templates/etc/systemd/system/{{ otel_collector_systemd_service_name }}.service.j2
+         dest: /etc/systemd/system/{{ otel_collector_systemd_service_name }}.service
+         owner: "{{ otel_system_user }}"
+         group: "{{ otel_system_user }}"
+         mode: 0644
+       notify: reload systemd daemon configurations
+
+     - name: Run handlers immediately to refresh systemd daemon configuration
+       meta: flush_handlers
+
+     - name: Enable otel_collector systemd service
+       service:
+         name: "{{ otel_collector_systemd_service_name }}"
+         state: started
+         enabled: true
+
+     - name: Allow otel_collector traffic through firewall
+       ufw:
+         port: "{{ item.value }}"
+         proto: tcp
+         rule: allow
+       loop: "{{ otel_collector_tcp_ports | dict2items }}"
+       when: ansible_distribution == 'Ubuntu'
+
+   handlers:
+     - name: restart otel_collector service
+       service:
+         name: "{{ otel_collector_systemd_service_name }}"
+         state: restarted
+         enabled: true
+
+     - name: reload systemd daemon configurations
+       command: systemctl daemon-reload
