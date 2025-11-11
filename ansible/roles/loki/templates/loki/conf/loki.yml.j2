@@ -1,0 +1,481 @@
+target: {{ loki_role }}
+auth_enabled: true
+#multitenancy_enabled: true
+#usage_stats:
+#  enabled: false
+
+common:
+  path_prefix: /home/{{ loki_system_user }}/data
+  replication_factor: {{ loki_replication_factor }}
+  ring:
+    kvstore:
+      store: memberlist
+      prefix: "loki/"
+    #instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+    #unregister_on_shutdown: true
+  storage:
+    s3:
+      region: {{ ansible_ec2_instance_identity_document_region }}
+      bucketnames: {{ monitoring_s3_bucket_name }}
+      endpoint: s3.amazonaws.com
+  compactor_grpc_address: loki-compactor-2a.{{ hosted_zone_name }}:9095,loki-compactor-2b.{{ hosted_zone_name }}:9095,loki-compactor-2c.{{ hosted_zone_name }}:9095
+
+server:
+  grpc_listen_port: {{ loki_grpc_tcp_port }}
+  grpc_server_keepalive_time: 5m
+  http_listen_port: {{ loki_http_tcp_port }}
+  log_format: json
+  #log_format: logfmt
+  log_level: info
+  register_instrumentation: true
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /home/{{ loki_system_user }}/data/index
+    cache_location: /home/{{ loki_system_user }}/data/index_cache
+  object_prefix: loki
+  aws:
+    s3: s3://{{ monitoring_s3_bucket_name }}/loki
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    endpoint: s3.amazonaws.com
+
+distributor:
+  #ring:
+  #  kvstore:
+  #    store: memberlist
+  #    prefix: "loki/"
+  #  #instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+  #  #unregister_on_shutdown: true
+  rate_store:
+    max_request_parallelism: 200
+    stream_rate_update_interval: 1s
+    ingester_request_timeout: 500ms
+    debug: false
+  write_failures_logging:
+    rate: 1kb
+    add_insights_label: true
+  # will test soon
+  kafka_writes_enabled: false
+  ingester_writes_enabled: true
+  otlp_config:
+    default_resource_attributes_as_index_labels:
+      - app_name
+      - app.name
+      - app_role
+      - app.role
+      - env
+      - instance
+      - instance_id
+      - project
+
+query_scheduler:
+  #max_outstanding_requests_per_tenant: 32000
+  grpc_client_config:
+    grpc_compression: snappy
+  use_scheduler_ring: true
+  scheduler_ring:
+    kvstore:
+      store: memberlist
+      prefix: "loki/"
+
+querier:
+  tail_max_duration: 1h
+  query_ingesters_within: 3h
+  engine:
+    # for instant queries only
+    max_look_back_period: 30s
+    max_count_min_sketch_heap_size: 10000
+  max_concurrent: 4
+  query_store_only: false
+  query_ingester_only: false
+  multi_tenant_queries_enabled: true
+  per_request_limits_enabled: false
+  query_partition_ingesters: false
+
+block_builder:
+  #concurrent_flushes: 1
+  # will default to number of cpus
+  #concurrent_writers: 1  
+  chunk_block_size: 256KB
+  chunk_target_size: 1536KB
+  chunk_encoding: snappy
+  max_chunk_age: 2h
+  # frequency of sync with scheduler
+  sync_interval: 30s
+  poll_interval: 30s
+  # use the ring for this until i migrate to cloudmap
+  #scheduler_address: loki-query-scheduler-2a.{{ hosted_zone_name }}:9095,loki-query-scheduler-2b.{{ hosted_zone_name }}:9095,loki-query-scheduler-2c.{{ hosted_zone_name }}:9095
+  scheduler_grpc_client_config:
+    grpc_compression: snappy
+  #  max_send_msg_size: 104857600
+  #  max_recv_msg_size: 104857600
+
+block_scheduler:
+  interval: 15m
+  strategy: record-count
+  target_record_count: 1000
+  job_queue:
+    lease_expiry_check_interval: 1m
+    lease_duration: 10m
+
+index_gateway:
+  # using simple to increase query performance while index size is small so every server has the full index
+  # when memory maxes out and/or we start seeing the rate of s3 requests increase and/or we see the cache hit rate decrease we can move to ring
+  mode: simple
+  ring:
+    kvstore:
+      store: memberlist
+      prefix: "loki/"
+
+compactor_grpc_client:
+  grpc_compression: snappy
+  #max_send_msg_size: 104857600
+  #max_recv_msg_size: 104857600
+
+frontend_worker:
+  # use the ring for this until i migrate to cloudmap
+  #loki-query-scheduler-2a.{{ hosted_zone_name }}:9095,loki-query-scheduler-2b.{{ hosted_zone_name }}:9095,loki-query-scheduler-2c.{{ hosted_zone_name }}:9095 dns_lookup_duration: 3s
+  dns_lookup_duration: 5s
+  #grpc_client_config:
+  #  grpc_compression: snappy
+  query_frontend_grpc_client:
+    grpc_compression: snappy
+  query_scheduler_grpc_client:
+    grpc_compression: snappy
+
+
+memberlist:
+  compression_enabled: true
+  cluster_label: loki
+  join_members:
+    - loki-compactor-2a.{{ hosted_zone_name }}
+    - loki-compactor-2b.{{ hosted_zone_name }}
+    - loki-compactor-2c.{{ hosted_zone_name }}
+    - loki-distributor-2a.{{ hosted_zone_name }}
+    - loki-distributor-2b.{{ hosted_zone_name }}
+    - loki-distributor-2c.{{ hosted_zone_name }}
+    - loki-ingester-2a.{{ hosted_zone_name }}
+    - loki-ingester-2b.{{ hosted_zone_name }}
+    - loki-ingester-2c.{{ hosted_zone_name }}
+    - loki-querier-2a.{{ hosted_zone_name }}
+    - loki-querier-2b.{{ hosted_zone_name }}
+    - loki-querier-2c.{{ hosted_zone_name }}
+    - loki-query-frontend-2a.{{ hosted_zone_name }}
+    - loki-query-frontend-2b.{{ hosted_zone_name }}
+    - loki-query-frontend-2c.{{ hosted_zone_name }}
+    - loki-query-scheduler-2a.{{ hosted_zone_name }}
+    - loki-query-scheduler-2b.{{ hosted_zone_name }}
+    - loki-query-scheduler-2c.{{ hosted_zone_name }}
+    - loki-index-gateway-2a.{{ hosted_zone_name }}
+    - loki-index-gateway-2b.{{ hosted_zone_name }}
+    - loki-index-gateway-2c.{{ hosted_zone_name }}
+  bind_port: 7946
+  abort_if_cluster_join_fails: true
+  # set to large number for debugging
+  message_history_buffer_bytes: 0
+
+#kafka_config:
+#  address: "kafka-b-2a.{{ hosted_zone_name }}:9092,kafka-b-2b.{{ hosted_zone_name }}:9092,kafka-b-2c.{{ hosted_zone_name }}:9092"
+#  topic: monitoring-logs
+#  consumer_group: loki-prod
+#  #producer_max_record_size_bytes: 15983616
+#  # they strongly recommend not changing this for some reason but im not sure the impact from what i have seen
+#  # production kafka has a 15mb max message size currently
+#  producer_max_record_size_bytes: 14000000
+
+tracing:
+  enabled: false
+
+analytics:
+  reporting_enabled: false
+
+#profiling:
+  #block_profile_rate: 
+  #cpu_profile_rate:
+  #mutex_profile_fraction:
+
+limits_config:
+  reject_old_samples: true
+  reject_old_samples_max_age: 24h
+  creation_grace_period: 10m
+  #max_query_lookback: 720h
+  # per-user limit in MB of samples per second, not limiting much here
+  ingestion_rate_mb: 100
+  ingestion_burst_size_mb: 300
+  max_label_name_length: 1024
+  max_label_value_length: 2048
+  #max_label_names_per_series: 15
+  max_label_names_per_series: 25
+  # logs over this size will be rejected
+  max_line_size: 256KB
+  # 3/19/25 - rejected instead of truncating logs that may lead to strange issues down the line when querying the data but this is better than silently dropping logs that may contain critical errors
+  max_line_size_truncate: true
+  discover_generic_fields:
+    fields:
+    # resource/system level attrbutes 
+      json:
+        - app_name
+        - cmd_name
+        - service_name
+        - instance
+        - instance_id
+        - project
+        - env
+        - namespace
+        - source_type
+        - component
+        - subsystem
+        - role
+        - deployment
+        - version
+        # logging level
+        - level
+        - log_level
+        - detected_level
+        - severity
+        - severity_text
+        # tracing/correlation
+        - trace_id
+        - span_id
+        - parent_id
+        - request_id
+        - correlation_id
+        # http logs
+        - http_method
+        - http_path
+        - http_status
+        - status_code
+        - url
+        - route
+        - client_ip
+        - user_agent
+        - duration_ms
+        - latency_ms
+        # filelog / journald specific
+        - filename
+        - file_path
+        - systemd_unit
+        - exe
+        - cmdline
+        - log_source
+        - log_format
+        # processing info
+        - truncated
+        - dropped
+        - retries
+        # queues/events
+        - event_type
+        - topic
+        - partition
+        - offset
+        - key
+        # container/runtime
+        - container_name
+        - pod_name
+        - image
+        - host
+      logfmt:
+        - app_name
+        - cmd_name
+        - service_name
+        - instance
+        - instance_id
+        - project
+        - env
+        - namespace
+        - source_type
+        - component
+        - subsystem
+        - role
+        - deployment
+        - version
+        # logging level
+        - level
+        - log_level
+        - detected_level
+        - severity
+        - severity_text
+        # tracing/correlation
+        - trace_id
+        - span_id
+        - parent_id
+        - request_id
+        - correlation_id
+        # http logs
+        - http_method
+        - http_path
+        - http_status
+        - status_code
+        - url
+        - route
+        - client_ip
+        - user_agent
+        - duration_ms
+        - latency_ms
+        # filelog / journald specific
+        - filename
+        - file_path
+        - systemd_unit
+        - exe
+        - cmdline
+        - log_source
+        - log_format
+        # processing info
+        - truncated
+        - dropped
+        - retries
+        # queues/events
+        - event_type
+        - topic
+        - partition
+        - offset
+        - key
+        # container/runtime
+        - container_name
+        - pod_name
+        - image
+        - host
+      metadata:
+        - app_name
+        - cmd_name
+        - service_name
+        - instance
+        - instance_id
+        - project
+        - env
+        - namespace
+        - source_type
+        - component
+        - subsystem
+        - role
+        - deployment
+        - version
+        # container/runtime
+        - container_name
+        - pod_name
+        - image
+        - host
+  max_query_length: 366d
+  max_concurrent_tail_requests: 10
+  max_entries_limit_per_query: 5000
+  max_cache_freshness_per_query: 10m
+  max_metadata_cache_freshness: 1d
+  query_timeout: 1m
+  ruler_remote_write_disabled: false
+  retention_period: 366d
+  otlp_config:
+    resource_attributes:
+      ignore_defaults: false
+      attributes_config:
+        - action: index_label
+          #regex: "^(app_name|app_role|env|instance|instance_id|project)$"
+          regex: ".*"
+    scope_attributes:
+      - action: structured_metadata
+        #regex: "^(instrumentation_scope_name|instrumentation_scope_version)$"
+        regex: ".*"
+    log_attributes:
+      - action: structured_metadata
+        #regex: "^(cmdline|cmd_name|detected_level|file_path|filename|level|log_format|log_level|log_source|source_type|service_name|service_name_extracted|systemd_unit)$"
+        regex: ".*"
+  metric_aggregation_enabled: true
+
+query_range:
+  cache_results: true
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 512
+
+frontend:
+  compress_responses: true
+  log_queries_longer_than: 5s
+  max_outstanding_per_tenant: 2048
+  query_stats_enabled: true
+  #scheduler_address: scheduler-2a.{{ hosted_zone_name }}
+  # if this doesnt work i need to use cloudmap so it can find the real ips not a load balancer
+  # this format works elsewhere but not specifically mentioned in docs here
+  # use the ring for this until i migrate to cloudmap
+  #scheduler_address: loki-query-scheduler-2a.{{ hosted_zone_name }}:9095,loki-query-scheduler-2b.{{ hosted_zone_name }}:9095,loki-query-scheduler-2c.{{ hosted_zone_name }}:9095
+  scheduler_dns_lookup_period: 10s
+  grpc_client_config:
+    grpc_compression: snappy
+  # need to test protobuf encoding - this is for scheduler <-> querier messages
+  encoding: protobuf
+  #downstream_url: "https://loki.{{ hosted_zone_name }}/"
+
+ingester:
+  lifecycler:
+    join_after: 15s
+    #ring:
+    #  kvstore:
+    #    store: memberlist
+    #  replication_factor: {{ loki_replication_factor }}
+  chunk_idle_period: 30m
+  chunk_retain_period: 30s
+  max_chunk_age: 30m
+  chunk_target_size: 2097152
+  chunk_encoding: snappy
+
+compactor:
+  working_directory: /home/{{ loki_system_user }}/data/compactor
+  compaction_interval: 10m
+  retention_delete_delay: 24h
+  compactor_ring:
+    kvstore:
+      store: memberlist
+      prefix: "loki-collectors/"
+    zone_awareness_enabled: true
+    instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+
+#table_manager:
+#  retention_deletes_enabled: true
+#  retention_period: 366d
+
+ruler_storage:
+  backend: s3
+
+ingester_client:
+  pool_config:
+    client_cleanup_period: 15s
+    health_check_ingesters: true
+    remote_timeout: 1s
+  remote_timeout: 5s
+  grpc_client_config:
+    grpc_compression: snappy
+
+ruler:
+  storage:
+    type: local
+    local:
+     directory: /home/{{ loki_system_user }}/conf/rules
+  alertmanager_url: https://alertmanager.{{ hosted_zone_name }}/
+  enable_api: true
+  external_labels:
+    monitor: loki-{{ env }}-ha
+
+#ruler:
+#  storage:
+#    type: local
+#    local:
+#     directory: /home/{{ loki_system_user }}/conf/rules
+#  alertmanager_url: https://alertmanager.{{ hosted_zone_name }}:9093
+#  enable_api: true
+#  external_labels:
+#    monitor: loki-{{ env }}-ha
+#  ruler_client:
+#    grpc_compression: snappy
+#  evaluation_interval: 30s
+#  #external_url: https://grafana.{{ hosted_zone_name }}/
+#  #datasource_uid: 

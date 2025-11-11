@@ -1,0 +1,4 @@
+---
+  loki_system_filename:
+    aarch64: loki-linux-arm64
+    x86_64: loki-linux-amd64

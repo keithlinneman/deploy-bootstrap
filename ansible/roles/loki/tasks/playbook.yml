@@ -1,0 +1,162 @@
+---
+ - name: loki playbook
+   hosts: all
+   become: true
+   vars_files:
+     - ../vars/default.yml
+     - ../vars/{{ ansible_os_family }}.yml
+   vars:
+     loki_role: "{{ lookup('env', 'LOKIROLE') }}"
+
+   tasks:
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
+
+     - name: Exit with failure if no loki role is defined
+       fail:
+         msg: No ansible roles found in ENV var LOKIROLE (expected one of 'distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'index-gateway', 'compactor', 'ruler')
+       when: loki_role not in ['distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'index-gateway', 'compactor', 'ruler']
+
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value"
+       when: (lookup('vars', item, default=None)) is none
+       with_items:
+         - env
+         - loki_role
+
+     - name: Get latest Loki release info from github
+       uri:
+         url: https://api.github.com/repos/grafana/loki/releases/latest
+         return_content: yes
+       register: release_info
+
+     - name: Set release tag fact
+       set_fact:
+         release_tag: "{{ release_info.json.tag_name }}"
+
+     - name: Set filename based on architecture
+       set_fact:
+         loki_filename: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           loki-linux-arm64.zip
+           {%- else -%}
+           loki-linux-amd64.zip
+           {%- endif -%}
+
+     - name: Find asset URL from release assets based on architecture
+       set_fact:
+         asset_url: "{{ item.browser_download_url }}"
+       loop: "{{ release_info.json.assets }}"
+       when: "loki_filename in item.name"
+
+     - name: Fail if asset not found for our architecture
+       fail:
+         msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
+       when: asset_url is not defined
+
+     - name: Create loki user
+       user:
+         name: "{{ loki_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Download the latest Loki release from github ({{ asset_url }})
+       get_url:
+         url: "{{ asset_url }}"
+         dest: /home/{{ loki_system_user }}/loki.zip
+
+     - name: Create loki bin, conf, data directories
+       file:
+         path: /home/{{ loki_system_user }}/{{ item }}
+         owner: "{{ loki_system_user }}"
+         group: "{{ loki_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - conf
+         - conf/rules
+         - data
+         - data/chunks
+         - data/index
+         - data/index_cache
+         - data/compactor
+
+     - name: Decompress loki installation package
+       unarchive:
+         src: /home/{{ loki_system_user }}/loki.zip
+         dest: /home/{{ loki_system_user }}/bin
+         #extra_opts: ['--strip-components=1','--show-stored-names']
+         owner: "{{ loki_system_user }}"
+         group: "{{ loki_system_user }}"
+         mode: 0750
+         creates: /home/{{ loki_system_user }}/bin/loki
+
+     - name: Remove the loki installation package
+       file:
+         path: /home/{{ loki_system_user }}/loki.zip
+         state: absent
+
+     - name: Create loki systemd service
+       template:
+         src: ../templates/etc/systemd/system/loki.service.j2
+         dest: /etc/systemd/system/{{ loki_systemd_service_name[loki_role] }}.service
+         mode: 0644
+
+     - name: Modify loki main configuration
+       template:
+         src: ../templates/loki/conf/loki.yml.j2
+         dest: /home/{{ loki_system_user }}/conf/loki.yml
+         mode: 0644
+       when: ansible_os_family == 'Debian'
+       notify: restart loki service
+
+     - name: Enable {{ loki_systemd_service_name[loki_role] }} systemd service
+       service:
+         name: "{{ loki_systemd_service_name[loki_role] }}"
+         state: started
+         enabled: true
+
+     - name: Allow loki http traffic through firewall
+       ufw:
+         port: "{{ loki_http_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow loki grpc traffic through firewall
+       ufw:
+         port: "{{ loki_grpc_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow loki cluster memberlist tcp traffic through firewall
+       ufw:
+         port: "{{ loki_cluster_memberlist_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow loki cluster memberlist udp traffic through firewall
+       ufw:
+         port: "{{ loki_cluster_memberlist_udp_port }}"
+         proto: udp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+   handlers:
+     - name: restart loki service
+       systemd:
+         name: "{{ loki_systemd_service_name[loki_role] }}"
+         state: restarted
+         enabled: true
+         daemon_reload: true

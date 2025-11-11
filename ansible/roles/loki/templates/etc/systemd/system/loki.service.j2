@@ -1,0 +1,24 @@
+[Unit]
+Description=Loki log storage platform for integration with Prometheus and Grafana
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ loki_system_user }}
+User={{ loki_system_user }}
+Group={{ loki_system_user }}
+ExecStart=/home/{{ loki_system_user }}/bin/{{ loki_system_filename[ansible_architecture] }} --config.file=/home/{{ loki_system_user }}/conf/loki.yml
+#ExecStop=
+StandardOutput=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
+StandardError=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+#Environment=LOG_DIR="/home/{{ loki_system_user }}/logs/"
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
