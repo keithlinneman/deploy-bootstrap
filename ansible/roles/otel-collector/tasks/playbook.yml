@@ -12,6 +12,9 @@
          var: hostvars[inventory_hostname]
          verbosity: 2
 
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
      - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
        set_fact:
          hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
