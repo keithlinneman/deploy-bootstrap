@@ -16,7 +16,7 @@ common:
   storage:
     s3:
       region: {{ ansible_ec2_instance_identity_document_region }}
-      bucketnames: {{ monitoring_s3_bucket_name }}
+      bucketnames: {{ loki_s3_bucket_name }}
       endpoint: s3.amazonaws.com
   compactor_grpc_address: loki-compactor-2a.{{ hosted_zone_name }}:9095,loki-compactor-2b.{{ hosted_zone_name }}:9095,loki-compactor-2c.{{ hosted_zone_name }}:9095
 
@@ -45,7 +45,7 @@ storage_config:
     cache_location: /home/{{ loki_system_user }}/data/index_cache
   object_prefix: loki
   aws:
-    s3: s3://{{ monitoring_s3_bucket_name }}/loki
+    s3: s3://{{ loki_s3_bucket_name }}/loki
     region: {{ ansible_ec2_instance_identity_document_region }}
     endpoint: s3.amazonaws.com
 
