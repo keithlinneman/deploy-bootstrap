@@ -2,7 +2,6 @@
   company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
   loki_ingestion_endpoint: https://loki-distributor.{{ hosted_zone_name }}:443/otlp/
-  loki_ingestion_endpoint: https://tempo-distributor.{{ hosted_zone_name }}:443/otlp/
   loki_tenant_name: "{{ company_name }}-{{ platform_env }}"
   otel_system_user: otel
   otel_collector_configs_baseline: >
