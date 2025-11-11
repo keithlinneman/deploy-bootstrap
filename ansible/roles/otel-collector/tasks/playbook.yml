@@ -120,16 +120,13 @@
          owner: "{{ otel_system_user }}"
          group: "{{ otel_system_user }}"
          mode: 0644
-       notify: reload systemd daemon configurations
 
-     - name: Run handlers immediately to refresh systemd daemon configuration
-       meta: flush_handlers
-
-     - name: Enable otel_collector systemd service
-       service:
-         name: "{{ otel_collector_systemd_service_name }}"
-         state: started
-         enabled: true
+     # let systemd service task do this to avoid daemon-reload warnings
+     #- name: Enable otel_collector systemd service
+     #  service:
+     #    name: "{{ otel_collector_systemd_service_name }}"
+     #    state: started
+     #    enabled: true
 
      - name: Allow otel_collector traffic through firewall
        ufw:
@@ -141,10 +138,8 @@
 
    handlers:
      - name: restart otel_collector service
-       service:
+       systemd:
          name: "{{ otel_collector_systemd_service_name }}"
          state: restarted
          enabled: true
-
-     - name: reload systemd daemon configurations
-       command: systemctl daemon-reload
+         daemon_reload: true

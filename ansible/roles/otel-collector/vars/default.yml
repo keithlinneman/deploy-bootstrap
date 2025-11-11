@@ -17,3 +17,5 @@
     zpages: 55679
     healthcheck: 13133
   platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  tempo_ingestion_endpoint: https://tempo-distributor.{{ hosted_zone_name }}:443/otlp/
+  tempo_tenant_name: "{{ company_name }}-{{ platform_env }}"

@@ -210,9 +210,9 @@ processors:
       - context: log
         statements:
           - replace_pattern(attributes["service_name"], "@.*", "")
-          - replace_pattern(attributes["service_name"], ".service$", "")
-          - replace_pattern(attributes["service_name"], ".scope$", "")
-          - replace_pattern(attributes["service_name"], ".slice\d+$", "")
+          - replace_pattern(attributes["service_name"], "\\.service$", "")
+          - replace_pattern(attributes["service_name"], "\\.scope$", "")
+          - replace_pattern(attributes["service_name"], "\\.slice\\d+$", "")
 
   batch:
 
@@ -227,7 +227,7 @@ exporters:
   otlphttp/tempo:
     endpoint: "{{ tempo_ingestion_endpoint }}"
     headers:
-      X-Scope-OrgID: "{{ loki_tenant_name }}"
+      X-Scope-OrgID: "{{ tempo_tenant_name }}"
     tls:
       insecure: false
 
