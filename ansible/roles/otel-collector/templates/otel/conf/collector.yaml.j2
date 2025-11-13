@@ -4,6 +4,7 @@ extensions:
   zpages:
 
 receivers:
+  # Local OTLP endpoint (for apps that ship logs directly via OTLP)
   otlp:
     protocols:
       grpc:
@@ -11,18 +12,19 @@ receivers:
       http:
         endpoint: 127.0.0.1:4318
 
+  # Systemd/Journald
   journald:
     directory: /var/log/journal
     start_at: end
 
+  # Cloud-init one-off file
   filelog/cloudinit_output:
-    include:
-      - /var/log/cloud-init-output.log
+    include: [/var/log/cloud-init-output.log]
     start_at: beginning
     include_file_path: true
     include_file_name: true
     operators:
-      - type: move
+      - type: move     # body -> attributes.message, then we restore to body later
         from: body
         to: attributes.message
 
@@ -38,20 +40,10 @@ receivers:
         field: attributes.log.level
         value: error
 
-      - id: error_detected_copy
-        type: copy
-        from: attributes.log.level
-        to: attributes.level
-
       - id: normal
         type: add
         field: attributes.log.level
         value: info
-
-      - id: normal_copy
-        type: copy
-        from: attributes.log.level
-        to: attributes.level
 
       - type: add
         field: attributes.log_format
@@ -72,10 +64,9 @@ receivers:
         from: attributes.message
         to: body
 
+  # Apt/dpkg logs
   filelog/apt_logs:
-    include:
-      - /var/log/apt/*.log
-      - /var/log/dpkg.log
+    include: [/var/log/apt/*.log, /var/log/dpkg.log]
     start_at: end
     include_file_path: true
     include_file_name: true
@@ -87,9 +78,9 @@ receivers:
       - type: router
         routes:
           - output: error_detected
-            expr: body matches "(?i)error"
+            expr: body matches "(?i)\\berror\\b"
           - output: warning_detected
-            expr: body matches "(?i)warn"
+            expr: body matches "(?i)\\bwarn(ing)?\\b"
           - output: normal
             expr: "true"
 
@@ -107,10 +98,6 @@ receivers:
         type: add
         field: attributes.log.level
         value: info
-
-      - type: copy
-        from: attributes.log.level
-        to: attributes.level
 
       - type: add
         field: attributes.log_format
@@ -130,109 +117,121 @@ receivers:
       - type: move
         from: attributes.message
         to: body
-
-  #filelog/aide:
-  #  include:
-  #    - /var/log/aide/aide.log
-  #  start_at: end
-  #  poll_interval: 5s
-  #  include_file_path: true
-  #  operators:
-  #    - type: multiline
-  #      match_type: after
-  #      pattern: '^(aide run|End of AIDE|\*{5,}|Fatal error:|AIDE produced|AIDE detected)'
-  #    - type: add_attributes
-  #      attributes:
-  #        log_format: aide
-  #        filename: '${file.name}'
+  # syslog:
+  #   tcp:
+  #     listen_address: 0.0.0.0:5514
+  #   protocol: rfc5424
 
 processors:
+  # Discover cloud + host facts (EC2 hostname, cloud.region, host.id, etc.)
+  resourcedetection/ec2:
+    detectors: [ec2, system]
+    timeout: 2s
+    ec2:
+      tags: false
+
+  # Your static + templated metadata (resource attributes)
   resource/system_metadata:
     attributes:
-      - key: instance_id
-        value: {{ ansible_board_asset_tag }}
-        action: upsert
-      - key: instance
-        value: {{ hostname_no_instanceid }}
-        action: upsert
-      - key: env
-        value: {{ platform_env }}
-        action: upsert
-      - key: app_name
-        value: {{ app_name }}
-        action: upsert
-      - key: app_role
-        value: {{ app_role }}
-        action: upsert
-      - key: project
-        value: {{ project }}
-        action: upsert
-      - key: region
-        value: {{ ansible_ec2_instance_identity_document_region }}
-        action: upsert
+      - {key: host.id, value: {{ ansible_board_asset_tag }}, action: upsert}
+      - {key: host,    value: {{ hostname_no_instanceid }}, action: upsert}         # short host for labels
+      - {key: env,     value: {{ platform_env }}, action: upsert}
+      - {key: role,    value: {{ app_role }}, action: upsert}
+      - {key: project, value: {{ project }}, action: upsert}
+      - {key: region,  value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
 
-  transform/extract_journald_body:
+  # Tag the source at the resource-level per pipeline (labels come from resource)
+  resource/source_journald:
+    attributes:
+      - {key: source, value: journald, action: upsert}
+  resource/source_file:
+    attributes:
+      - {key: source, value: filelog, action: upsert}
+  # resource/source_syslog:
+  #   attributes:
+  #     - {key: source, value: syslog, action: upsert}
+
+  # --- Journald-specific extraction (pull fields BEFORE we replace body) ---
+  transform/journald_extract:
     log_statements:
-      - context: log
-        statements:
-          - set(attributes["log.level"], body["PRIORITY"])
-          - set(attributes["service.name"], body["_SYSTEMD_UNIT"])
-          - set(attributes["service_name"], attributes["service.name"])
-          - set(attributes["exe"], body["_EXE"])
-          - set(attributes["cmdline"], body["_CMDLINE"])
-          - set(attributes["host"],             body["_HOSTNAME"])
-          - set(attributes["app_name"], body["SYSLOG_IDENTIFIER"])
-          - set(attributes["log_format"], "journald")
-          - set(attributes["log_source"], "journald")
-          - set(attributes["source_type"], "system")
-          - set(body, body["MESSAGE"])
+      - set(attributes["journal.priority"], body["PRIORITY"])            where not IsNil(body["PRIORITY"])
+      - set(attributes["journal.unit"],     body["_SYSTEMD_UNIT"])       where not IsNil(body["_SYSTEMD_UNIT"])
+      - set(attributes["logger"],           body["SYSLOG_IDENTIFIER"])   where not IsNil(body["SYSLOG_IDENTIFIER"])
+      - set(attributes["exe"],              body["_EXE"])                where not IsNil(body["_EXE"])
+      - set(attributes["cmdline"],          body["_CMDLINE"])            where not IsNil(body["_CMDLINE"])
+      - set(body, body["MESSAGE"])                                       where not IsNil(body["MESSAGE"])
 
-          - set(attributes["journal.priority"], body["PRIORITY"])            where not IsNil(body["PRIORITY"])
-          - set(attributes["journal.unit"],     body["_SYSTEMD_UNIT"])       where not IsNil(body["_SYSTEMD_UNIT"])
-          - set(attributes["exe"],              body["_EXE"])                where not IsNil(body["_EXE"])
-          - set(attributes["cmdline"],          body["_CMDLINE"])            where not IsNil(body["_CMDLINE"])
-          - set(attributes["logger"],           body["SYSLOG_IDENTIFIER"])   where not IsNil(body["SYSLOG_IDENTIFIER"])
-          - set(attributes["log_format"],       "journald")
-          - set(attributes["log_source"],       "journald")
-          - set(attributes["source_type"],      "system")
-          - set(body, body["MESSAGE"])   
-
-
-
-  transform/map_log_level:
+  # Map journald PRIORITY -> severity_text/number (source of truth)
+  transform/severity_from_priority:
     log_statements:
-      - context: log
-        statements:
-          - set(attributes["log.level"], "emergency") where attributes["log.level"] == "0"
-          - set(attributes["log.level"], "alert")     where attributes["log.level"] == "1"
-          - set(attributes["log.level"], "critical")  where attributes["log.level"] == "2"
-          - set(attributes["log.level"], "error")     where attributes["log.level"] == "3"
-          - set(attributes["log.level"], "warning")   where attributes["log.level"] == "4"
-          - set(attributes["log.level"], "notice")    where attributes["log.level"] == "5"
-          - set(attributes["log.level"], "info")      where attributes["log.level"] == "6"
-          - set(attributes["log.level"], "debug")     where attributes["log.level"] == "7"
-          - set(attributes["level"], attributes["log.level"])
+      - set(severity_text,   "debug")  where attributes["journal.priority"] == "7"
+      - set(severity_number, 7)        where severity_text == "debug"
+      - set(severity_text,   "info")   where attributes["journal.priority"] in ["6","5"]
+      - set(severity_number, 9)        where severity_text == "info"
+      - set(severity_text,   "warn")   where attributes["journal.priority"] == "4"
+      - set(severity_number, 13)       where severity_text == "warn"
+      - set(severity_text,   "error")  where attributes["journal.priority"] in ["3","2"]
+      - set(severity_number, 17)       where severity_text == "error"
+      - set(severity_text,   "fatal")  where attributes["journal.priority"] in ["1","0"]
+      - set(severity_number, 24)       where severity_text == "fatal"
+      - set(attributes["level"], severity_text) where not IsNil(severity_text)
 
-  transform/normalize_log_level:
+  # Common level normalization for *any* source (filelog/syslog/OTLP)
+  transform/level_common:
     log_statements:
-      - context: log
-        statements:
-          - set(attributes["log.level"], "warn") where attributes["log.level"] == "warning"
-          - set(attributes["log.level"], "info") where attributes["log.level"] == "notice"
-          - set(attributes["level"], attributes["log.level"])
+      - set(attributes["log.level"], ToLower(attributes["log.level"])) where not IsNil(attributes["log.level"])
+      - set(attributes["level"],      ToLower(attributes["level"]))    where not IsNil(attributes["level"])
+      - set(attributes["level"], "warn") where attributes["level"] == "warning"
+      - set(attributes["level"], "info") where attributes["level"] == "notice"
+      - set(severity_text, attributes["level"]) where IsNil(severity_text) and not IsNil(attributes["level"])
+      - set(severity_number, 7)  where IsNil(severity_number) and severity_text == "debug"
+      - set(severity_number, 9)  where IsNil(severity_number) and severity_text == "info"
+      - set(severity_number, 13) where IsNil(severity_number) and severity_text == "warn"
+      - set(severity_number, 17) where IsNil(severity_number) and severity_text == "error"
+      - set(severity_number, 24) where IsNil(severity_number) and severity_text == "fatal"
 
-  transform/clean_service_name:
+  # Build a single canonical 'service' and clean suffixes; promote to resource.service.name
+  transform/service_canonical:
     log_statements:
-      - context: log
-        statements:
-          - replace_pattern(attributes["service_name"], "@.*", "")
-          - replace_pattern(attributes["service_name"], "\\.service$", "")
-          - replace_pattern(attributes["service_name"], "\\.scope$", "")
-          - replace_pattern(attributes["service_name"], "\\.slice\\d+$", "")
+      # precedence: extracted → existing service.name → systemd unit → logger
+      - set(attributes["service"], ToLower(attributes["service_name_extracted"])) where not IsNil(attributes["service_name_extracted"])
+      - set(attributes["service"], ToLower(attributes["service.name"]))           where IsNil(attributes["service"]) and not IsNil(attributes["service.name"])
+      - set(attributes["service"], ToLower(attributes["journal.unit"]))          where IsNil(attributes["service"]) and not IsNil(attributes["journal.unit"])
+      - set(attributes["service"], ToLower(attributes["logger"]))                where IsNil(attributes["service"]) and not IsNil(attributes["logger"])
+      # trim systemd suffixes
+      - set(attributes["service"], replace_pattern(attributes["service"], "\\.service$", "")) where not IsNil(attributes["service"])
+      - set(attributes["service"], replace_pattern(attributes["service"], "\\.scope$", ""))   where not IsNil(attributes["service"])
+      - set(attributes["service"], replace_pattern(attributes["service"], "\\.slice\\d+$", "")) where not IsNil(attributes["service"])
+      # mirror into legacy field for now
+      - set(attributes["service_name"], attributes["service"]) where not IsNil(attributes["service"])
+      # promote to OTEL resource canonical
+      - set(resource.attributes["service.name"], attributes["service"]) where not IsNil(attributes["service"])
+      # stop duplicating 'app_name'
+      - delete_key(attributes, "app_name")
+
+  # Resource enrichment & alignment (labels live at resource level for Loki OTLP)
+  transform/resource_enrich:
+    context: resource
+    statements:
+      # ensure host.name exists (resourcedetection will usually fill this)
+      - set(attributes["host.name"], attributes["host"]) where IsNil(attributes["host.name"]) and not IsNil(attributes["host"])
+      # mirror cloud.region to short 'region'
+      - set(attributes["region"], attributes["cloud.region"]) where not IsNil(attributes["cloud.region"])
+      # align environment to OTEL semantic
+      - set(attributes["deployment.environment"], attributes["env"]) where not IsNil(attributes["env"])
+
+  # Optional: prune noise we won't query on
+  attributes/prune_noise:
+    actions:
+      - {action: delete, key: journal.priority}
+      - {action: delete, key: journal.unit}
+      - {action: delete, key: logfmt}
+      - {action: delete, key: metadata}
 
   batch:
 
 exporters:
+  # Loki for log storage
   otlphttp/loki:
     endpoint: "{{ loki_ingestion_endpoint }}"
     headers:
@@ -240,6 +239,7 @@ exporters:
     tls:
       insecure: false
 
+  # Tempo for trace storage
   otlphttp/tempo:
     endpoint: "{{ tempo_ingestion_endpoint }}"
     headers:
@@ -247,48 +247,82 @@ exporters:
     tls:
       insecure: false
 
+  # debug output for troubleshooting
   debug:
     verbosity: detailed
 
 service:
-  extensions:
-    - health_check
-    - pprof
-    - zpages
+  extensions: [health_check, pprof, zpages]
 
   pipelines:
-    logs:
-      receivers:
-        - journald
+    # -------- Journald ----------
+    logs/journald:
+      receivers: [journald]
       processors:
+        - resourcedetection/ec2
         - resource/system_metadata
-        - transform/extract_journald_body
-        - transform/map_log_level
-        - transform/normalize_log_level
-        - transform/clean_service_name
+        - resource/source_journald
+        - transform/journald_extract
+        - transform/severity_from_priority
+        - transform/level_common
+        - transform/service_canonical
+        - transform/resource_enrich
+        - attributes/prune_noise
         - batch
-      exporters:
-        - otlphttp/loki
-        #- debug
+      exporters: [otlphttp/loki]
+      # exporters: [debug]   # uncomment to inspect
 
+    # -------- Cloud-init file ----------
     logs/cloudinit_output:
-      receivers:
-        - filelog/cloudinit_output
+      receivers: [filelog/cloudinit_output]
       processors:
+        - resourcedetection/ec2
         - resource/system_metadata
-        - transform/normalize_log_level
+        - resource/source_file
+        - transform/level_common
+        - transform/service_canonical
+        - transform/resource_enrich
+        - attributes/prune_noise
         - batch
-      exporters:
-        - otlphttp/loki
-        #- debug
+      exporters: [otlphttp/loki]
 
+    # -------- Apt/Dpkg files ----------
     logs/apt_logs:
-      receivers:
-        - filelog/apt_logs
+      receivers: [filelog/apt_logs]
       processors:
+        - resourcedetection/ec2
         - resource/system_metadata
-        - transform/normalize_log_level
+        - resource/source_file
+        - transform/level_common
+        - transform/service_canonical
+        - transform/resource_enrich
+        - attributes/prune_noise
         - batch
-      exporters:
-        - otlphttp/loki
-        #- debug
+      exporters: [otlphttp/loki]
+
+    # -------- OTLP logs from apps ----------
+    logs/otlp:
+      receivers: [otlp]
+      processors:
+        - resourcedetection/ec2
+        - resource/system_metadata
+        - transform/level_common
+        - transform/service_canonical
+        - transform/resource_enrich
+        - attributes/prune_noise
+        - batch
+      exporters: [otlphttp/loki]
+
+    # -------- (Optional) Syslog ----------
+    # logs/syslog:
+    #   receivers: [syslog]
+    #   processors:
+    #     - resourcedetection/ec2
+    #     - resource/system_metadata
+    #     - resource/source_syslog
+    #     - transform/level_common       # syslog receiver already sets severity; this keeps it aligned
+    #     - transform/service_canonical  # service from appname (logger) if present
+    #     - transform/resource_enrich
+    #     - attributes/prune_noise
+    #     - batch
+    #   exporters: [otlphttp/loki]
