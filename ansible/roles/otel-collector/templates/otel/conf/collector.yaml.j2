@@ -167,6 +167,9 @@ processors:
       - key: project
         value: {{ project }}
         action: upsert
+      - key: region
+        value: {{ ansible_ec2_instance_identity_document_region }}
+        action: upsert
 
   transform/extract_journald_body:
     log_statements:
@@ -177,11 +180,24 @@ processors:
           - set(attributes["service_name"], attributes["service.name"])
           - set(attributes["exe"], body["_EXE"])
           - set(attributes["cmdline"], body["_CMDLINE"])
+          - set(attributes["host"],             body["_HOSTNAME"])
           - set(attributes["app_name"], body["SYSLOG_IDENTIFIER"])
           - set(attributes["log_format"], "journald")
           - set(attributes["log_source"], "journald")
           - set(attributes["source_type"], "system")
           - set(body, body["MESSAGE"])
+
+          - set(attributes["journal.priority"], body["PRIORITY"])            where not IsNil(body["PRIORITY"])
+          - set(attributes["journal.unit"],     body["_SYSTEMD_UNIT"])       where not IsNil(body["_SYSTEMD_UNIT"])
+          - set(attributes["exe"],              body["_EXE"])                where not IsNil(body["_EXE"])
+          - set(attributes["cmdline"],          body["_CMDLINE"])            where not IsNil(body["_CMDLINE"])
+          - set(attributes["logger"],           body["SYSLOG_IDENTIFIER"])   where not IsNil(body["SYSLOG_IDENTIFIER"])
+          - set(attributes["log_format"],       "journald")
+          - set(attributes["log_source"],       "journald")
+          - set(attributes["source_type"],      "system")
+          - set(body, body["MESSAGE"])   
+
+
 
   transform/map_log_level:
     log_statements:
