@@ -135,7 +135,7 @@ processors:
     attributes:
       - {key: host.id, value: {{ ansible_board_asset_tag }}, action: upsert}
       - {key: host,    value: {{ hostname_no_instanceid }}, action: upsert}         # short host for labels
-      - {key: host.fqdn,    value: {{ hostname_fqdn }}, action: upsert}         # short host for labels
+      - {key: host.fqdn,    value: {{ ansible_hostname }}, action: upsert}         # short host for labels
       - {key: deployment.environment,     value: {{ platform_env }}, action: upsert}
       - {key: app.name,    value: {{ app_name }}, action: upsert}
       - {key: app.role,    value: {{ app_role }}, action: upsert}
