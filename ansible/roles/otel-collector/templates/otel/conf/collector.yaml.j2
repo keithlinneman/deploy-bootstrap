@@ -158,47 +158,47 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(attributes["journal.priority"], body["PRIORITY"])          where body["PRIORITY"] != nil
-          - set(attributes["journal.user_unit"],     body["_SYSTEMD_USER_UNIT"])     where body["_SYSTEMD_USER_UNIT"] != nil
-          - set(attributes["journal.unit"],     body["_SYSTEMD_UNIT"])     where body["_SYSTEMD_UNIT"] != nil
-          - set(attributes["logger"],           body["SYSLOG_IDENTIFIER"]) where body["SYSLOG_IDENTIFIER"] != nil
-          - set(attributes["exe"],              body["_EXE"])              where body["_EXE"] != nil
-          - set(attributes["cmdline"],          body["_CMDLINE"])          where body["_CMDLINE"] != nil
-          - set(body, body["MESSAGE"])                                     where body["MESSAGE"] != nil
+          - set(log.attributes["journal.priority"], log.body["PRIORITY"])          where log.body["PRIORITY"] != nil
+          - set(log.attributes["journal.user_unit"],     log.body["_SYSTEMD_USER_UNIT"])     where log.body["_SYSTEMD_USER_UNIT"] != nil
+          - set(log.attributes["journal.unit"],     log.body["_SYSTEMD_UNIT"])     where log.body["_SYSTEMD_UNIT"] != nil
+          - set(log.attributes["logger"],           log.body["SYSLOG_IDENTIFIER"]) where log.body["SYSLOG_IDENTIFIER"] != nil
+          - set(log.attributes["exe"],              log.body["_EXE"])              where log.body["_EXE"] != nil
+          - set(log.attributes["cmdline"],          log.body["_CMDLINE"])          where log.body["_CMDLINE"] != nil
+          - set(log.body, log.body["MESSAGE"])                                     where log.body["MESSAGE"] != nil
 
   # Map journald PRIORITY -> severity_text/number (source of truth)
   transform/severity_from_priority:
     log_statements:
       - context: log
         statements:
-          - set(severity_text, "debug") where attributes["journal.priority"] == "7"
-          - set(severity_number, 7)     where severity_text == "debug"
-          - set(severity_text, "info")  where attributes["journal.priority"] == "6" or attributes["journal.priority"] == "5"
-          - set(severity_number, 9)     where severity_text == "info"
-          - set(severity_text, "warn")  where attributes["journal.priority"] == "4"
-          - set(severity_number, 13)    where severity_text == "warn"
-          - set(severity_text, "error") where attributes["journal.priority"] == "3" or attributes["journal.priority"] == "2"
-          - set(severity_number, 17)    where severity_text == "error"
-          - set(severity_text, "fatal") where attributes["journal.priority"] == "1" or attributes["journal.priority"] == "0"
-          - set(severity_number, 24)    where severity_text == "fatal"
-          - set(attributes["level"], severity_text) where severity_text != nil
+          - set(log.severity_text, "debug") where log.attributes["journal.priority"] == "7"
+          - set(log.severity_number, 7)     where log.severity_text == "debug"
+          - set(log.severity_text, "info")  where log.attributes["journal.priority"] == "6" or log.attributes["journal.priority"] == "5"
+          - set(log.severity_number, 9)     where log.severity_text == "info"
+          - set(log.severity_text, "warn")  where log.attributes["journal.priority"] == "4"
+          - set(log.severity_number, 13)    where log.severity_text == "warn"
+          - set(log.severity_text, "error") where log.attributes["journal.priority"] == "3" or log.attributes["journal.priority"] == "2"
+          - set(log.severity_number, 17)    where log.severity_text == "error"
+          - set(log.severity_text, "fatal") where log.attributes["journal.priority"] == "1" or log.attributes["journal.priority"] == "0"
+          - set(log.severity_number, 24)    where log.severity_text == "fatal"
+          - set(log.attributes["level"], log.severity_text) where log.severity_text != nil
 
   # Common level normalization for *any* source (filelog/syslog/OTLP)
   transform/level_common:
     log_statements:
       - context: log
         statements:
-          - set(attributes["log.level"], ToLowerCase(attributes["log.level"])) where attributes["log.level"] != nil
-          - set(attributes["level"],      attributes["log.level"])         where attributes["level"] == nil and attributes["log.level"] != nil
-          - set(attributes["level"],      ToLowerCase(attributes["level"]))    where attributes["level"] != nil
-          - set(attributes["level"], "warn") where attributes["level"] == "warning"
-          - set(attributes["level"], "info") where attributes["level"] == "notice"
-          - set(severity_text, attributes["level"]) where severity_text == nil and attributes["level"] != nil
-          - set(severity_number, 7)   where severity_number == nil and severity_text == "debug"
-          - set(severity_number, 9)   where severity_number == nil and severity_text == "info"
-          - set(severity_number, 13)  where severity_number == nil and severity_text == "warn"
-          - set(severity_number, 17)  where severity_number == nil and severity_text == "error"
-          - set(severity_number, 24)  where severity_number == nil and severity_text == "fatal"
+          - set(log.attributes["log.level"], ToLowerCase(log.attributes["log.level"])) where log.attributes["log.level"] != nil
+          - set(log.attributes["level"],      log.attributes["log.level"])         where log.attributes["level"] == nil and log.attributes["log.level"] != nil
+          - set(log.attributes["level"],      ToLowerCase(log.attributes["level"]))    where log.attributes["level"] != nil
+          - set(log.attributes["level"], "warn") where log.attributes["level"] == "warning"
+          - set(log.attributes["level"], "info") where log.attributes["level"] == "notice"
+          - set(log.severity_text, log.attributes["level"]) where log.severity_text == nil and log.attributes["level"] != nil
+          - set(log.severity_number, 7)   where log.severity_number == nil and log.severity_text == "debug"
+          - set(log.severity_number, 9)   where log.severity_number == nil and log.severity_text == "info"
+          - set(log.severity_number, 13)  where log.severity_number == nil and log.severity_text == "warn"
+          - set(log.severity_number, 17)  where log.severity_number == nil and log.severity_text == "error"
+          - set(log.severity_number, 24)  where log.severity_number == nil and log.severity_text == "fatal"
 
   # Build a single canonical 'service' and clean suffixes; promote to resource.service.name
   transform/service_canonical:
@@ -206,24 +206,27 @@ processors:
       - context: log
         statements:
           # precedence: journal.user.unit -> extracted -> existing service.name -> systemd unit -> logger
-          - set(attributes["service"], ToLowerCase(attributes["journal.user_unit"]))      where attributes["journal.user_unit"] != nil
-          - set(attributes["service"], ToLowerCase(attributes["journal.unit"]))           where attributes["service"] == nil and attributes["journal.unit"] != nil and not IsMatch(attributes["journal.unit"], "^user@\\d+\\.service$")
-          - set(attributes["service"], ToLowerCase(attributes["service_name_extracted"])) where attributes["service"] == nil and attributes["service_name_extracted"] != nil
-          - set(attributes["service"], ToLowerCase(attributes["journal.unit"]))           where attributes["service"] == nil and attributes["journal.unit"] != nil
-          - set(attributes["service"], ToLowerCase(attributes["service.name"]))           where attributes["service"] == nil and attributes["service.name"] != nil
-          - set(attributes["service"], ToLowerCase(attributes["logger"]))                 where attributes["service"] == nil and attributes["logger"] != nil
+          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.user_unit"]))      where log.attributes["journal.user_unit"] != nil
+          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil and not IsMatch(log.attributes["journal.unit"], "^user@\\d+\\.service$")
+          - set(log.attributes["service"], ToLowerCase(log.attributes["service_name_extracted"])) where log.attributes["service"] == nil and log.attributes["service_name_extracted"] != nil
+          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil
+          - set(log.attributes["service"], ToLowerCase(log.attributes["service.name"]))           where log.attributes["service"] == nil and log.attributes["service.name"] != nil
+          - set(log.attributes["service"], ToLowerCase(log.attributes["logger"]))                 where log.attributes["service"] == nil and log.attributes["logger"] != nil
 
           # trim systemd suffixes
-          #- set(attributes["service"], replace_pattern(attributes["service"], "\\.service$", ""))   where attributes["service"] != nil
-          #- set(attributes["service"], replace_pattern(attributes["service"], "\\.scope$", ""))     where attributes["service"] != nil
-          #- set(attributes["service"], replace_pattern(attributes["service"], "\\.slice\\d+$", "")) where attributes["service"] != nil
-          - replace_pattern(attributes["service"], "\\.service$", "")   where attributes["service"] != nil
-          - replace_pattern(attributes["service"], "\\.scope$", "")     where attributes["service"] != nil
-          - replace_pattern(attributes["service"], "\\.slice\\d+$", "") where attributes["service"] != nil
+          - replace_pattern(log.attributes["service"], "\\.service$", "")   where log.attributes["service"] != nil
+          - replace_pattern(log.attributes["service"], "\\.scope$", "")     where log.attributes["service"] != nil
+          - replace_pattern(log.attributes["service"], "\\.slice\\d+$", "") where log.attributes["service"] != nil
+          - replace_pattern(log.attributes["service"], "\\.slice\\d+$", "") where log.attributes["service"] != nil
+          - replace_pattern(log.attributes["service"], "@.*$", "") where log.attributes["service"] != nil and not IsMatch(log.attributes["service"], "^user@\\d+$")
 
           # mirror & promote
-          - set(attributes["service_name"], attributes["service"])                    where attributes["service"] != nil
-          - set(resource.attributes["service.name"], attributes["service"])           where attributes["service"] != nil
+          - set(resource.attributes["service.name"], log.attributes["service"])           where log.attributes["service"] != nil
+
+          # clean up the temporary extracted key
+          - delete_key(log.attributes, "service_name_extracted")
+            where log.attributes["service_name_extracted"] != nil
+
 
   # Resource enrichment & alignment (labels live at resource level for Loki OTLP)
   transform/resource_enrich:
@@ -231,9 +234,9 @@ processors:
       - context: resource
         statements:
           # ensure host.name exists (resourcedetection will usually fill this)
-          - set(attributes["host.name"], attributes["host"])               where attributes["host.name"] == nil and attributes["host"] != nil
+          - set(resource.attributes["host.name"], resource.attributes["host"])               where resource.attributes["host.name"] == nil and resource.attributes["host"] != nil
           # mirror cloud.region to short 'region'
-          - set(attributes["region"], attributes["cloud.region"])          where attributes["cloud.region"] != nil
+          - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
 
   # Optional: prune noise we won't query on
   attributes/prune_noise:
