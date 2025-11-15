@@ -1,7 +1,7 @@
 ---
   grafana_config_secret_key: dHGQpcZavIcqOAOkRAas0as3g4Q1vVxXsTTtiCYl8m
   grafana_system_user: grafana
-  grafana_tcp_port: 8080
+  grafana_http_port: 8443
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
   okta_client_id: "{{ lookup('amazon.aws.aws_ssm', '/app/grafana/okta/client_id', region=ansible_ec2_instance_identity_document_region ) }}"
   okta_client_secret: "{{ lookup('amazon.aws.aws_secret', 'app/grafana/okta/client_secret', region=ansible_ec2_instance_identity_document_region ) }}"

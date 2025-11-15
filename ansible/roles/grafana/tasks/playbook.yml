@@ -112,9 +112,9 @@
          state: started
          enabled: true
 
-     - name: Allow grafana traffic through firewall
+     - name: Allow grafana http traffic through firewall
        ufw:
-         port: "{{ grafana_tcp_port }}"
+         port: "{{ grafana_http_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'

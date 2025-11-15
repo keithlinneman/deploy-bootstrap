@@ -33,8 +33,7 @@ app_mode = production
 protocol = https
 
 # The http port to use
-#http_port = 8080
-http_port = 8443
+http_port = {{ grafana_http_port }}
 
 # The public facing domain name used to access grafana from a browser
 domain = grafana.{{ hosted_zone_name }}
