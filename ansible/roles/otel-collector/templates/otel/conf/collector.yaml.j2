@@ -161,7 +161,7 @@ processors:
           - set(log.attributes["journal.priority"], log.body["PRIORITY"])          where log.body["PRIORITY"] != nil
           - set(log.attributes["journal.user_unit"],     log.body["_SYSTEMD_USER_UNIT"])     where log.body["_SYSTEMD_USER_UNIT"] != nil
           - set(log.attributes["journal.unit"],     log.body["_SYSTEMD_UNIT"])     where log.body["_SYSTEMD_UNIT"] != nil
-          - set(log.attributes["logger"],           log.body["SYSLOG_IDENTIFIER"]) where log.body["SYSLOG_IDENTIFIER"] != nil
+          - set(log.attributes["logger"],           ToLowerCase(log.body["SYSLOG_IDENTIFIER"])) where log.body["SYSLOG_IDENTIFIER"] != nil
           - set(log.attributes["exe"],              log.body["_EXE"])              where log.body["_EXE"] != nil
           - set(log.attributes["cmdline"],          log.body["_CMDLINE"])          where log.body["_CMDLINE"] != nil
           - set(log.body, log.body["MESSAGE"])                                     where log.body["MESSAGE"] != nil
