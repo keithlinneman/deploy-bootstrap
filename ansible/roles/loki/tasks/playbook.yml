@@ -30,6 +30,32 @@
          - env
          - loki_role
 
+     - name: Create loki user
+       user:
+         name: "{{ loki_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Create loki bin, conf, data directories
+       file:
+         path: /home/{{ loki_system_user }}/{{ item }}
+         owner: "{{ loki_system_user }}"
+         group: "{{ loki_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - conf
+         - conf/rules
+         - conf/ssl
+         - data
+         - data/chunks
+         - data/index
+         - data/index_cache
+         - data/compactor
+
      - name: Generate private key for local self signed ssl cert
        community.crypto.openssl_privatekey:
          path: /home/{{ loki_system_user }}/conf/ssl/cert.key
@@ -37,7 +63,7 @@
      - name: Generate CSR for self-signed certificate for local https listener
        community.crypto.openssl_csr_pipe:
          privatekey_path: /home/{{ loki_system_user }}/conf/ssl/cert.key
-         common_name: {{ ansible_nodename }}
+         common_name: "{{ ansible_nodename }}"
        register: csr
 
      - name: Generate self-signed certificate for local https listener
@@ -77,36 +103,10 @@
          msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
        when: asset_url is not defined
 
-     - name: Create loki user
-       user:
-         name: "{{ loki_system_user }}"
-         password: '*'
-         umask: 0027
-         shell: /usr/sbin/nologin
-         system: true
-
      - name: Download the latest Loki release from github ({{ asset_url }})
        get_url:
          url: "{{ asset_url }}"
          dest: /home/{{ loki_system_user }}/loki.zip
-
-     - name: Create loki bin, conf, data directories
-       file:
-         path: /home/{{ loki_system_user }}/{{ item }}
-         owner: "{{ loki_system_user }}"
-         group: "{{ loki_system_user }}"
-         mode: 0750
-         state: directory
-       loop:
-         - bin
-         - conf
-         - conf/rules
-         - conf/ssl
-         - data
-         - data/chunks
-         - data/index
-         - data/index_cache
-         - data/compactor
 
      - name: Decompress loki installation package
        unarchive:
@@ -143,9 +143,9 @@
          state: started
          enabled: true
 
-     - name: Allow loki https traffic through firewall
+     - name: Allow loki http traffic through firewall
        ufw:
-         port: "{{ loki_https_tcp_port }}"
+         port: "{{ loki_http_tcp_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'

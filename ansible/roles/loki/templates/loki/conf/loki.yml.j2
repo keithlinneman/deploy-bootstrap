@@ -24,6 +24,9 @@ server:
   grpc_listen_port: {{ loki_grpc_tcp_port }}
   grpc_server_keepalive_time: 5m
   http_listen_port: {{ loki_http_tcp_port }}
+  http_tls_config:
+    cert: /home/{{ loki_system_user }}/conf/ssl/cert.pem
+    key: /home/{{ loki_system_user }}/conf/ssl/cert.key
   log_format: json
   #log_format: logfmt
   log_level: info
