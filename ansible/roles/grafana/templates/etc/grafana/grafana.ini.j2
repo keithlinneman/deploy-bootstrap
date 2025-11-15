@@ -60,8 +60,8 @@ root_url = https://%(domain)s/
 enable_gzip = true
 
 # https certs & key file
-cert_file = /home/{{ grafana_system_user }}/conf/ssl/cert.pem
-cert_key = /home/{{ grafana_system_user }}/conf/ssl/cert.key
+cert_file = /etc/grafana/ssl/cert.pem
+cert_key = /etc/grafana/ssl/cert.key
 
 # optional password to be used to decrypt key file
 ;cert_pass =
