@@ -22,7 +22,7 @@
      - name: Set facts from environment variables
        set_fact:
          app_name: "{{ ansible_env.APPNAME | default('unknown') }}"
-         app_role: "{{ ansible_env.APPROLE | default('unknown') }}"
+         app_role: "{{ ansible_env.APPROLE | default(ansible_env.APPNAME | default('unknown')) }}"
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
 
      - name: Ensure required variables are defined
