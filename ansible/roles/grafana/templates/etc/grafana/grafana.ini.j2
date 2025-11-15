@@ -29,10 +29,12 @@ app_mode = production
 #################################### Server ####################################
 [server]
 # Protocol (http, https, h2, socket)
-protocol = http
+#protocol = http
+protocol = https
 
 # The http port to use
-http_port = 8080
+#http_port = 8080
+http_port = 8443
 
 # The public facing domain name used to access grafana from a browser
 domain = grafana.{{ hosted_zone_name }}
@@ -58,8 +60,8 @@ root_url = https://%(domain)s/
 enable_gzip = true
 
 # https certs & key file
-;cert_file =
-;cert_key =
+cert_file = /home/{{ grafana_system_user }}/conf/ssl/cert.pem
+cert_key = /home/{{ grafana_system_user }}/conf/ssl/cert.key
 
 # optional password to be used to decrypt key file
 ;cert_pass =

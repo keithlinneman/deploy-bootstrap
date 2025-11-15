@@ -59,6 +59,7 @@
      - name: Generate private key for local self signed ssl cert
        community.crypto.openssl_privatekey:
          path: /home/{{ loki_system_user }}/conf/ssl/cert.key
+         owner: "{{ loki_system_user }}"
 
      - name: Generate CSR for self-signed certificate for local https listener
        community.crypto.openssl_csr_pipe:
@@ -71,6 +72,7 @@
          path: /home/{{ loki_system_user }}/conf/ssl/cert.pem
          csr_content: "{{ csr.csr }}"
          privatekey_path: /home/{{ loki_system_user }}/conf/ssl/cert.key
+         owner: "{{ loki_system_user }}"
          provider: selfsigned
 
      - name: Get latest Loki release info from github

@@ -55,6 +55,37 @@
          name: grafana
          state: present
 
+     - name: Create grafana ssl directory
+       file:
+         path: /etc/grafana/ssl
+         owner: root
+         group: "{{ loki_system_user }}"
+         mode: 0750
+         state: directory
+
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /etc/grafana/ssl/cert.key
+         owner: root
+         group: "{{ grafana_system_user }}"
+         mode: 0640
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /etc/grafana/ssl/cert.key
+         common_name: "{{ ansible_nodename }}"
+       register: csr
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /etc/grafana/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         mode: 0644
+         owner: root
+         group: "{{ grafana_system_user }}"
+         privatekey_path: /etc/grafana/ssl/cert.key
+         provider: selfsigned
+
      - name: Modify grafana main configuration
        template:
          src: ../templates/etc/grafana/grafana.ini.j2
