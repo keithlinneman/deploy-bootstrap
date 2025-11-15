@@ -59,7 +59,7 @@
        file:
          path: /etc/grafana/ssl
          owner: root
-         group: "{{ loki_system_user }}"
+         group: "{{ grafana_system_user }}"
          mode: 0750
          state: directory
 
