@@ -238,6 +238,14 @@ processors:
           # mirror cloud.region to short 'region'
           - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
 
+  transform/promote_for_labels:
+    log_statements:
+      - context: log
+        statements:
+          # promote attributes → resource labels
+          - set(resource.attributes["source"], log.attributes["source"]) where log.attributes["source"] != nil
+          - set(resource.attributes["level"],  log.attributes["level"])  where log.attributes["level"]  != nil
+
   # Optional: prune noise we won't query on
   attributes/prune_noise:
     actions:
@@ -285,6 +293,7 @@ service:
         - transform/level_common
         - transform/service_canonical
         - transform/resource_enrich
+        - transform/promote_for_labels
         - attributes/prune_noise
         - batch
       exporters: [otlphttp/loki]
@@ -300,6 +309,7 @@ service:
         - transform/level_common
         - transform/service_canonical
         - transform/resource_enrich
+        - transform/promote_for_labels
         - attributes/prune_noise
         - batch
       exporters: [otlphttp/loki]
@@ -315,6 +325,7 @@ service:
         - transform/level_common
         - transform/service_canonical
         - transform/resource_enrich
+        - transform/promote_for_labels
         - attributes/prune_noise
         - batch
       exporters: [otlphttp/loki]
@@ -329,6 +340,7 @@ service:
         - transform/level_common
         - transform/service_canonical
         - transform/resource_enrich
+        - transform/promote_for_labels
         - attributes/prune_noise
         - batch
       exporters: [otlphttp/loki]
@@ -344,6 +356,7 @@ service:
     #     - transform/level_common       # syslog receiver already sets severity; this keeps it aligned
     #     - transform/service_canonical  # service from appname (logger) if present
     #     - transform/resource_enrich
+    #     - transform/promote_for_labels
     #     - attributes/prune_noise
     #     - batch
     #   exporters: [otlphttp/loki]
