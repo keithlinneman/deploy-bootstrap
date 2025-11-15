@@ -14,6 +14,9 @@ server:
   grpc_listen_port: {{ mimir_grpc_tcp_port }}
   grpc_server_keepalive_time: 5m
   http_listen_port: {{ mimir_http_tcp_port }}
+  http_tls_config:
+    cert_file: /home/{{ mimir_system_user }}/conf/ssl/cert.pem
+    key_file: /home/{{ mimir_system_user }}/conf/ssl/cert.key
   log_format: json
   #log_format: logfmt
   log_level: info
