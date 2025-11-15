@@ -30,6 +30,23 @@
          - env
          - loki_role
 
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /home/{{ loki_system_user }}/conf/ssl/cert.key
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /home/{{ loki_system_user }}/conf/ssl/cert.key
+         common_name: {{ ansible_nodename }}
+       register: csr
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /home/{{ loki_system_user }}/conf/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         privatekey_path: /home/{{ loki_system_user }}/conf/ssl/cert.key
+         provider: selfsigned
+
      - name: Get latest Loki release info from github
        uri:
          url: https://api.github.com/repos/grafana/loki/releases/latest
@@ -84,6 +101,7 @@
          - bin
          - conf
          - conf/rules
+         - conf/ssl
          - data
          - data/chunks
          - data/index
@@ -125,9 +143,9 @@
          state: started
          enabled: true
 
-     - name: Allow loki http traffic through firewall
+     - name: Allow loki https traffic through firewall
        ufw:
-         port: "{{ loki_http_tcp_port }}"
+         port: "{{ loki_https_tcp_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'

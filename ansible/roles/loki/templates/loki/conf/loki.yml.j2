@@ -75,8 +75,11 @@ distributor:
       - app.role
       - env
       - instance
-      - instance_id
+ #     - instance_id
       - project
+      - region
+      - level
+      - source
 
 query_scheduler:
   #max_outstanding_requests_per_tenant: 32000
@@ -205,6 +208,7 @@ analytics:
   #mutex_profile_fraction:
 
 limits_config:
+  allow_structured_metadata: true
   reject_old_samples: true
   reject_old_samples_max_age: 24h
   creation_grace_period: 10m
@@ -218,153 +222,39 @@ limits_config:
   max_label_names_per_series: 25
   # logs over this size will be rejected
   max_line_size: 256KB
-  # 3/19/25 - rejected instead of truncating logs that may lead to strange issues down the line when querying the data but this is better than silently dropping logs that may contain critical errors
+  # rejected instead of truncating logs that may lead to strange issues down the line when querying the data but this is better than silently dropping logs that may contain critical errors
   max_line_size_truncate: true
   discover_generic_fields:
     fields:
-    # resource/system level attrbutes 
-      json:
-        - app_name
-        - cmd_name
-        - service_name
-        - instance
-        - instance_id
-        - project
-        - env
-        - namespace
-        - source_type
-        - component
-        - subsystem
-        - role
-        - deployment
-        - version
-        # logging level
-        - level
-        - log_level
-        - detected_level
-        - severity
-        - severity_text
-        # tracing/correlation
-        - trace_id
-        - span_id
-        - parent_id
-        - request_id
-        - correlation_id
-        # http logs
-        - http_method
-        - http_path
-        - http_status
-        - status_code
-        - url
-        - route
-        - client_ip
-        - user_agent
-        - duration_ms
-        - latency_ms
-        # filelog / journald specific
-        - filename
-        - file_path
-        - systemd_unit
-        - exe
-        - cmdline
-        - log_source
-        - log_format
-        # processing info
-        - truncated
-        - dropped
-        - retries
-        # queues/events
-        - event_type
-        - topic
-        - partition
-        - offset
-        - key
-        # container/runtime
-        - container_name
-        - pod_name
-        - image
-        - host
-      logfmt:
-        - app_name
-        - cmd_name
-        - service_name
-        - instance
-        - instance_id
-        - project
-        - env
-        - namespace
-        - source_type
-        - component
-        - subsystem
-        - role
-        - deployment
-        - version
-        # logging level
-        - level
-        - log_level
-        - detected_level
-        - severity
-        - severity_text
-        # tracing/correlation
-        - trace_id
-        - span_id
-        - parent_id
-        - request_id
-        - correlation_id
-        # http logs
-        - http_method
-        - http_path
-        - http_status
-        - status_code
-        - url
-        - route
-        - client_ip
-        - user_agent
-        - duration_ms
-        - latency_ms
-        # filelog / journald specific
-        - filename
-        - file_path
-        - systemd_unit
-        - exe
-        - cmdline
-        - log_source
-        - log_format
-        # processing info
-        - truncated
-        - dropped
-        - retries
-        # queues/events
-        - event_type
-        - topic
-        - partition
-        - offset
-        - key
-        # container/runtime
-        - container_name
-        - pod_name
-        - image
-        - host
-      metadata:
-        - app_name
-        - cmd_name
-        - service_name
-        - instance
-        - instance_id
-        - project
-        - env
-        - namespace
-        - source_type
-        - component
-        - subsystem
-        - role
-        - deployment
-        - version
-        # container/runtime
-        - container_name
-        - pod_name
-        - image
-        - host
+      # Core
+      #level:        ["level","severity","severity_text","log.level"]
+      #message:      ["message","msg","log.message"]
+
+      # Correlation
+      request_id:   ["request_id"]
+      trace_id:     ["trace_id"]
+      span_id:      ["span_id"]
+
+      # HTTP
+      http.server.duration_ms:  ["http.server.duration_ms"]
+      http.request.method:  ["http.request.method"]
+      url.path:         ["url.path"]
+      http.route:        ["http.route"]
+      http.request.body.size:   ["http.request.body.size"]
+      http.response.body.size:  ["http.response.body.size"]
+      http.response.status_code:  ["http.response.status_code"]
+
+      # Jobs
+      job.name:     ["job.name"]
+      job.id:       ["job.id"]
+      job.attempt:      ["job.attempt"]
+      job.queue:        ["job.queue"]
+      job.success:      ["job.success"]
+
+      # Errors
+      error.message:        ["error.message"]
+      error.code:   ["error.code"]
+      error.type:   ["error.type"]
   max_query_length: 366d
   max_concurrent_tail_requests: 10
   max_entries_limit_per_query: 5000
@@ -375,11 +265,21 @@ limits_config:
   retention_period: 366d
   otlp_config:
     resource_attributes:
-      ignore_defaults: false
+      ignore_defaults: true
       attributes_config:
         - action: index_label
+          attributes:
+            - app.name
+            - app.role
+            - deployment.environment.name
+            - host
+            - level
+            - project
+            - region
+            - service.name
+            - source
           #regex: "^(app_name|app_role|env|instance|instance_id|project)$"
-          regex: ".*"
+          #regex: ".*"
     scope_attributes:
       - action: structured_metadata
         #regex: "^(instrumentation_scope_name|instrumentation_scope_version)$"
