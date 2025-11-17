@@ -1,0 +1,223 @@
+target: {{ tempo_role }}
+multitenancy_enabled: true
+usage_report:
+  reporting_enabled: false
+
+server:
+  grpc_listen_port: {{ tempo_grpc_tcp_port }}
+  grpc_server_keepalive_time: 5m
+  http_listen_port: {{ tempo_http_tcp_port }}
+  http_tls_config:
+    cert_file: /home/{{ tempo_system_user }}/conf/ssl/cert.pem
+    key_file: /home/{{ tempo_system_user }}/conf/ssl/cert.key
+  log_format: json
+  #log_format: logfmt
+  log_level: info
+  register_instrumentation: true
+
+distributor:
+  receivers: 
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "{{ ansible_default_ipv4.address }}:{{ tempo_otlp_grpc_tcp_port }}"
+        http:
+          endpoint: "{{ ansible_default_ipv4.address }}:{{ tempo_otlp_http_tcp_port }}"
+  # for debugging
+  #log_received_spans:
+    #enabled: false
+    #include_all_attributes: true
+    #filter_by_status_error: true
+  #log_discarded_spans:
+    #enabled: false
+    #include_all_attributes: true
+    #filter_by_status_error: true
+  ring:
+    kvstore:
+      store: memberlist
+    instance_interface_names:
+      - {{ ansible_default_ipv4.interface }}
+
+ingester:
+  lifecycler:
+    availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+    ring:
+      replication_factor: {{ tempo_replication_factor }}
+      kvstore:
+        store: memberlist
+      zone_awareness_enabled: true
+    unregister_on_shutdown: true
+  trace_idle_period: 5s
+  trace_live_period: 30s
+  flush_check_period: 10s
+  max_block_bytes: 524288000
+  max_block_duration: 30m
+  complete_block_timeout: 15m
+  flush_all_on_shutdown: true
+
+metrics_generator:
+  ring:
+    kvstore:
+      store: memberlist
+    instance_interface_names:
+      - {{ ansible_default_ipv4.interface }}
+  processor:
+    service_graphs:
+      #histogram_buckets: 0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8
+      #dimensions:
+      enable_client_server_prefix: true
+      enable_messaging_system_latency_histogram: true
+    span_metrics:
+      #histogram_buckets: 0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384
+      #dimensions:
+         #dimension_mappings: <list of label mappings>
+         #  - name: <string>
+         #    source_labels: <list of strings>
+         #    join: <string>
+      enable_target_info: true
+    local_blocks:
+      block:
+        version: vParquet4
+        #v2_encoding: zstd
+        v2_encoding: snappy
+        search_encoding: snappy
+      search:
+        read_buffer_count: 32
+        read_buffer_size_bytes: 1048576  
+  registry:
+    collection_interval: 15s
+    stale_duration: 15m
+    #external_labels:
+    #  <map>
+  storage:
+    path: /home/{{ tempo_system_user }}/data/metrics
+    #wal:
+    # For storage in mimir
+    remote_write:
+      - url: "https://mimir-distributor.{{ hosted_zone_name }}/api/v1/push"
+        name: mimir-{{ platform_env }}
+        send_exemplars: true
+        remote_timeout: 30s
+        queue_config:
+          batch_send_deadline: 2s
+          max_samples_per_send: 2000
+          # attempting a really high value that should work out to around 2gb memory max
+          # will give mimir maximum time to recover if it is ever down without having to manually feed data in from prometheus
+          # capacity: 134217728
+          capacity: 25000
+          max_shards: 9
+        #write_relabel_configs:
+  traces_storage:
+    path: /home/{{ tempo_system_user }}/data/traces
+    #wal:
+    #  version: vParquet4
+    #  #v2_encoding: zstd
+    #  v2_encoding: snappy
+    #  search_encoding: snappy
+  
+query_frontend:
+  max_retries: 2
+  search:
+    concurrent_jobs: 128
+    duration_slo: 3s
+    #max_duration: 168h
+    # 60 days
+    max_duration: 1440h
+    query_backend_after: 15m
+    query_ingesters_until: 30m
+  metrics:
+    duration_slo: 3s
+
+querier:
+  #shuffle_sharding_ingesters_enabled: true
+  #shuffle_sharding_ingesters_lookback_period: 1hr
+  query_relevant_ingesters: false
+  trace_by_id:
+    query_timeout: 10s
+  search:
+    query_timeout: 30s
+  frontend_worker:
+    frontend_address: tempo-query-frontend.{{ hosted_zone_name }}
+    dns_lookup_duration: 10s
+
+compactor:
+  disabled: false
+  ring:
+    kvstore:
+      store: memberlist
+    instance_interface_names:
+      - {{ ansible_default_ipv4.interface }}
+  compaction:
+    # 366 days
+    block_retention: 8784h
+    compacted_block_retention: 1h
+    compaction_window: 1h
+    #max_block_bytes:
+
+memberlist:
+  join_members:
+    - tempo-compactor-2a.{{ hosted_zone_name }}
+    - tempo-compactor-2b.{{ hosted_zone_name }}
+    - tempo-compactor-2c.{{ hosted_zone_name }}
+    - tempo-distributor-2a.{{ hosted_zone_name }}
+    - tempo-distributor-2b.{{ hosted_zone_name }}
+    - tempo-distributor-2c.{{ hosted_zone_name }}
+    - tempo-ingester-2a.{{ hosted_zone_name }}
+    - tempo-ingester-2b.{{ hosted_zone_name }}
+    - tempo-ingester-2c.{{ hosted_zone_name }}
+    - tempo-querier-2a.{{ hosted_zone_name }}
+    - tempo-querier-2b.{{ hosted_zone_name }}
+    - tempo-querier-2c.{{ hosted_zone_name }}
+    - tempo-query-frontend-2a.{{ hosted_zone_name }}
+    - tempo-query-frontend-2b.{{ hosted_zone_name }}
+    - tempo-query-frontend-2c.{{ hosted_zone_name }}
+    - tempo-metrics-generator-2a.{{ hosted_zone_name }}
+    - tempo-metrics-generator-2b.{{ hosted_zone_name }}
+    - tempo-metrics-generator-2c.{{ hosted_zone_name }}
+  bind_port: 7946
+  abort_if_cluster_join_fails: true
+
+storage:
+  trace:
+    backend: s3
+    s3:
+      region: {{ ansible_ec2_instance_identity_document_region }}
+      bucket: {{ tempo_s3_bucket_name }}
+      prefix: "tempo"
+      endpoint: s3.{{ ansible_ec2_instance_identity_document_region }}.amazonaws.com
+      insecure: false
+      enable_dual_stack: false
+      #tags:
+    search:
+      read_buffer_count: 32
+      read_buffer_size_bytes: 1048576  
+    wal:
+      path: /home/{{ tempo_system_user }}/data/traces/wal
+      #v2_encoding: zstd
+      v2_encoding: snappy
+      search_encoding: snappy
+      version: vParquet4
+    block:
+      version: vParquet4
+      #v2_encoding: zstd
+      v2_encoding: snappy
+      search_encoding: snappy
+  
+cache:
+  caches:    
+    - roles:
+      - bloom
+      - frontend-search
+      - parquet-footer
+      # high volume - testing
+      - parquet-page
+      memcached:
+        host: memcached-tempo.{{ hosted_zone_name }}
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors:
+        - service-graphs
+        - span-metrics
+        - local-blocks
