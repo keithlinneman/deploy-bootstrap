@@ -121,7 +121,6 @@
          src: ../templates/etc/systemd/system/mimir.service.j2
          dest: /etc/systemd/system/{{ mimir_systemd_service_name[mimir_role] }}.service
          mode: 0644
-       notify: reload systemd daemon configurations
 
      - name: Modify mimir main configuration
        template:
@@ -133,15 +132,6 @@
          group: "{{ mimir_system_user }}"
        notify: restart mimir service
        when: ansible_os_family == 'Debian'
-
-     - name: Run handlers immediately to refresh systemd daemon configuration
-       meta: flush_handlers
-
-     - name: Enable {{ mimir_systemd_service_name[mimir_role] }} systemd service
-       service:
-         name: "{{ mimir_systemd_service_name[mimir_role] }}"
-         state: started
-         enabled: true
 
      - name: Allow mimir http traffic through firewall
        ufw:
@@ -175,10 +165,8 @@
 
    handlers:
      - name: restart mimir service
-       service:
+       systemd:
          name: "{{ mimir_systemd_service_name[mimir_role] }}"
          state: restarted
          enabled: true
-
-     - name: reload systemd daemon configurations
-       command: systemctl daemon-reload
+         daemon_reload: true
