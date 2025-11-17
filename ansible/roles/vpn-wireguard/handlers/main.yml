@@ -5,10 +5,12 @@
   systemd:
     name: nftables
     state: restarted
+    enabled: true
     daemon_reload: yes
 
 - name: Restart wireguard
   systemd:
     name: wg-quick@wg0
     state: restarted
+    enabled: true
     daemon_reload: yes
