@@ -167,6 +167,13 @@
        #when: ansible_distribution == 'Ubuntu' and (tempo_role == 'distributor' or tempo_role == 'query-frontend')
        when: ansible_distribution == 'Ubuntu'
 
+     - name: Allow tempo grpc traffic through firewall
+       ufw:
+         port: "{{ tempo_grpc_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
      - name: Allow tempo otlp grpc traffic through firewall
        ufw:
          port: "{{ tempo_otlp_grpc_tcp_port }}"

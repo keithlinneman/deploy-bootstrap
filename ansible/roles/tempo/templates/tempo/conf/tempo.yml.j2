@@ -137,7 +137,7 @@ querier:
   search:
     query_timeout: 30s
   frontend_worker:
-    frontend_address: tempo-query-frontend-{{ ansible_ec2_instance_identity_document_availabilityzone.split('-')[-1] }}.{{ hosted_zone_name }}
+    frontend_address: tempo-query-frontend-{{ ansible_ec2_instance_identity_document_availabilityzone.split('-')[-1] }}.{{ hosted_zone_name }}:{{ tempo_grpc_tcp_port }}
     dns_lookup_duration: 10s
 
 compactor:
