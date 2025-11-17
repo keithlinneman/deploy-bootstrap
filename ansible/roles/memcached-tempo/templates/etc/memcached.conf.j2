@@ -1,0 +1,46 @@
+# Run memcached as a daemon
+-d
+
+# Log memcached's output to /var/log/memcached
+logfile /var/log/memcached.log
+
+# Be verbose
+# -v
+
+# maximum amount of memory to use in mb
+#-m 64
+-m {{ memcached_max_memory[ansible_ec2_instance_type] }}
+
+# connection port
+-p 11211
+
+# user to run as
+-u memcache
+
+# listen interface. defaults to all
+-l 0.0.0.0
+
+# Limit the number of simultaneous incoming connections. The daemon default is 1024
+# -c 1024
+-c 4096
+
+# Lock down all paged memory
+# -k
+
+# Return error when memory is exhausted (rather than removing items)
+# -M
+
+# Maximize core file limit
+# -r
+
+# Use a pidfile
+-P /var/run/memcached/memcached.pid
+
+# Disable udp
+-U 0
+
+# Disable CAS (loki and mimir dont use it)
+-C
+
+# Set max size of stored data
+-I 10m
