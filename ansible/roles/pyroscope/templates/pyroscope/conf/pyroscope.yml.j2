@@ -1,0 +1,172 @@
+target: {{ pyroscope_role }}
+multitenancy_enabled: true
+
+analytics:
+  reporting_enabled: false
+
+distributor:
+  pushtimeout: 5s
+  pool_config:
+    client_cleanup_period: 15s
+    health_check_ingesters: true
+    remote_timeout: 5s
+  ring:
+    kvstore:
+      store: memberlist
+      prefix: "pyroscope/"
+    instance_enable_ipv6: false
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: memberlist
+        prefix: "pyroscope/"
+      replication_factor: 3
+    availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+    unregister_on_shutdown: true
+    readiness_check_ring_health: false
+    enable_inet6: false
+
+querier:
+  pool_config:
+    client_cleanup_period: 15s
+    health_check_ingesters: true
+    remote_timeout: 5s
+  query_store_after: 4h
+
+frontend:
+  scheduler_worker_concurrency: 5
+  grpc_client_config:
+    max_send_msg_size: 104857600
+    max_recv_msg_size: 104857600
+    grpc_compression: snappy
+    connect_timeout: 5s
+  instance_enable_ipv6: false
+
+frontend_worker:
+  grpc_client_config:
+    max_send_msg_size: 104857600
+    max_recv_msg_size: 104857600
+    grpc_compression: snappy
+    connect_timeout: 5s
+  max_concurrent: 4
+
+query_scheduler:
+  max_outstanding_requests_per_tenant: 100
+  grpc_client_config:
+    max_send_msg_size: 104857600
+    max_recv_msg_size: 104857600
+    grpc_compression: snappy
+    connect_timeout: 5s
+  max_used_instances: 0
+
+server:
+  grpc_listen_network: tcp
+  grpc_listen_port: {{ pyroscope_grpc_tcp_port }}
+  http_listen_network: tcp
+  http_listen_port: {{ pyroscope_http_tcp_port }}
+  http_tls_config:
+    cert_file: /home/{{ pyroscope_system_user }}/conf/ssl/cert.pem
+    key_file: /home/{{ pyroscope_system_user }}/conf/ssl/cert.key
+  http_server_idle_timeout: 60s
+  #log_format: logfmt
+  log_format: json
+  log_level: info
+  register_instrumentation: true
+  grpc_server_max_send_msg_size: 104857600
+  grpc_server_max_recv_msg_size: 104857600
+  grpc_server_keepalive_time: 15m
+
+store_gateway:
+  sharding_ring:
+    kvstore:
+      store: memberlist
+      prefix: "pyroscope/"
+    instance_enable_ipv6: false
+    replication_factor: 3
+    instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+    unregister_on_shutdown: true
+  bucket_store:
+    sync_interval: 15m
+    ignore_blocks_within: 3h
+    ignore_deletion_mark_delay: 30m
+
+compactor:
+  block_ranges:
+    - 1h0m0s
+    - 2h0m0s
+    - 8h0m0s
+  compaction_interval: 30m
+  compaction_retries: 3
+  compaction_concurrency: 1
+  first_level_compaction_wait_period: 25m
+  cleanup_interval: 15m
+  deletion_delay: 24h
+  max_compaction_time: 1h
+  downsampler_enabled: false
+  sharding_ring:
+    kvstore:
+      store: memberlist
+      prefix: "pyroscope/"
+    instance_enable_ipv6: false
+  compaction_jobs_order: smallest-range-oldest-blocks-first
+
+memberlist:
+  abort_if_cluster_join_fails: true
+  bind_port: 7946
+  compression_enabled: true
+  join_members:
+    - pyroscope-compactor-2a.{{ hosted_zone_name }}
+    - pyroscope-compactor-2b.{{ hosted_zone_name }}
+    - pyroscope-compactor-2c.{{ hosted_zone_name }}
+    - pyroscope-distributor-2a.{{ hosted_zone_name }}
+    - pyroscope-distributor-2b.{{ hosted_zone_name }}
+    - pyroscope-distributor-2c.{{ hosted_zone_name }}
+    - pyroscope-ingester-2a.{{ hosted_zone_name }}
+    - pyroscope-ingester-2b.{{ hosted_zone_name }}
+    - pyroscope-ingester-2c.{{ hosted_zone_name }}
+    - pyroscope-querier-2a.{{ hosted_zone_name }}
+    - pyroscope-querier-2b.{{ hosted_zone_name }}
+    - pyroscope-querier-2c.{{ hosted_zone_name }}
+    - pyroscope-query-frontend-2a.{{ hosted_zone_name }}
+    - pyroscope-query-frontend-2b.{{ hosted_zone_name }}
+    - pyroscope-query-frontend-2c.{{ hosted_zone_name }}
+    - pyroscope-query-scheduler-2a.{{ hosted_zone_name }}
+    - pyroscope-query-scheduler-2b.{{ hosted_zone_name }}
+    - pyroscope-query-scheduler-2c.{{ hosted_zone_name }}
+    - pyroscope-store-gateway-2a.{{ hosted_zone_name }}
+    - pyroscope-store-gateway-2b.{{ hosted_zone_name }}
+    - pyroscope-store-gateway-2c.{{ hosted_zone_name }}
+  message_history_buffer_bytes: 0
+
+limits:
+  ingestion_rate_mb: 200
+  ingestion_burst_size_mb: 400
+  max_label_name_length: 1024
+  max_label_value_length: 2048
+  max_label_names_per_series: 30
+  max_profile_size_bytes: 4194304
+  max_profile_stacktrace_sample_labels: 100
+  max_profile_stacktrace_depth: 1000
+  max_profile_symbol_value_length: 65535
+  #ingestion_relabeling_rules:
+  #ingestion_relabeling_default_rules_position: 
+  #max_global_series_per_tenant: 5000
+  max_global_series_per_tenant: 0
+  #max_query_lookback: 7d
+  max_query_lookback: 366d
+  max_query_length: 1d
+  max_query_parallelism: 0
+  compactor_blocks_retention_period: 366d
+  compactor_partial_block_deletion_delay: 1d
+  compactor_downsampler_enabled: false
+  reject_older_than: 1h
+  reject_newer_than: 10m
+
+storage:
+  backend: s3
+  s3:
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    bucket_name: {{ pyroscope_s3_bucket_name }}/pyroscope
+    endpoint: s3.{{ ansible_ec2_instance_identity_document_region }}.amazonaws.com

@@ -1,0 +1,19 @@
+---
+  company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  pyroscope_cluster_memberlist_port: 7946
+  pyroscope_http_tcp_port: 8443
+  pyroscope_grpc_tcp_port: 9095
+  pyroscope_replication_factor: 3
+  pyroscope_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/monitoring/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  pyroscope_system_user: pyroscope
+  pyroscope_systemd_service_name:
+    distributor: pyroscope-distributor
+    ingester: pyroscope-ingester
+    query-frontend: pyroscope-query-frontend
+    querier: pyroscope-querier
+    query-scheduler: pyroscope-query-scheduler
+    store-gateway: pyroscope-store-gateway
+    compactor: pyroscope-compactor
+

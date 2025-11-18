@@ -1,0 +1,22 @@
+[Unit]
+Description=pyroscope profile storage platform for integration with Prometheus/Loki/Tempo/Grafana
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ pyroscope_system_user }}
+User={{ pyroscope_system_user }}
+Group={{ pyroscope_system_user }}
+ExecStart=/home/{{ pyroscope_system_user }}/bin/pyroscope --config.file=/home/{{ pyroscope_system_user }}/conf/pyroscope.yml
+StandardOutput=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
+StandardError=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

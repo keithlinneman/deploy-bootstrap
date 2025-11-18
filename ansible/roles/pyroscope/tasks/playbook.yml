@@ -1,0 +1,186 @@
+---
+ - name: pyroscope playbook
+   hosts: all
+   become: true
+   vars_files:
+     - ../vars/default.yml
+     - ../vars/{{ ansible_os_family }}.yml
+   vars:
+     pyroscope_role: "{{ lookup('env', 'PYROSCOPEROLE') }}"
+
+   tasks:
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
+
+     - name: Exit with failure if no pyroscope role is defined
+       fail:
+         msg: No ansible roles found in ENV var PYROSCOPEROLE (expected one of 'distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'store-gateway', 'compactor')
+       when: pyroscope_role not in ['distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'store-gateway', 'compactor']
+
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value"
+       when: (lookup('vars', item, default=None)) is none
+       with_items:
+         - env
+         - pyroscope_role
+
+     - name: Create pyroscope user
+       user:
+         name: "{{ pyroscope_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
+
+     - name: Create pyroscope bin, conf, data directories
+       file:
+         path: /home/{{ pyroscope_system_user }}/{{ item }}
+         owner: "{{ pyroscope_system_user }}"
+         group: "{{ pyroscope_system_user }}"
+         mode: 0750
+         state: directory
+       loop:
+         - bin
+         - conf
+         - conf/ssl
+         - data
+
+     - name: Check if ssl cert already exists
+       ansible.builtin.stat:
+         path: /home/{{ pyroscope_system_user }}/conf/ssl/cert.pem
+       register: pyroscope_cert
+
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /home/{{ pyroscope_system_user }}/conf/ssl/cert.key
+         owner: "{{ pyroscope_system_user }}"
+       when: not pyroscope_cert.stat.exists
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /home/{{ pyroscope_system_user }}/conf/ssl/cert.key
+         common_name: "{{ ansible_nodename }}"
+       register: csr
+       when: not pyroscope_cert.stat.exists
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /home/{{ pyroscope_system_user }}/conf/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         privatekey_path: /home/{{ pyroscope_system_user }}/conf/ssl/cert.key
+         owner: "{{ pyroscope_system_user }}"
+         provider: selfsigned
+       when: not pyroscope_cert.stat.exists
+
+     - name: Check if pyroscope is already installed
+       stat:
+         path: /home/{{ pyroscope_system_user }}/bin/pyroscope
+       register: pyroscope_binary
+
+     - name: Get latest pyroscope release info from github
+       uri:
+         url: https://api.github.com/repos/grafana/pyroscope/releases/latest
+         return_content: yes
+       register: pyroscope_release_info
+
+     - name: Set release tag fact
+       set_fact:
+         pyroscope_release_tag: "{{ pyroscope_release_info.json.tag_name }}"
+
+     - name: Fail if pyroscope_release_tag asset not found
+       fail:
+         msg: "No asset found github latest release response"
+       when: pyroscope_release_tag is not defined
+
+     - name: Set filename based on architecture
+       set_fact:
+         pyroscopecollector_asset_url: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_arm64.tar.gz
+           {%- else -%}
+           https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_amd64.tar.gz
+           {%- endif -%}
+
+     - name: Download the latest pyroscope release from github
+       get_url:
+         url: "{{ pyroscopecollector_asset_url }}"
+         dest: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
+
+     - name: Decompress pyroscope installation package
+       unarchive:
+         src: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
+         dest: /home/{{ pyroscope_system_user }}/bin
+         extra_opts: ['--show-stored-names']
+         include: "pyroscope"
+         owner: "{{ pyroscope_system_user }}"
+         group: "{{ pyroscope_system_user }}"
+         mode: 0750
+         creates: /home/{{ pyroscope_system_user }}/bin/pyroscope
+
+     - name: Create pyroscope systemd service
+       template:
+         src: ../templates/etc/systemd/system/pyroscope.service.j2
+         dest: /etc/systemd/system/{{ pyroscope_systemd_service_name[pyroscope_role] }}.service
+         mode: 0644
+
+     - name: Modify pyroscope main configuration
+       template:
+         src: ../templates/pyroscope/conf/pyroscope.yml.j2
+         dest: /home/{{ pyroscope_system_user }}/conf/pyroscope.yml
+         mode: 0640
+         owner: "{{ pyroscope_system_user }}"
+         group: "{{ pyroscope_system_user }}"
+       notify: restart pyroscope service
+
+     - name: Run handlers immediately to refresh systemd daemon configuration
+       meta: flush_handlers
+
+     - name: Enable {{ pyroscope_systemd_service_name[pyroscope_role] }} systemd service
+       service:
+         name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
+         state: started
+         enabled: true
+
+     - name: Allow pyroscope http traffic through firewall
+       ufw:
+         port: "{{ pyroscope_http_tcp_port }}"
+         proto: tcp
+         rule: allow
+       # this is used both for service traffic in case of distributors and query-frontend, and for prometheus metrics scraping on all services
+       #when: ansible_distribution == 'Ubuntu' and (pyroscope_role == 'distributor' or pyroscope_role == 'query-frontend')
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow pyroscope grpc traffic through firewall
+       ufw:
+         port: "{{ pyroscope_grpc_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow pyroscope cluster memberlist tcp traffic through firewall
+       ufw:
+         port: "{{ pyroscope_cluster_memberlist_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow pyroscope cluster memberlist udp traffic through firewall
+       ufw:
+         port: "{{ pyroscope_cluster_memberlist_port }}"
+         proto: udp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+   handlers:
+     - name: restart pyroscope service
+       systemd:
+         name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
+         state: restarted
+         enabled: true
+         daemon_reload: true
