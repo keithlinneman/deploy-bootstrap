@@ -51,6 +51,11 @@ if [ "${localcname}" == "${localname}" ];then
   exit 1
 fi
 
+# query-scheduler hostname length limit
+if [ "${PYROSCOPEROLE}" == "query-scheduler" ];then
+  localcname="$( echo "${localcname}" | sed 's/queryscheduler/query-scheduler/' )"
+fi
+
 # ensure this zone is in deploymentsystem hosted zone, also get hostedzoneid from ssm parameter store
 localdomain="$( hostname -d )"
 hostedzonename="$( aws ssm get-parameter --name /platform/dns/hosted_zone/name --query "Parameter.Value" --output text )"
