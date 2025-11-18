@@ -168,5 +168,5 @@ storage:
   backend: s3
   s3:
     region: {{ ansible_ec2_instance_identity_document_region }}
-    bucket_name: {{ pyroscope_s3_bucket_name }}/pyroscope
+    bucket_name: {{ pyroscope_s3_bucket_name }}
     endpoint: s3.{{ ansible_ec2_instance_identity_document_region }}.amazonaws.com
