@@ -79,11 +79,29 @@
        uri:
          url: https://api.github.com/repos/grafana/loki/releases/latest
          return_content: yes
-       register: release_info
+       register: latest_release_info
 
      - name: Set release tag fact
        set_fact:
-         release_tag: "{{ release_info.json.tag_name }}"
+         latest_release_tag: "{{ latest_release_info.json.tag_name }}"
+
+     - name: Warn if a newer Loki version exists
+       ansible.builtin.debug:
+         msg: |
+           #################################################################
+           # WARNING: New Loki version available                           #
+           #   Pinned: {{ loki_version }}                                  #
+           #   Latest: {{ latest_release_tag }}                           #
+           #################################################################
+       when: loki_latest_version[1:] is version(loki_version, '>')
+       run_once: true
+       changed_when: false
+
+     - name: Get pinned Loki release info from github
+       uri:
+         url: https://api.github.com/repos/grafana/loki/releases/tag/v{{ loki_version }}
+         return_content: yes
+       register: release_info
 
      - name: Set filename based on architecture
        set_fact:
@@ -105,7 +123,7 @@
          msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
        when: asset_url is not defined
 
-     - name: Download the latest Loki release from github ({{ asset_url }})
+     - name: Download the pinned Loki release ({{ loki_version }}) from github ({{ asset_url }})
        get_url:
          url: "{{ asset_url }}"
          dest: /home/{{ loki_system_user }}/loki.zip
