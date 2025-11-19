@@ -93,15 +93,15 @@
            #   Pinned: {{ loki_version }}                                  #
            #   Latest: {{ latest_release_tag }}                           #
            #################################################################
-       when: loki_latest_version[1:] is version(loki_version, '>')
+       when: latest_release_tag[1:] is version(loki_version, '>')
        run_once: true
        changed_when: false
 
-     - name: Get pinned Loki release info from github
-       uri:
-         url: https://api.github.com/repos/grafana/loki/releases/tag/v{{ loki_version }}
-         return_content: yes
-       register: release_info
+#     - name: Get pinned Loki release info from github
+#       uri:
+#         url: https://github.com/grafana/loki/releases/tag/v{{ loki_version }}
+#         return_content: yes
+#       register: release_info
 
      - name: Set filename based on architecture
        set_fact:
@@ -112,20 +112,20 @@
            loki-linux-amd64.zip
            {%- endif -%}
 
-     - name: Find asset URL from release assets based on architecture
-       set_fact:
-         asset_url: "{{ item.browser_download_url }}"
-       loop: "{{ release_info.json.assets }}"
-       when: "loki_filename in item.name"
+#     - name: Find asset URL from release assets based on architecture
+#       set_fact:
+#         asset_url: "{{ item.browser_download_url }}"
+#       loop: "{{ release_info.json.assets }}"
+#       when: "loki_filename in item.name"
 
-     - name: Fail if asset not found for our architecture
-       fail:
-         msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
-       when: asset_url is not defined
+#     - name: Fail if asset not found for our architecture
+#       fail:
+#         msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
+#       when: asset_url is not defined
 
      - name: Download the pinned Loki release ({{ loki_version }}) from github ({{ asset_url }})
        get_url:
-         url: "{{ asset_url }}"
+         url: https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-arm64.zip
          dest: /home/{{ loki_system_user }}/loki.zip
 
      - name: Decompress loki installation package
