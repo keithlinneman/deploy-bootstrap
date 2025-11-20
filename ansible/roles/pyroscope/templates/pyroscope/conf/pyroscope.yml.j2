@@ -40,16 +40,20 @@ frontend:
   grpc_client_config:
     max_send_msg_size: 104857600
     max_recv_msg_size: 104857600
-    grpc_compression: snappy
+    grpc_compression: gzip
     connect_timeout: 5s
+    tls_enabled: true
+    tls_insecure_skip_verify: true
   instance_enable_ipv6: false
 
 frontend_worker:
   grpc_client_config:
     max_send_msg_size: 104857600
     max_recv_msg_size: 104857600
-    grpc_compression: snappy
+    grpc_compression: gzip
     connect_timeout: 5s
+    tls_enabled: true
+    tls_insecure_skip_verify: true
   max_concurrent: 4
 
 query_scheduler:
@@ -57,8 +61,10 @@ query_scheduler:
   grpc_client_config:
     max_send_msg_size: 104857600
     max_recv_msg_size: 104857600
-    grpc_compression: snappy
+    grpc_compression: gzip
     connect_timeout: 5s
+    tls_enabled: true
+    tls_insecure_skip_verify: true
   max_used_instances: 0
 
 server:
