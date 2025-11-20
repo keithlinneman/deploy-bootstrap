@@ -68,6 +68,12 @@ query_scheduler:
     #tls_enabled: true
     #tls_insecure_skip_verify: true
   max_used_instances: 0
+  ring:
+    instance_port: 9095
+    kvstore:
+      store: memberlist
+      prefix: "pyroscope/"
+    instance_enable_ipv6: false
 
 server:
   grpc_listen_network: tcp
