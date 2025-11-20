@@ -10,8 +10,8 @@ User={{ tempo_system_user }}
 Group={{ tempo_system_user }}
 ExecStart=/home/{{ tempo_system_user }}/bin/tempo --config.file=/home/{{ tempo_system_user }}/conf/tempo.yml
 #ExecStop=
-StandardOutput=append:/var/log/{{ tempo_systemd_service_name[tempo_role] }}.log
-StandardError=append:/var/log/{{ tempo_systemd_service_name[tempo_role] }}.log
+#StandardOutput=append:/var/log/{{ tempo_systemd_service_name[tempo_role] }}.log
+#StandardError=append:/var/log/{{ tempo_systemd_service_name[tempo_role] }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
