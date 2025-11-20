@@ -17,3 +17,4 @@
     query-scheduler: loki-query-scheduler
     ruler: loki-ruler
     index-gateway: loki-index-gateway
+  loki_version: 3.5.8
