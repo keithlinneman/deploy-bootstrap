@@ -10,8 +10,8 @@ User={{ mimir_system_user }}
 Group={{ mimir_system_user }}
 ExecStart=/home/{{ mimir_system_user }}/bin/mimir --config.file=/home/{{ mimir_system_user }}/conf/mimir.yml
 #ExecStop=
-StandardOutput=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
-StandardError=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
+#StandardOutput=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
+#StandardError=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
