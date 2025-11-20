@@ -11,6 +11,7 @@ distributor:
     health_check_ingesters: true
     remote_timeout: 5s
   ring:
+    instance_port: {{ pyroscope_grpc_tcp_port }}
     kvstore:
       store: memberlist
       prefix: "pyroscope/"
@@ -42,9 +43,10 @@ frontend:
     max_recv_msg_size: 104857600
     grpc_compression: gzip
     connect_timeout: 5s
-    tls_enabled: true
-    tls_insecure_skip_verify: true
+    #tls_enabled: true
+    #tls_insecure_skip_verify: true
   instance_enable_ipv6: false
+  instance_port: {{ pyroscope_grpc_tcp_port }}
 
 frontend_worker:
   grpc_client_config:
@@ -52,8 +54,8 @@ frontend_worker:
     max_recv_msg_size: 104857600
     grpc_compression: gzip
     connect_timeout: 5s
-    tls_enabled: true
-    tls_insecure_skip_verify: true
+    #tls_enabled: true
+    #tls_insecure_skip_verify: true
   max_concurrent: 4
 
 query_scheduler:
@@ -63,8 +65,8 @@ query_scheduler:
     max_recv_msg_size: 104857600
     grpc_compression: gzip
     connect_timeout: 5s
-    tls_enabled: true
-    tls_insecure_skip_verify: true
+    #tls_enabled: true
+    #tls_insecure_skip_verify: true
   max_used_instances: 0
 
 server:
@@ -92,6 +94,7 @@ store_gateway:
     instance_enable_ipv6: false
     replication_factor: 3
     instance_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+    instance_port: {{ pyroscope_grpc_tcp_port }}
     unregister_on_shutdown: true
   bucket_store:
     sync_interval: 15m
@@ -116,6 +119,7 @@ compactor:
       store: memberlist
       prefix: "pyroscope/"
     instance_enable_ipv6: false
+    instance_port: {{ pyroscope_grpc_tcp_port }}
   compaction_jobs_order: smallest-range-oldest-blocks-first
 
 memberlist:
