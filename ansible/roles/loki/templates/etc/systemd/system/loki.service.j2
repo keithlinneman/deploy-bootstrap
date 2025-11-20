@@ -10,8 +10,8 @@ User={{ loki_system_user }}
 Group={{ loki_system_user }}
 ExecStart=/home/{{ loki_system_user }}/bin/{{ loki_system_filename[ansible_architecture] }} --config.file=/home/{{ loki_system_user }}/conf/loki.yml
 #ExecStop=
-StandardOutput=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
-StandardError=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
+#StandardOutput=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
+#StandardError=append:/var/log/{{ loki_systemd_service_name[loki_role] }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
