@@ -324,7 +324,7 @@
       modification_time: preserve
       access_time: preserve
       owner: root
-      group: root
+      group: crontab
       mode: 0640
 
   - name: 2.4.2.1 | Ensure at is restricted to authorized users
