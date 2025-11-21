@@ -220,9 +220,6 @@ processors:
           - replace_pattern(log.attributes["service"], "\\.slice\\d+$", "") where log.attributes["service"] != nil
           - replace_pattern(log.attributes["service"], "@.*$", "") where log.attributes["service"] != nil and not IsMatch(log.attributes["service"], "^user@\\d+$")
 
-          # mirror & promote
-          - set(resource.attributes["service.name"], log.attributes["service"])           where log.attributes["service"] != nil
-
           # clean up the temporary extracted key
           - delete_key(log.attributes, "service_name_extracted")
             where log.attributes["service_name_extracted"] != nil
