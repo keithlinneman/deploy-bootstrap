@@ -931,6 +931,14 @@
       #backup: true
     when: ansible_distribution == 'Amazon'
 
+  - name: (Debian) 5.3.2.2 | Ensure pam_faillock module is enabled | pam.d/cron exclusion
+    lineinfile:
+      path: /etc/pam.d/cron
+      line: "auth sufficient pam_rootok.so"
+      insertbefore: '^@include\s*common-auth.*'
+      #backup: true
+    when: ansible_os_family == 'Debian'
+
   - name: 5.3.3.1.1 | Ensure password failed attempts lockout is configured
     lineinfile:
       path: /etc/security/faillock.conf
