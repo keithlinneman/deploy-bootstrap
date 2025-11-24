@@ -342,21 +342,21 @@ service:
       #exporters: [otlphttp/loki,debug]
 
     # -------- Cloud-init file ----------
-    logs/cloudinit_output:
-      receivers: [filelog/cloudinit_output]
-      processors:
-        - resourcedetection/ec2
-        - resource/system_metadata
-        - resource/source_file
-        - transform/level_common
-        - transform/severity_from_priority
-        - transform/service_canonical
-        - transform/resource_enrich
-        - transform/promote_for_labels
-        - attributes/prune_noise
-        - batch
-      exporters: [otlphttp/loki]
-      #exporters: [otlphttp/loki,debug]
+    #logs/cloudinit_output:
+    #  receivers: [filelog/cloudinit_output]
+    #  processors:
+    #    - resourcedetection/ec2
+    #    - resource/system_metadata
+    #    - resource/source_file
+    #    - transform/level_common
+    #    - transform/severity_from_priority
+    #    - transform/service_canonical
+    #    - transform/resource_enrich
+    #    - transform/promote_for_labels
+    #    - attributes/prune_noise
+    #    - batch
+    #  exporters: [otlphttp/loki]
+    #  #exporters: [otlphttp/loki,debug]
 
     # -------- Apt/Dpkg files ----------
     logs/apt_logs:
