@@ -1037,10 +1037,10 @@ role_attribute_path = contains(groups[*], 'Grafana Admins') && 'Admin' || contai
 [log]
 # Either "console", "file", "syslog". Default is console and  file
 # Use space to separate multiple modes, e.g. "console file"
-;mode = console file
+mode = console
 
 # Either "debug", "info", "warn", "error", "critical", default is "info"
-;level = info
+level = info
 
 # optional settings to set different levels for specific loggers. Ex filters = sqlstore:debug
 ;filters =
@@ -1050,10 +1050,10 @@ role_attribute_path = contains(groups[*], 'Grafana Admins') && 'Admin' || contai
 
 # For "console" mode only
 [log.console]
-;level =
+level = info
 
 # log line format, valid options are text, console and json
-;format = console
+format = json
 
 # For "file" mode only
 [log.file]
