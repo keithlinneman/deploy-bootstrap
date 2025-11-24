@@ -16,6 +16,34 @@ receivers:
   journald:
     directory: /var/log/journal
     start_at: end
+    operators:
+      # 1) Prefer the user service unit if present
+      - id: service-from-user-unit
+        type: add
+        if: 'body["_SYSTEMD_USER_UNIT"] != nil'
+        field: attributes["service_raw"]
+        value: EXPR(body["_SYSTEMD_USER_UNIT"])
+
+      # 2) Otherwise fall back to _SYSTEMD_UNIT
+      - id: service-from-unit
+        type: add
+        if: 'attributes["service_raw"] == nil && body["_SYSTEMD_UNIT"] != nil'
+        field: attributes["service_raw"]
+        value: EXPR(body["_SYSTEMD_UNIT"])
+
+      # 3) Trim suffixes (.service, .scope, .slice..., @instance) down to a base name
+      - id: service-trim-suffixes
+        type: regex_parser
+        parse_from: attributes["service_raw"]
+        # regex: '^(?P<service_name_canonical>[^.@]+)'
+        regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
+
+      # 4) Promote canonical name to resource.service.name
+      - id: service-to-resource
+        type: add
+        if: 'attributes["service_name_canonical"] != nil'
+        field: resource["service.name"]
+        value: EXPR(attributes["service_name_canonical"])
 
   # Cloud-init one-off file
   filelog/cloudinit_output:
@@ -34,6 +62,18 @@ receivers:
             expr: body matches "(?i)error"
           - output: normal
             expr: "true"
+
+      - type: router
+        routes:
+          - output: warn_detected
+            expr: body matches "(?i)warn"
+          - output: normal
+            expr: "true"
+
+      - id: warn_detected
+        type: add
+        field: attributes.log.level
+        value: warn
 
       - id: error_detected
         type: add
@@ -190,9 +230,9 @@ processors:
         statements:
           - set(log.attributes["log.level"], ToLowerCase(log.attributes["log.level"])) where log.attributes["log.level"] != nil
           - set(log.attributes["level"],      log.attributes["log.level"])         where log.attributes["level"] == nil and log.attributes["log.level"] != nil
-          - set(log.attributes["level"],      ToLowerCase(log.attributes["level"]))    where log.attributes["level"] != nil
           - set(log.attributes["level"], "warn") where log.attributes["level"] == "warning"
           - set(log.attributes["level"], "info") where log.attributes["level"] == "notice"
+          - set(log.attributes["level"], "info") where log.attributes["level"] == "unknown"
           - set(log.severity_text, log.attributes["level"]) where log.severity_text == nil and log.attributes["level"] != nil
           - set(log.severity_number, 7)   where log.severity_number == nil and log.severity_text == "debug"
           - set(log.severity_number, 9)   where log.severity_number == nil and log.severity_text == "info"
@@ -200,29 +240,28 @@ processors:
           - set(log.severity_number, 17)  where log.severity_number == nil and log.severity_text == "error"
           - set(log.severity_number, 24)  where log.severity_number == nil and log.severity_text == "fatal"
 
-  # Build a single canonical 'service' and clean suffixes; promote to resource.service.name
+  # Build a single canonical 'service' and clean suffixes
   transform/service_canonical:
     log_statements:
       - context: log
         statements:
           # precedence: journal.user.unit -> extracted -> existing service.name -> systemd unit -> logger
-          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.user_unit"]))      where log.attributes["journal.user_unit"] != nil
-          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil and not IsMatch(log.attributes["journal.unit"], "^user@\\d+\\.service$")
-          - set(log.attributes["service"], ToLowerCase(log.attributes["service_name_extracted"])) where log.attributes["service"] == nil and log.attributes["service_name_extracted"] != nil
-          - set(log.attributes["service"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil
-          - set(log.attributes["service"], ToLowerCase(log.attributes["service.name"]))           where log.attributes["service"] == nil and log.attributes["service.name"] != nil
-          - set(log.attributes["service"], ToLowerCase(log.attributes["logger"]))                 where log.attributes["service"] == nil and log.attributes["logger"] != nil
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.user_unit"]))      where log.attributes["journal.user_unit"] != nil
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil and not IsMatch(log.attributes["journal.unit"], "^user@\\d+\\.service$")
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["service_name_extracted"])) where log.attributes["service"] == nil and log.attributes["service_name_extracted"] != nil
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["service.name"]))           where log.attributes["service"] == nil and log.attributes["service.name"] != nil
+          - set(log.attributes["service.name"], ToLowerCase(log.attributes["logger"]))                 where log.attributes["service"] == nil and log.attributes["logger"] != nil
 
           # trim systemd suffixes
-          - replace_pattern(log.attributes["service"], "\\.service$", "")   where log.attributes["service"] != nil
-          - replace_pattern(log.attributes["service"], "\\.scope$", "")     where log.attributes["service"] != nil
-          - replace_pattern(log.attributes["service"], "\\.slice\\d+$", "") where log.attributes["service"] != nil
-          - replace_pattern(log.attributes["service"], "\\.slice\\d+$", "") where log.attributes["service"] != nil
-          - replace_pattern(log.attributes["service"], "@.*$", "") where log.attributes["service"] != nil and not IsMatch(log.attributes["service"], "^user@\\d+$")
+          - replace_pattern(log.attributes["service.name"], "\\.service$", "")   where log.attributes["service.name"] != nil
+          - replace_pattern(log.attributes["service.name"], "\\.scope$", "")     where log.attributes["service.name"] != nil
+          - replace_pattern(log.attributes["service.name"], "\\.slice\\d+$", "") where log.attributes["service.name"] != nil
+          - replace_pattern(log.attributes["service.name"], "\\.slice\\d+$", "") where log.attributes["service.name"] != nil
+          - replace_pattern(log.attributes["service.name"], "@.*$", "") where log.attributes["service.name"] != nil and not IsMatch(log.attributes["service.name"], "^user@\\d+$")
 
           # clean up the temporary extracted key
-          - delete_key(log.attributes, "service_name_extracted")
-            where log.attributes["service_name_extracted"] != nil
+          - delete_key(log.attributes, "service_name_extracted") where log.attributes["service_name_extracted"] != nil
 
 
   # Resource enrichment & alignment (labels live at resource level for Loki OTLP)
@@ -240,8 +279,9 @@ processors:
       - context: log
         statements:
           # promote attributes → resource labels
-          - set(resource.attributes["source"], log.attributes["source"]) where log.attributes["source"] != nil
-          - set(resource.attributes["level"],  log.attributes["level"])  where log.attributes["level"]  != nil
+          # 11/22/25 - dont set resource attributes that are log level scope - they apply to multiple bundled log records
+          # - set(resource.attributes["source"], log.attributes["source"]) where log.attributes["source"] != nil
+          # - set(resource.attributes["level"],  log.attributes["level"])  where log.attributes["level"]  != nil
 
   # Optional: prune noise we won't query on
   attributes/prune_noise:
@@ -250,6 +290,10 @@ processors:
       - {action: delete, key: journal.unit}
       - {action: delete, key: logfmt}
       - {action: delete, key: metadata}
+      # - {action: delete, key: detected_level}
+      # - {action: delete, key: level_extracted}
+      - {action: delete, key: service_raw}
+      - {action: delete, key: service_name_canonical}
 
   batch:
 
@@ -286,9 +330,9 @@ service:
         - resource/system_metadata
         - resource/source_journald
         - transform/journald_extract
-        - transform/severity_from_priority
         - transform/level_common
-        - transform/service_canonical
+        - transform/severity_from_priority
+        # - transform/service_canonical
         - transform/resource_enrich
         - transform/promote_for_labels
         - attributes/prune_noise
@@ -304,6 +348,7 @@ service:
         - resource/system_metadata
         - resource/source_file
         - transform/level_common
+        - transform/severity_from_priority
         - transform/service_canonical
         - transform/resource_enrich
         - transform/promote_for_labels
