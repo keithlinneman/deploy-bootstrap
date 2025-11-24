@@ -36,7 +36,8 @@ receivers:
         type: regex_parser
         parse_from: attributes["service_raw"]
         # regex: '^(?P<service_name_canonical>[^.@]+)'
-        regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
+        # regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
+        regex: '^(?P<service_name_canonical>user@\d+|[^@]+?)(?:@.*)?(?:\.service|\.scope|\.slice\d+)?$'
 
       # 4) Promote canonical name to resource.service.name
       - id: service-to-resource
@@ -46,63 +47,63 @@ receivers:
         value: EXPR(attributes["service_name_canonical"])
 
   # Cloud-init one-off file
-  filelog/cloudinit_output:
-    include: [/var/log/cloud-init-output.log]
-    start_at: beginning
-    include_file_path: true
-    include_file_name: true
-    operators:
-      - type: move     # body -> attributes.message, then we restore to body later
-        from: body
-        to: attributes.message
+  #filelog/cloudinit_output:
+  #  include: [/var/log/cloud-init-output.log]
+  #  start_at: beginning
+  #  include_file_path: true
+  #  include_file_name: true
+  #  operators:
+  #    - type: move     # body -> attributes.message, then we restore to body later
+  #      from: body
+  #      to: attributes.message
 
-      - type: router
-        routes:
-          - output: error_detected
-            expr: body matches "(?i)error"
-          - output: normal
-            expr: "true"
+  #    - type: router
+  #      routes:
+  #        - output: error_detected
+  #          expr: body matches "(?i)error"
+  #        - output: normal
+  #          expr: "true"
 
-      - type: router
-        routes:
-          - output: warn_detected
-            expr: body matches "(?i)warn"
-          - output: normal
-            expr: "true"
+  #    - type: router
+  #      routes:
+  #        - output: warn_detected
+  #          expr: body matches "(?i)warn"
+  #        - output: normal
+  #          expr: "true"
 
-      - id: warn_detected
-        type: add
-        field: attributes.log.level
-        value: warn
+  #    - id: warn_detected
+  #      type: add
+  #      field: attributes.log.level
+  #      value: warn
 
-      - id: error_detected
-        type: add
-        field: attributes.log.level
-        value: error
+  #    - id: error_detected
+  #      type: add
+  #      field: attributes.log.level
+  #      value: error
 
-      - id: normal
-        type: add
-        field: attributes.log.level
-        value: info
+  #    - id: normal
+  #      type: add
+  #      field: attributes.log.level
+  #      value: info
 
-      - type: add
-        field: attributes.log_format
-        value: plaintext
-      - type: add
-        field: attributes.log_source
-        value: filelog
-      - type: add
-        field: attributes.source_type
-        value: cloud-init
-      - type: add
-        field: attributes.service.name
-        value: cloud-init
-      - type: copy
-        from: attributes.service.name
-        to: attributes.service_name
-      - type: move
-        from: attributes.message
-        to: body
+  #    - type: add
+  #      field: attributes.log_format
+  #      value: plaintext
+  #    - type: add
+  #      field: attributes.log_source
+  #      value: filelog
+  #    - type: add
+  #      field: attributes.source_type
+  #      value: cloud-init
+  #    - type: add
+  #      field: attributes.service.name
+  #      value: cloud-init
+  #    - type: copy
+  #      from: attributes.service.name
+  #      to: attributes.service_name
+  #    - type: move
+  #      from: attributes.message
+  #      to: body
 
   # Apt/dpkg logs
   filelog/apt_logs:
