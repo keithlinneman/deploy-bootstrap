@@ -34,6 +34,7 @@ receivers:
       # 3) Trim suffixes (.service, .scope, .slice..., @instance) down to a base name
       - id: service-trim-suffixes
         type: regex_parser
+        if: 'attributes["service_raw"] != nil'
         parse_from: attributes["service_raw"]
         # regex: '^(?P<service_name_canonical>[^.@]+)'
         # regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
@@ -212,17 +213,60 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(log.severity_text, "debug") where log.attributes["journal.priority"] == "7"
-          - set(log.severity_number, 7)     where log.severity_text == "debug"
-          - set(log.severity_text, "info")  where log.attributes["journal.priority"] == "6" or log.attributes["journal.priority"] == "5"
-          - set(log.severity_number, 9)     where log.severity_text == "info"
-          - set(log.severity_text, "warn")  where log.attributes["journal.priority"] == "4"
-          - set(log.severity_number, 13)    where log.severity_text == "warn"
-          - set(log.severity_text, "error") where log.attributes["journal.priority"] == "3" or log.attributes["journal.priority"] == "2"
-          - set(log.severity_number, 17)    where log.severity_text == "error"
-          - set(log.severity_text, "fatal") where log.attributes["journal.priority"] == "1" or log.attributes["journal.priority"] == "0"
-          - set(log.severity_number, 24)    where log.severity_text == "fatal"
-          - set(log.attributes["level"], log.severity_text) where log.severity_text != nil
+        # Only fill severity from PRIORITY if nothing else has set it yet
+        - set(log.severity_text, "debug")
+          where log.severity_text == nil
+            and log.attributes["level"] == nil
+            and log.attributes["journal.priority"] == "7"
+
+        - set(log.severity_text, "info")
+          where log.severity_text == nil
+            and log.attributes["level"] == nil
+            and (log.attributes["journal.priority"] == "6"
+                 or log.attributes["journal.priority"] == "5")
+
+        - set(log.severity_text, "warn")
+          where log.severity_text == nil
+            and log.attributes["level"] == nil
+            and log.attributes["journal.priority"] == "4"
+
+        - set(log.severity_text, "error")
+          where log.severity_text == nil
+            and log.attributes["level"] == nil
+            and (log.attributes["journal.priority"] == "3"
+                 or log.attributes["journal.priority"] == "2")
+
+        - set(log.severity_text, "fatal")
+          where log.severity_text == nil
+            and log.attributes["level"] == nil
+            and (log.attributes["journal.priority"] == "1"
+                 or log.attributes["journal.priority"] == "0")
+
+        # Only fill numbers if they aren't set yet
+        - set(log.severity_number, 7)
+          where log.severity_number == nil
+            and log.severity_text == "debug"
+
+        - set(log.severity_number, 9)
+          where log.severity_number == nil
+            and log.severity_text == "info"
+
+        - set(log.severity_number, 13)
+          where log.severity_number == nil
+            and log.severity_text == "warn"
+
+        - set(log.severity_number, 17)
+          where log.severity_number == nil
+            and log.severity_text == "error"
+
+        - set(log.severity_number, 24)
+          where log.severity_number == nil
+            and log.severity_text == "fatal"
+
+        # And only back-fill "level" from severity if level is still missing
+        - set(log.attributes["level"], log.severity_text)
+          where log.attributes["level"] == nil
+            and log.severity_text != nil
 
   # Common level normalization for *any* source (filelog/syslog/OTLP)
   transform/level_common:
@@ -284,6 +328,38 @@ processors:
           # - set(resource.attributes["source"], log.attributes["source"]) where log.attributes["source"] != nil
           # - set(resource.attributes["level"],  log.attributes["level"])  where log.attributes["level"]  != nil
 
+  transform/journald_parse_json:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+        # Only touch logs whose body *looks* like JSON
+        - set(cache["parsed"], ParseJSON(body))
+          where IsString(body) and Substring(body, 0, 1) == "{"
+
+        # Let JSON "level" override the detected level if present
+        - set(attributes["level"], ToLowerCase(cache["parsed"]["level"]))
+          where cache["parsed"]["level"] != nil
+
+        # Copy msg if we don't already have one
+        - set(attributes["msg"], cache["parsed"]["msg"])
+          where attributes["msg"] == nil
+            and cache["parsed"]["msg"] != nil
+
+        # Copy caller if we don't already have one
+        - set(attributes["caller"], cache["parsed"]["caller"])
+          where attributes["caller"] == nil
+            and cache["parsed"]["caller"] != nil
+
+        # Optional: capture ts for later if you want to drive log.time from it
+        # - set(attributes["ts"], cache["parsed"]["ts"])
+        #   where attributes["ts"] == nil
+        #     and cache["parsed"]["ts"] != nil
+
+        # Clean up so we don't leak the parsed blob into attributes
+        - delete_key(cache, "parsed")
+          where cache["parsed"] != nil
+
   # Optional: prune noise we won't query on
   attributes/prune_noise:
     actions:
@@ -331,6 +407,7 @@ service:
         - resource/system_metadata
         - resource/source_journald
         - transform/journald_extract
+        - transform/journald_parse_json
         - transform/level_common
         - transform/severity_from_priority
         # - transform/service_canonical
