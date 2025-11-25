@@ -48,7 +48,17 @@
          repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
          state: present
          filename: grafana
-         update_cache: true
+         # causing apt locks somehow
+         #update_cache: true
+         update_cache: false
+
+     - name: Update apt cache after adding repo
+       apt:
+         update_cache: yes
+       register: apt_update
+       until: apt_update is succeeded
+       retries: 10
+       delay: 6
 
      - name: Install grafana package
        package:
