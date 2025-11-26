@@ -22,7 +22,7 @@ scrape_configs:
       - source_labels: [__meta_ec2_region]
         target_label: region
 
-      - source_labels: [__meta_ec2_tag_App_Name]
+      - source_labels: [__meta_ec2_tag_AppName]
         target_label: service_name
 
       - source_labels: [service_name]
@@ -30,7 +30,7 @@ scrape_configs:
         replacement: unknown
         target_label: service_name
 
-      - source_labels: [__meta_ec2_tag_App_Role]
+      - source_labels: [__meta_ec2_tag_AppRole]
         target_label: service_role
 
       - source_labels: [service_role]
