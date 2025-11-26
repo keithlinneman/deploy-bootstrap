@@ -44,7 +44,7 @@ receivers:
       - id: logger-to-resource
         type: add
         if: 'attributes["logger_name_canonical"] != nil'
-        field: resource["logger.name"]
+        field: resource["logger"]
         value: EXPR(attributes["logger_name_canonical"])
 
   # Cloud-init one-off file
@@ -431,6 +431,7 @@ processors:
       # - {action: delete, key: level_extracted}
       - {action: delete, key: logger_raw}
       #- {action: delete, key: service_name_canonical}
+      - {action: delete, key: logger_name_canonical}
 
   batch:
 
