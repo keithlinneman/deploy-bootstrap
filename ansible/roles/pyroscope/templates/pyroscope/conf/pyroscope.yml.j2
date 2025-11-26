@@ -78,6 +78,9 @@ query_scheduler:
 server:
   grpc_listen_network: tcp
   grpc_listen_port: {{ pyroscope_grpc_tcp_port }}
+  grpc_tls_config:
+    cert_file: /home/{{ pyroscope_system_user }}/conf/ssl/cert.pem
+    key_file: /home/{{ pyroscope_system_user }}/conf/ssl/cert.key
   http_listen_network: tcp
   http_listen_port: {{ pyroscope_http_tcp_port }}
   #http_tls_config:
