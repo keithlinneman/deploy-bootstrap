@@ -10,7 +10,7 @@ scrape_configs:
             values: ["running"]
           #- name: tag:Environment
           #  values: ["{{ platform_env }}"]
-   relabel_configs:
+    relabel_configs:
       #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
       #  action: keep
       #  regex: True
@@ -53,8 +53,8 @@ scrape_configs:
         replacement: unknown
         target_label: project
 
-      - source_labels: [__meta_ec2_tag_Name]
-      - target_label: company
+      - source_labels: [__meta_ec2_tag_Company]
+        target_label: company
 
       - source_labels: [company]
         regex: ^$

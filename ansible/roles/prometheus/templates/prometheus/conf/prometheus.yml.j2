@@ -20,7 +20,6 @@ global:
       __replica__: "{{ ansible_ec2_instance_identity_document_availabilityzone }}"
       monitor: "prometheus-ha-{{ ansible_ec2_instance_identity_document_region }}"
 
-
   #scrape_failure_log_file: 
   # The max number of samples that can be returned per scrape or it will be rejected
   #sample_limit: 

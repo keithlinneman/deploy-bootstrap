@@ -53,8 +53,8 @@ scrape_configs:
         replacement: unknown
         target_label: project
 
-      - source_labels: [__meta_ec2_tag_Name]
-      - target_label: company
+      - source_labels: [__meta_ec2_tag_Company]
+        target_label: company
 
       - source_labels: [company]
         regex: ^$
