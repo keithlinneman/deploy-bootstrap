@@ -178,11 +178,11 @@ processors:
       - {key: company,      value: {{ company_name }}, action: upsert}
       # done in resourcedetection/ec2
       # - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
-      - {key: host.ip,      value: {{ ansible_default_ipv4.interface }}, action: upsert}
+      - {key: host.ip,      value: {{ ansible_default_ipv4.address }}, action: upsert}
       - {key: host.type,    value: {{ ansible_product_name }}, action: upsert}
-      - {key: instance,     value: {{ hostname_no_instanceid }}, action: upsert}
       - {key: host.fqdn,    value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
       - {key: env,          value: {{ platform_env }}, action: upsert}
+      - {key: node,         value: {{ hostname_no_instanceid }}, action: upsert}
       - {key: service.name, value: {{ app_name }}, action: upsert}
       - {key: service.role, value: {{ app_role }}, action: upsert}
       - {key: project,      value: {{ project }}, action: upsert}
@@ -369,15 +369,15 @@ processors:
 
 
   # Resource enrichment & alignment (labels live at resource level for Loki OTLP)
-  transform/resource_enrich:
-    log_statements:
-      - context: resource
-        statements:
-          # ensure host.name exists (resourcedetection will usually fill this)
-          - set(resource.attributes["host.name"], resource.attributes["host"])               where resource.attributes["host.name"] == nil and resource.attributes["host"] != nil
-          ## already set in resource/system_metadata
-          # mirror cloud.region to short 'region'
-          # - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
+  # transform/resource_enrich:
+  #   log_statements:
+  #     - context: resource
+  #       statements:
+  #         # ensure host.name exists (resourcedetection will usually fill this)
+  #         # - set(resource.attributes["host.name"], resource.attributes["host"])               where resource.attributes["host.name"] == nil and resource.attributes["host"] != nil
+  #         ## already set in resource/system_metadata
+  #         # mirror cloud.region to short 'region'
+  #         # - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
 
   transform/promote_for_labels:
     log_statements:
@@ -473,7 +473,7 @@ service:
         - transform/level_journald
         # this is set in receiver now, otherwise multiple logs get batched together incorrectly
         # - transform/service_canonical
-        - transform/resource_enrich
+        # - transform/resource_enrich
         - transform/promote_for_labels
         - attributes/prune_noise
         - batch
@@ -506,7 +506,7 @@ service:
         - resource/source_file
         - transform/level_common
         - transform/service_canonical
-        - transform/resource_enrich
+        # - transform/resource_enrich
         - transform/promote_for_labels
         - attributes/prune_noise
         - batch
@@ -521,7 +521,7 @@ service:
         - resource/system_metadata
         - transform/level_common
         - transform/service_canonical
-        - transform/resource_enrich
+        # - transform/resource_enrich
         - transform/promote_for_labels
         - attributes/prune_noise
         - batch
