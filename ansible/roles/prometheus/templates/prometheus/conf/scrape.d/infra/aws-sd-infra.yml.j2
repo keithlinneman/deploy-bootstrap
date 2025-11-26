@@ -19,11 +19,8 @@ scrape_configs:
       #  action: keep
       #  regex: {{ platform_env }}
 
-      #- source_labels: [__meta_ec2_region]
-      #  target_label: region
-
-      - source_labels: [__meta_ec2_availability_zone]
-        target_label: az
+      - source_labels: [__meta_ec2_region]
+        target_label: region
 
       - source_labels: [__meta_ec2_tag_App_Name]
         target_label: service_name
@@ -41,9 +38,8 @@ scrape_configs:
         replacement: unknown
         target_label: service_role
 
-      # set globally
-      #- source_labels: [__meta_ec2_tag_Environment]
-      #  target_label: env
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: env
 
       - source_labels: [__meta_ec2_tag_Name]
         regex: "([^.]*)\\.?.*"
@@ -56,6 +52,23 @@ scrape_configs:
         regex: ^$
         replacement: unknown
         target_label: project
+
+      - source_labels: [__meta_ec2_tag_Name]
+      - target_label: company
+
+      - source_labels: [company]
+        regex: ^$
+        replacement: unknown
+        target_label: company
+
+      - target_label: cloud_provider
+        replacement: 'aws'
+
+      - target_label: cloud_platform
+        replacement: 'aws_ec2'
+
+      - source_labels: [__meta_ec2_owner_id]
+        target_label: cloud_account_id
 
       - source_labels: [__meta_ec2_availability_zone]
         target_label: cloud_availability_zone
