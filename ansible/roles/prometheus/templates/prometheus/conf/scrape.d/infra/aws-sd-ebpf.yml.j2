@@ -68,7 +68,7 @@ scrape_configs:
         target_label: host_ip
 
       - source_labels: [__meta_ec2_instance_id]
-        target_label: host_type
+        target_label: host_id
 
       - source_labels: [__meta_ec2_private_dns_name]
         target_label: host_name
