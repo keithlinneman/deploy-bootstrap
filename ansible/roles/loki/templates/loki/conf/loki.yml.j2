@@ -72,13 +72,10 @@ distributor:
   ingester_writes_enabled: true
   otlp_config:
     default_resource_attributes_as_index_labels:
-      - app_name
-      - app.name
-      - app_role
-      - app.role
       - env
       - instance
- #     - instance_id
+      - host.id
+      # - instance_id
       - project
       - region
       - level
@@ -269,18 +266,29 @@ limits_config:
   otlp_config:
     resource_attributes:
       ignore_defaults: true
+      # translated_attributes:
+        # - from: service.name
+        #   to: service_name
+        # - from: log.level
+        #   to: level
       attributes_config:
         - action: index_label
           attributes:
-            - app.name
-            - app.role
-            - deployment.environment.name
-            - host
-            - level
+            - cloud.account.id
+            - cloud.availability_zone
+            - company
+            - env
+            - instance
+            # log attribute
+            # - level
+            # log attribute
+            # - logger
             - project
             - region
             - service.name
-            - source
+            - service.role
+            # log attribute
+            # - source
           #regex: "^(app_name|app_role|env|instance|instance_id|project)$"
           #regex: ".*"
     scope_attributes:
