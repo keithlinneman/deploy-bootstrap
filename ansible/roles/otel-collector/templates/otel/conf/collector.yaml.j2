@@ -40,11 +40,11 @@ receivers:
         # regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
         regex: '^(?P<logger_name_canonical>user@\d+|[^@]+?)(?:@.*)?(?:\.service|\.scope|\.slice\d+)?$'
 
-      # 4) Promote canonical name to resource.service.name
-      - id: logger-to-resource
+      # 4) Set logger name as attribute
+      - id: logger-to-attribute
         type: add
         if: 'attributes["logger_name_canonical"] != nil'
-        field: resource["logger"]
+        field: attributes["logger"]
         value: EXPR(attributes["logger_name_canonical"])
 
   # Cloud-init one-off file
