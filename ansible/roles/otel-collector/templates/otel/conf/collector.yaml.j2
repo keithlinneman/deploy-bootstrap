@@ -178,8 +178,8 @@ processors:
       - {key: company,      value: {{ company_name }}, action: upsert}
       # done in resourcedetection/ec2
       # - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
-      - {key: host.ip,      value: {{ ansible_ec2_instance_identity_document_privateIp }}, action: upsert}
-      - {key: host.type,    value: {{ ansible_ec2_instance_identity_document_instanceType }}, action: upsert}
+      - {key: host.ip,      value: {{ ansible_default_ipv4.interface }}, action: upsert}
+      - {key: host.type,    value: {{ ansible_product_name }}, action: upsert}
       - {key: instance,     value: {{ hostname_no_instanceid }}, action: upsert}
       - {key: host.fqdn,    value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
       - {key: env,          value: {{ platform_env }}, action: upsert}
@@ -290,59 +290,59 @@ processors:
       - context: log
         statements:
           # 1) Normalize any existing level (e.g. from JSON)
-          - set(attributes["level"], ToLowerCase(attributes["level"]))
-            where attributes["level"] != nil
+          - set(log.attributes["level"], ToLowerCase(log.attributes["level"]))
+            where log.attributes["level"] != nil
 
-          - set(attributes["level"], "warn")
-            where attributes["level"] == "warning"
+          - set(log.attributes["level"], "warn")
+            where log.attributes["level"] == "warning"
 
-          - set(attributes["level"], "info")
-            where attributes["level"] == "notice"
-               or attributes["level"] == "unknown"
+          - set(log.attributes["level"], "info")
+            where log.attributes["level"] == "notice"
+               or log.attributes["level"] == "unknown"
 
           # 2) If still no level, derive from journald PRIORITY
-          - set(attributes["level"], "debug")
-            where attributes["level"] == nil
-              and attributes["journal.priority"] == "7"
+          - set(log.attributes["level"], "debug")
+            where log.attributes["level"] == nil
+              and log.attributes["journal.priority"] == "7"
 
-          - set(attributes["level"], "info")
-            where attributes["level"] == nil
-              and (attributes["journal.priority"] == "6"
-                   or attributes["journal.priority"] == "5")
+          - set(log.attributes["level"], "info")
+            where log.attributes["level"] == nil
+              and (log.attributes["journal.priority"] == "6"
+                   or log.attributes["journal.priority"] == "5")
 
-          - set(attributes["level"], "warn")
-            where attributes["level"] == nil
-              and attributes["journal.priority"] == "4"
+          - set(log.attributes["level"], "warn")
+            where log.attributes["level"] == nil
+              and log.attributes["journal.priority"] == "4"
 
-          - set(attributes["level"], "error")
-            where attributes["level"] == nil
-              and (attributes["journal.priority"] == "3"
-                   or attributes["journal.priority"] == "2")
+          - set(log.attributes["level"], "error")
+            where log.attributes["level"] == nil
+              and (log.attributes["journal.priority"] == "3"
+                   or log.attributes["journal.priority"] == "2")
 
-          - set(attributes["level"], "fatal")
-            where attributes["level"] == nil
-              and (attributes["journal.priority"] == "1"
-                   or attributes["journal.priority"] == "0")
+          - set(log.attributes["level"], "fatal")
+            where log.attributes["level"] == nil
+              and (log.attributes["journal.priority"] == "1"
+                   or log.attributes["journal.priority"] == "0")
 
           # 3) Last-resort fallback if something is really weird
-          - set(attributes["level"], "info")
-            where attributes["level"] == nil
+          - set(log.attributes["level"], "info")
+            where log.attributes["level"] == nil
 
           # 4) Now level is canonical → drive severity from it
-          - set(severity_text, attributes["level"])
-            where attributes["level"] != nil
+          - set(log.severity_text, log.attributes["level"])
+            where log.attributes["level"] != nil
 
           # overwriting severity_number, in case json overwrote the level
-          - set(severity_number, 7)
-            where severity_text == "debug"
-          - set(severity_number, 9)
-            where severity_text == "info"
-          - set(severity_number, 13)
-            where severity_text == "warn"
-          - set(severity_number, 17)
-            where severity_text == "error"
-          - set(severity_number, 24)
-            where severity_text == "fatal"
+          - set(log.severity_number, 7)
+            where log.severity_text == "debug"
+          - set(log.severity_number, 9)
+            where log.severity_text == "info"
+          - set(log.severity_number, 13)
+            where log.severity_text == "warn"
+          - set(log.severity_number, 17)
+            where log.severity_text == "error"
+          - set(log.severity_number, 24)
+            where log.severity_text == "fatal"
 
   # Build a single canonical 'service' and clean suffixes
   transform/service_canonical:
@@ -393,32 +393,32 @@ processors:
     log_statements:
       - context: log
         statements:
-        # Only touch logs whose body *looks* like JSON
-        - set(cache["parsed"], ParseJSON(body))
-          where IsString(body) and Substring(body, 0, 1) == "{"
+        # Only touch logs whose log.body *looks* like JSON
+        - set(log.cache["parsed"], ParseJSON(log.body))
+          where IsString(log.body) and Substring(log.body, 0, 1) == "{"
 
         # Let JSON "level" override the level if present
-        - set(log.attributes["level"], ToLowerCase(cache["parsed"]["level"]))
-          where cache["parsed"]["level"] != nil
+        - set(log.attributes["level"], ToLowerCase(log.cache["parsed"]["level"]))
+          where log.cache["parsed"]["level"] != nil
 
         # Copy msg if we don't already have one
-        - set(log.attributes["msg"], cache["parsed"]["msg"])
+        - set(log.attributes["msg"], log.cache["parsed"]["msg"])
           where log.attributes["msg"] == nil
-            and cache["parsed"]["msg"] != nil
+            and log.cache["parsed"]["msg"] != nil
 
         # Copy caller if we don't already have one
-        - set(log.attributes["caller"], cache["parsed"]["caller"])
+        - set(log.attributes["caller"], log.cache["parsed"]["caller"])
           where log.attributes["caller"] == nil
-            and cache["parsed"]["caller"] != nil
+            and log.cache["parsed"]["caller"] != nil
 
         # Optional: capture ts for later if you want to drive log.time from it
-        # - set(attributes["ts"], cache["parsed"]["ts"])
+        # - set(attributes["ts"], log.cache["parsed"]["ts"])
         #   where attributes["ts"] == nil
-        #     and cache["parsed"]["ts"] != nil
+        #     and log.cache["parsed"]["ts"] != nil
 
         # Clean up so we don't leak the parsed blob into attributes
-        - delete_key(cache, "parsed")
-          where cache["parsed"] != nil
+        - delete_key(log.cache, "parsed")
+          where log.cache["parsed"] != nil
 
   # Optional: prune noise we won't query on
   attributes/prune_noise:
