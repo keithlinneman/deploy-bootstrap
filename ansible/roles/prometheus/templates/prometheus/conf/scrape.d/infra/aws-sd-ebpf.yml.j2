@@ -11,11 +11,6 @@ scrape_configs:
           #- name: tag:Environment
           #  values: ["{{ platform_env }}"]
     relabel_configs:
-      # do not scrape windows servers for ebpf data
-      - source_labels: [__meta_ec2_platform]
-        action: drop
-        regex: windows
-      
       #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
       #  action: keep
       #  regex: True
@@ -24,24 +19,31 @@ scrape_configs:
       #  action: keep
       #  regex: {{ platform_env }}
 
-      - source_labels: [__meta_ec2_tag_AppName]
-        target_label: app
+      #- source_labels: [__meta_ec2_region]
+      #  target_label: region
 
-      - source_labels: [app]
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: az
+
+      - source_labels: [__meta_ec2_tag_AppName]
+        target_label: service_name
+
+      - source_labels: [service_name]
         regex: ^$
         replacement: unknown
-        target_label: app
+        target_label: service_name
 
       - source_labels: [__meta_ec2_tag_AppRole]
-        target_label: role
+        target_label: service_role
 
-      - source_labels: [role]
+      - source_labels: [service_role]
         regex: ^$
         replacement: unknown
-        target_label: role
+        target_label: service_role
 
-      - source_labels: [__meta_ec2_tag_Environment]
-        target_label: env
+      # set globally
+      #- source_labels: [__meta_ec2_tag_Environment]
+      #  target_label: env
 
       - source_labels: [__meta_ec2_tag_Name]
         regex: "([^.]*)\\.?.*"
@@ -56,14 +58,20 @@ scrape_configs:
         target_label: project
 
       - source_labels: [__meta_ec2_availability_zone]
-        target_label: availability_zone
+        target_label: cloud_availability_zone
 
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
-        replacement: "$1:{{ ebpf_exporter_tcp_port }}"
+        replacement: "$1:{{ prometheus_node_exporter_tcp_port }}"
+
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: host_ip
 
       - source_labels: [__meta_ec2_instance_id]
-        target_label: instance_id
+        target_label: host_type
 
-      - source_labels: [__meta_ec2_tag_aws_cloudformation_stack_name]
-        target_label: stack
+      - source_labels: [__meta_ec2_private_dns_name]
+        target_label: host_name
+
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: host_fqdn
