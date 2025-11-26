@@ -151,11 +151,11 @@ receivers:
         field: attributes.source_type
         value: system-update
       - type: add
-        field: attributes.service.name
+        field: attributes.logger.name
         value: apt
       - type: copy
-        from: attributes.service.name
-        to: attributes.service_name
+        from: attributes.logger.name
+        to: attributes.logger_name
       - type: move
         from: attributes.message
         to: body
