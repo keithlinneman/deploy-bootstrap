@@ -176,7 +176,8 @@ processors:
   resource/system_metadata:
     attributes:
       - {key: company,      value: {{ company_name }}, action: upsert}
-      - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
+      # done in resourcedetection/ec2
+      # - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
       - {key: host.ip,      value: {{ ansible_ec2_instance_identity_document_privateIp }}, action: upsert}
       - {key: host.type,    value: {{ ansible_ec2_instance_identity_document_instanceType }}, action: upsert}
       - {key: instance,     value: {{ hostname_no_instanceid }}, action: upsert}
@@ -374,8 +375,9 @@ processors:
         statements:
           # ensure host.name exists (resourcedetection will usually fill this)
           - set(resource.attributes["host.name"], resource.attributes["host"])               where resource.attributes["host.name"] == nil and resource.attributes["host"] != nil
+          ## already set in resource/system_metadata
           # mirror cloud.region to short 'region'
-          - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
+          # - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
 
   transform/promote_for_labels:
     log_statements:
@@ -423,12 +425,12 @@ processors:
     actions:
       - {action: delete, key: journal.priority}
       - {action: delete, key: journal.unit}
-      - {action: delete, key: logfmt}
+      #- {action: delete, key: logfmt}
       - {action: delete, key: metadata}
       # - {action: delete, key: detected_level}
       # - {action: delete, key: level_extracted}
       - {action: delete, key: logger_raw}
-      - {action: delete, key: service_name_canonical}
+      #- {action: delete, key: service_name_canonical}
 
   batch:
 
