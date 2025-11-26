@@ -18,34 +18,34 @@ receivers:
     start_at: end
     operators:
       # 1) Prefer the user service unit if present
-      - id: service-from-user-unit
+      - id: logger-from-user-unit
         type: add
         if: 'body["_SYSTEMD_USER_UNIT"] != nil'
-        field: attributes["service_raw"]
+        field: attributes["logger_raw"]
         value: EXPR(body["_SYSTEMD_USER_UNIT"])
 
       # 2) Otherwise fall back to _SYSTEMD_UNIT
-      - id: service-from-unit
+      - id: logger-from-unit
         type: add
-        if: 'attributes["service_raw"] == nil && body["_SYSTEMD_UNIT"] != nil'
-        field: attributes["service_raw"]
+        if: 'attributes["logger_raw"] == nil && body["_SYSTEMD_UNIT"] != nil'
+        field: attributes["logger_raw"]
         value: EXPR(body["_SYSTEMD_UNIT"])
 
       # 3) Trim suffixes (.service, .scope, .slice..., @instance) down to a base name
-      - id: service-trim-suffixes
+      - id: logger-trim-suffixes
         type: regex_parser
-        if: 'attributes["service_raw"] != nil'
-        parse_from: attributes["service_raw"]
+        if: 'attributes["logger_raw"] != nil'
+        parse_from: attributes["logger_raw"]
         # regex: '^(?P<service_name_canonical>[^.@]+)'
         # regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
-        regex: '^(?P<service_name_canonical>user@\d+|[^@]+?)(?:@.*)?(?:\.service|\.scope|\.slice\d+)?$'
+        regex: '^(?P<logger_name_canonical>user@\d+|[^@]+?)(?:@.*)?(?:\.service|\.scope|\.slice\d+)?$'
 
       # 4) Promote canonical name to resource.service.name
-      - id: service-to-resource
+      - id: logger-to-resource
         type: add
-        if: 'attributes["service_name_canonical"] != nil'
-        field: resource["service.name"]
-        value: EXPR(attributes["service_name_canonical"])
+        if: 'attributes["logger_name_canonical"] != nil'
+        field: resource["logger.name"]
+        value: EXPR(attributes["logger_name_canonical"])
 
   # Cloud-init one-off file
   #filelog/cloudinit_output:
@@ -175,14 +175,17 @@ processors:
   # Your static + templated metadata (resource attributes)
   resource/system_metadata:
     attributes:
-      - {key: host.id, value: {{ ansible_board_asset_tag }}, action: upsert}
-      - {key: host,    value: {{ hostname_no_instanceid }}, action: upsert}         # short host for labels
-      - {key: host.fqdn,    value: {{ ansible_nodename }}, action: upsert}         # short host for labels
-      - {key: deployment.environment.name,     value: {{ platform_env }}, action: upsert}
-      - {key: app.name,    value: {{ app_name }}, action: upsert}
-      - {key: app.role,    value: {{ app_role }}, action: upsert}
-      - {key: project, value: {{ project }}, action: upsert}
-      - {key: region,  value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
+      - {key: company,      value: {{ company_name }}, action: upsert}
+      - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
+      - {key: host.ip,      value: {{ ansible_ec2_instance_identity_document_privateIp }}, action: upsert}
+      - {key: host.type,    value: {{ ansible_ec2_instance_identity_document_instanceType }}, action: upsert}
+      - {key: instance,     value: {{ hostname_no_instanceid }}, action: upsert}
+      - {key: host.fqdn,    value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
+      - {key: env,          value: {{ platform_env }}, action: upsert}
+      - {key: service.name, value: {{ app_name }}, action: upsert}
+      - {key: service.role, value: {{ app_role }}, action: upsert}
+      - {key: project,      value: {{ project }}, action: upsert}
+      - {key: region,       value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
 
   # Tag the source at the resource-level per pipeline (labels come from resource)
   resource/source_journald:
@@ -203,7 +206,7 @@ processors:
           - set(log.attributes["journal.priority"], log.body["PRIORITY"])          where log.body["PRIORITY"] != nil
           - set(log.attributes["journal.user_unit"],     log.body["_SYSTEMD_USER_UNIT"])     where log.body["_SYSTEMD_USER_UNIT"] != nil
           - set(log.attributes["journal.unit"],     log.body["_SYSTEMD_UNIT"])     where log.body["_SYSTEMD_UNIT"] != nil
-          - set(log.attributes["logger"],           ToLowerCase(log.body["SYSLOG_IDENTIFIER"])) where log.body["SYSLOG_IDENTIFIER"] != nil
+          - set(log.attributes["journal.identifier"],           ToLowerCase(log.body["SYSLOG_IDENTIFIER"])) where log.body["SYSLOG_IDENTIFIER"] != nil
           - set(log.attributes["exe"],              log.body["_EXE"])              where log.body["_EXE"] != nil
           - set(log.attributes["cmdline"],          log.body["_CMDLINE"])          where log.body["_CMDLINE"] != nil
           - set(log.body, log.body["MESSAGE"])                                     where log.body["MESSAGE"] != nil
@@ -424,7 +427,7 @@ processors:
       - {action: delete, key: metadata}
       # - {action: delete, key: detected_level}
       # - {action: delete, key: level_extracted}
-      - {action: delete, key: service_raw}
+      - {action: delete, key: logger_raw}
       - {action: delete, key: service_name_canonical}
 
   batch:

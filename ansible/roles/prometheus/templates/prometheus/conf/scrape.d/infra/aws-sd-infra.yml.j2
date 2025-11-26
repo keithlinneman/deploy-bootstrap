@@ -83,8 +83,8 @@ scrape_configs:
       - source_labels: [__meta_ec2_instance_id]
         target_label: host_id
 
-      - source_labels: [__meta_ec2_private_dns_name]
-        target_label: host_name
+      #- source_labels: [__meta_ec2_private_dns_name]
+      #  target_label: host_name
 
       - source_labels: [__meta_ec2_tag_Name]
         target_label: host_fqdn
