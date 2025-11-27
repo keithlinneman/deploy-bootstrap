@@ -22,6 +22,10 @@
        with_items:
          - env
 
+     - name: Stop ssm to prevent apt conflicts on fresh box patching
+       command:
+         cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
+
      - name: Install dependency packages
        package:
          name: "{{ item }}"
@@ -64,6 +68,10 @@
        package:
          name: grafana
          state: present
+
+     - name: Start ssm service
+       command:
+         cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
 
      - name: Create grafana ssl directory
        file:
