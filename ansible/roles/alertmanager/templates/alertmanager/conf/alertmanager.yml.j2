@@ -9,12 +9,12 @@ route:
 
   # default receiver if nothing below matches
   receiver: 'slack-alert-nonprod'
-  
+
   routes:
     # security always goes to security channel, regardless of env
     - matchers:
-      - category: "security"
-    receiver: 'slack-alert-security'
+        - category = "security"
+      receiver: 'slack-alert-security'
 
     # prod/obs/network slo alerts go to SLO channel
     - matchers:
@@ -53,94 +53,70 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_nonprod }}"
         channel: '#alerts-nonprod'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-page-crit'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_page_crit }}"
         channel: '#page-crit'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-alert-prod'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_alert_prod }}"
         channel: '#alerts-prod'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-alert-changes'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_alert_changes }}"
         channel: '#alerts-changes'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-alert-security'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_alert_security }}"
         channel: '#security-alerts'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-alert-cost'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_alert_cost }}"
         channel: '#cost-alarms'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
   - name: 'slack-alert-slo'
     slack_configs:
       - api_url: "{{ alertmanager_config_slack_url_alert_slo }}"
         channel: '#slo-violations'
         send_resolved: true
+{% raw %}
         title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
+{% endraw %}
 
 templates:
   - '/home/alertmanager/templates/*.tmpl'
-
-
-
-  slack_api_url: {{ alertmanager_config_slack_url }}
-  #slack_api_url_file:
-
-  #pagerduty_url: 
-  #opsgenie_api_key:
-  #opsgenie_api_url:
-
-#inhibit_rules:
-#  - source_match:
-#      severity: 'critical'
-#    target_match:
-#      severity: 'warning'
-#    equal: ['alertname', 'dev', 'instance']
-
-receivers:
-  - name: 'slack-spam'
-    slack_configs:
-      - channel: '#alerts-itops-aws-spam'
-        send_resolved: true
-
-route:
-  group_by: ['alertname']
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 1h
-  receiver: 'slack-spam'
-#  routes:
-#  - match:
-#    severity: 'warning'
-#    receiver: 'pagerduty'
-#  - match:
-#    severity: 'critical'
-#    receiver: 'pagerduty'
-
-#time_intervals:
