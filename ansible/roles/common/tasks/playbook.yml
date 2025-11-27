@@ -150,6 +150,11 @@
     changed_when: false
     when: ansible_os_family == 'Debian'
 
+  - name: (Debian) Disable 99update-notifier, as it causes apt conflicts
+    command:
+      cmd: mv /etc/apt/apt.conf.d/99update-notifier /etc/apt/apt.conf.d/99update-notifier.disabled
+      creates: /etc/apt/apt.conf.d/99update-notifier.disabled
+
   - name: Download Amazon SSM agent package file
     get_url:
       url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ amazon_ssm_agent_package_path[ansible_architecture] }}/{{ amazon_ssm_agent_package_filename }}"
