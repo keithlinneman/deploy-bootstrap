@@ -1,0 +1,21 @@
+{{ define "slack.title" -}}
+[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }}) – {{ .CommonLabels.env }}/{{ .CommonLabels.service }}
+{{- end }}
+
+{{ define "slack.text" -}}
+*Env:* {{ .CommonLabels.env }}
+*Service:* {{ .CommonLabels.service }}
+{{- if .CommonLabels.category }}
+*Category:* {{ .CommonLabels.category }}
+{{- end }}
+
+{{ if .CommonAnnotations.runbook_url }}
+*Runbook:* <{{ .CommonAnnotations.runbook_url }}|Runbook link>
+{{ end }}
+
+{{ range .Alerts }}
+• *{{ .Labels.alertname }}* on `{{ .Labels.instance }}` ({{ .Labels.job }}):
+  {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No summary.{{ end }}
+  {{ if .Annotations.description }}\n  {{ .Annotations.description }}{{ end }}
+{{ end }}
+{{- end }}
