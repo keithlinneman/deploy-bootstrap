@@ -115,9 +115,15 @@ compactor:
     - 1h0m0s
     - 2h0m0s
     - 8h0m0s
+  # Lowering concurrency to try to fit into small memory nodes
+  block_sync_concurrency: 1
+  cleanup_concurrency: 1
+  compaction_concurrency: 1
+  max_opening_blocks_concurrency: 1
+  meta_sync_concurrency: 2
+  #
   compaction_interval: 30m
   compaction_retries: 3
-  compaction_concurrency: 1
   first_level_compaction_wait_period: 25m
   cleanup_interval: 15m
   deletion_delay: 24h
