@@ -179,7 +179,7 @@ processors:
       # done in resourcedetection/ec2
       # - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
       - {key: host.ip,      value: {{ ansible_default_ipv4.address }}, action: upsert}
-      - {key: host.type,    value: {{ ansible_product_name }}, action: upsert}
+      - {key: host.type,    value: {{ ansible_ec2_instance_identity_document_instancetype }}, action: upsert}
       - {key: host.fqdn,    value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
       - {key: env,          value: {{ platform_env }}, action: upsert}
       - {key: node,         value: {{ hostname_no_instanceid }}, action: upsert}

@@ -15,6 +15,12 @@
          var: hostvars[inventory_hostname]
          verbosity: 2
 
+     - name: Set facts from environment variables
+       set_fact:
+         app_name: "{{ ansible_env.APPNAME | default('unknown') }}"
+         app_role: "{{ ansible_env.APPROLE | default(ansible_env.APPNAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+
      - name: Ensure required variables are defined
        fail:
          msg: "{{ item }} must be defined use -e {{ item }}=value"
@@ -69,37 +75,6 @@
          name: alloy
          state: present
 
-     - name: Create alloy ssl directory
-       file:
-         path: /etc/alloy/ssl
-         owner: root
-         group: "{{ alloy_system_user }}"
-         mode: 0750
-         state: directory
-
-     - name: Generate private key for local self signed ssl cert
-       community.crypto.openssl_privatekey:
-         path: /etc/alloy/ssl/cert.key
-         owner: root
-         group: "{{ alloy_system_user }}"
-         mode: 0640
-
-     - name: Generate CSR for self-signed certificate for local https listener
-       community.crypto.openssl_csr_pipe:
-         privatekey_path: /etc/alloy/ssl/cert.key
-         common_name: "{{ ansible_nodename }}"
-       register: csr
-
-     - name: Generate self-signed certificate for local https listener
-       community.crypto.x509_certificate:
-         path: /etc/alloy/ssl/cert.pem
-         csr_content: "{{ csr.csr }}"
-         mode: 0644
-         owner: root
-         group: "{{ alloy_system_user }}"
-         privatekey_path: /etc/alloy/ssl/cert.key
-         provider: selfsigned
-
      - name: Modify alloy main configuration
        template:
          src: ../templates/etc/alloy/config.alloy.j2
@@ -123,28 +98,11 @@
        notify: restart alloy service
        when: ansible_os_family == 'Debian'
 
-     #- name: Configure grafana for prometheus data source
-     #  template:
-     #    src: ../templates/etc/grafana/provisioning/datasources/prometheus.yaml.j2
-     #    dest: /etc/grafana/provisioning/datasources/prometheus.yaml
-     #    mode: 0644
-     #    owner: root
-     #    group: grafana
-     #  notify: restart grafana service
-     #  when: ansible_os_family == 'Debian'
-
      - name: Enable alloy systemd service
        service:
          name: "{{ alloy_systemd_service_name }}"
          state: started
          enabled: true
-
-     - name: Allow grafana http traffic through firewall
-       ufw:
-         port: "{{ grafana_http_port }}"
-         proto: tcp
-         rule: allow
-       when: ansible_distribution == 'Ubuntu'
 
    handlers:
      - name: restart alloy service
