@@ -1,0 +1,9 @@
+---
+  company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  alloy_system_user: alloy
+  alloy_http_port: 8443
+  alloy_release_tag: v1.11.3
+  pyroscope_ingestion_endpoint: https://pyroscope-distributor.{{ hosted_zone_name }}
+  pyroscope_tenant_name: "{{ company_name }}-{{ platform_env }}"
