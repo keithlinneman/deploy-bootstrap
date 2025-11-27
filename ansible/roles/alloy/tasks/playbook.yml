@@ -32,6 +32,10 @@
        set_fact:
          hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
+     - name: Stop ssm to prevent apt conflicts on fresh box patching
+       command:
+         cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
+
      - name: Install dependency packages
        package:
          name: "{{ item }}"
@@ -74,6 +78,10 @@
        package:
          name: alloy
          state: present
+
+     - name: Start ssm service
+       command:
+         cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
 
      - name: Modify alloy main configuration
        template:
