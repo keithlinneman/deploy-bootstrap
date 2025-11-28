@@ -87,12 +87,3 @@ modules:
     timeout: 5s
     tcp:
       preferred_ip_protocol: "ip4"
-
-  # dns query results check
-  dns:
-    prober: dns
-    timeout: 5s
-    dns:
-      query_name: "grafana.use2.obs.phxi.net"
-      query_type: "A"
-      preferred_ip_protocol: "ip4"
