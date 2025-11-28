@@ -5,7 +5,7 @@
 {{ define "slack.text" -}}
 *Env:* {{ .GroupLabels.env }} / {{ .CommonLabels.region }}
 *Service:* {{ .GroupLabels.service_name }} / {{ .GroupLabels.service_role }}
-*Alerts:* {{ len .Alerts }} firing
+*Alerts:* {{ len .Alerts.Firing }} firing{{ if gt (len .Alerts.Resolved) 0 }} / {{ len .Alerts.Resolved }} resolved{{ end }}
 
 {{ range .Alerts }}
 • *{{ .Labels.alertname }}* on {{ or .Labels.node }} ({{ .Labels.host_id }})
