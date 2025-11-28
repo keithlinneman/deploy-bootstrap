@@ -129,12 +129,15 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Allow Alertmanager cluster traffic through firewall
+     - name: Allow Alertmanager cluster traffic through firewall on tcp and udp
        ufw:
          port: "{{ alertmanager_cluster_tcp_port }}"
-         proto: tcp
+         proto: "{{ item.proto }}"
          rule: allow
        when: ansible_distribution == 'Ubuntu'
+       loop:
+         - { proto: tcp }
+         - { proto: udp }
 
    handlers:
      - name: restart alertmanager service
