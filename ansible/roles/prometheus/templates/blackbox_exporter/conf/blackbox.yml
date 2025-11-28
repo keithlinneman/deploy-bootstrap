@@ -93,4 +93,6 @@ modules:
     prober: dns
     timeout: 5s
     dns:
+      query_name: "grafana.use2.obs.phxi.net"
+      query_type: "A"
       preferred_ip_protocol: "ip4"
