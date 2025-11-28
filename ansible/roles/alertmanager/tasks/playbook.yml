@@ -147,7 +147,7 @@
      - name: Copy over alertmanager notification templates
        copy:
          src: ../files/alertmanager/templates/
-         dest: /home/{{ alertmanager_system_user }}/
+         dest: /home/{{ alertmanager_system_user }}/templates/
          owner: "{{ alertmanager_system_user }}"
          group: "{{ alertmanager_system_user }}"
          mode: 0640
