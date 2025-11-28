@@ -1,6 +1,10 @@
 global:
   resolve_timeout: 5m
 
+tls_server_config:
+  cert_file: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
+  key_file:  /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+
 route:
   group_by: ['alertname', 'env', 'service']
   group_wait: 30s

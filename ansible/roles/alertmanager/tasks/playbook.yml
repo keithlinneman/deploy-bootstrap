@@ -60,11 +60,6 @@
          shell: /usr/sbin/nologin
          system: true
 
-     - name: Download the latest Alertmanager ({{ release_tag }}) linux-amd64 release from github
-       get_url:
-         url: "{{ asset_url }}"
-         dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
-
      - name: Create alertmanager bin, conf, data directories
        file:
          path: /home/{{ alertmanager_system_user }}/{{ item }}
@@ -75,8 +70,61 @@
        loop:
          - bin
          - conf
+         - conf/ssl
          - data
          - templates
+
+     - name: Check if ssl cert already exists
+       ansible.builtin.stat:
+         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
+       register: alertmanager_cert
+
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+         owner: "{{ alertmanager_system_user }}"
+       when: not alertmanager_cert.stat.exists
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+         common_name: "{{ ansible_nodename }}"
+       register: csr
+       when: not alertmanager_cert.stat.exists
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+         owner: "{{ alertmanager_system_user }}"
+         provider: selfsigned
+       when: not alertmanager_cert.stat.exists
+
+     - name: Download the latest Alertmanager ({{ release_tag }}) linux-amd64 release from github
+       get_url:
+         url: "{{ asset_url }}"
+         dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+         owner: "{{ mimir_system_user }}"
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+         common_name: "{{ ansible_nodename }}"
+       register: csr
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /home/{{ mimir_system_user }}/conf/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+         owner: "{{ mimir_system_user }}"
+         provider: selfsigned
+
 
      - name: Decompress alertmanager installation package
        unarchive:
