@@ -1,0 +1,19 @@
+- targets:
+    - https://tempo-query-frontend.{{ hosted_zone_name }}/ready
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: tempo
+    service_role: query-frontend
+    severity: page
+    # check_type: alb
+
+- targets:
+    - https://tempo-distributor.{{ hosted_zone_name }}/ready
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: tempo
+    service_role: distributor
+    severity: page
+    # check_type: alb

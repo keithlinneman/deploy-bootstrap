@@ -34,9 +34,8 @@ alerting:
     - scheme: https
       static_configs:
         - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
-      http_config:
-        tls_config:
-          insecure_skip_verify: true
+      tls_config:
+        insecure_skip_verify: true
 
 # Alerting rules loaded once, evaluated every 'evaluation_interval'.
 rule_files:

@@ -145,10 +145,6 @@
        notify: restart prometheus service
        loop:
          - grafana
-         - aws-sd-infra
-         - aws-sd-ebpf
-
-
 
      #- name: Create prometheus apps scrape target configurations
      #  template:

@@ -1,0 +1,19 @@
+- targets:
+    - https://mimir-query-frontend.{{ hosted_zone_name }}/ready
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: mimir
+    service_role: query-frontend
+    severity: page
+    # check_type: alb
+
+- targets:
+    - https://mimir-distributor.{{ hosted_zone_name }}/ready
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: mimir
+    service_role: distributor
+    severity: page
+    # check_type: alb

@@ -1,0 +1,10 @@
+- targets:
+    - https://alertmanager.{{ hosted_zone_name }}/healthz
+    - https://alertmanager.{{ hosted_zone_name }}/api/health
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: alertmanager
+    service_role: alertmanager
+    severity: page
+    # check_type: alb
