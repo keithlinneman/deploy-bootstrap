@@ -1,9 +1,9 @@
 ---
   company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  blackbox_exporter_version: 0.27.0
-  ebpf_exporter_tcp_port: 9435
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
   platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  blackbox_exporter_version: 0.27.0
+  ebpf_exporter_tcp_port: 9435
   prometheus_node_exporter_tcp_port: 9100
   prometheus_node_ids:
     us-east-2a: 2a

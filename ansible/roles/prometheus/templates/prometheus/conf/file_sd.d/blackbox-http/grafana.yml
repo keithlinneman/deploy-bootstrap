@@ -1,0 +1,11 @@
+- targets:
+    - https://grafana.{{ hosted_zone_name }}/healthz
+    - https://grafana.{{ hosted_zone_name }}/api/health
+  labels:
+    env: {{ platform_env }}
+    region: {{ ansible_ec2_instance_identity_document_region }}
+    service_name: grafana
+    service_role: grafana
+    company: {{ company }}
+    project: Monitoring
+    # check_type: alb

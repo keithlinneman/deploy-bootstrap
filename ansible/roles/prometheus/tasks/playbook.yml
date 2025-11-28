@@ -81,7 +81,9 @@
          - conf/scrape.d/
          - conf/scrape.d/apps
          - conf/scrape.d/infra
+         - conf/scrape.d/blackbox
          - conf/file_sd.d/
+         - conf/file_sd.d/blackbox-http
          - data
          - scrapedata
 
@@ -109,7 +111,6 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       when: ansible_os_family == 'Debian'
 
      - name: Create prometheus infra scrape target configurations
        template:
@@ -119,10 +120,36 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       when: ansible_os_family == 'Debian'
        loop:
          - aws-sd-infra
          - aws-sd-ebpf
+
+     - name: Create blackbox_exporter scrape job configurations
+       template:
+         src: ../templates/prometheus/conf/scrape.d/blackbox/{{ item }}.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/blackbox/{{ item }}.yml
+         mode: 0644
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+       notify: restart prometheus service
+       loop:
+         - blackbox-http
+
+     - name: Create blackbox_exporter file_sd target configurations
+       template:
+         src: ../templates/prometheus/conf/file_sd.d/blackbox-http/{{ item }}.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/file_sd.d/blackbox-http/{{ item }}.yml
+         mode: 0644
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+       notify: restart prometheus service
+       loop:
+         - grafana
+         - aws-sd-infra
+         - aws-sd-ebpf
+
+
+
      #- name: Create prometheus apps scrape target configurations
      #  template:
      #    src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
@@ -231,7 +258,6 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart blackbox_exporter service
-       when: ansible_os_family == 'Debian'
 
      - name: Create blackbox_exporter systemd service
        template:
