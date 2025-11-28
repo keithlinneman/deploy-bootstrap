@@ -1,0 +1,43 @@
+groups:
+- name: nodeMem
+  rules:
+  - alert: MemoryPressure
+    expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 0.10
+    for: 15m
+    labels:
+      severity: crit
+      team: infra
+    annotations:
+      summary: "Memory pressure on {{ $labels.node }}"
+      description: "Available memory < 10% for 15m. OOM risk is high."
+
+  - alert: SwapAnyUse
+    expr: (node_memory_SwapTotal_bytes > 0)
+          and (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) > 64 * 1024 * 1024
+    for: 10m
+    labels:
+      severity: warn
+      team: infra
+    annotations:
+      summary: "Swap in use on {{ $labels.node }}"
+      description: "Swap usage > 64MiB for 10m; host has been under memory pressure."
+
+  - alert: SwapCritical
+    expr: (node_memory_SwapTotal_bytes > 0)
+          and (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) > 512 * 1024 * 1024
+    for: 5m
+    labels:
+      severity: page
+      team: infra
+    annotations:
+      summary: "High swap usage on {{ $labels.node }}"
+      description: "Swap usage > 512MiB for 5m; host is severely memory constrained."
+
+  - alert: SwapActivityHigh
+    expr: rate(node_vmstat_pswpout[5m]) > 100
+    for: 5m
+    labels:
+      severity: warn
+    annotations:
+      summary: "High swap-out activity on {{ $labels.node }}"
+      description: "More than 100 pages/s being swapped out for 5m; host is actively paging."

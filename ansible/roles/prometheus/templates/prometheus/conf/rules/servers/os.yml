@@ -1,0 +1,13 @@
+groups:
+  - name: operatingSystem
+    interval: 30s
+    rules:
+      - alert: OOMKillsDetected
+        expr: increase(node_vmstat_oom_kill[5m]) > 0
+        for: 0m
+        labels:
+          severity: page
+          team: infra
+        annotations:
+          summary: "OOM kills on {{ $labels.node }}"
+          description: "Kernel OOM killer triggered in the last 5m."

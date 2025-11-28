@@ -1,0 +1,13 @@
+groups:
+  - name: systemTime
+    interval: 30s
+    rules:
+      - alert: ClockSkewDetected
+        expr: abs(node_timex_offset_seconds) > 0.1
+        for: 5m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "Clock skew on {{ $labels.node }}"
+          description: "NTP offset > 100ms for 5m; check NTP config."

@@ -31,13 +31,16 @@ global:
 # Alertmanager configuration
 alerting:
   alertmanagers:
-  - static_configs:
-      - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
+    - scheme: https
+      static_configs:
+        - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
+      http_config:
+        tls_config:
+          insecure_skip_verify: true
 
 # Alerting rules loaded once, evaluated every 'evaluation_interval'.
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - /home/prometheus/conf/rules/server/*.yml
 
 scrape_config_files:
   - /home/{{ prometheus_system_user }}/conf/scrape.d/apps/*.yml

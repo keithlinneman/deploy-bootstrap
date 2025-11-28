@@ -1,72 +1,86 @@
-Zgroups:
-  - name: disk_alerts
+groups:
+  - name: diskSpace
     interval: 30s
-    labels:
-      region: us-east-2
-      env: prod
-      team: infra
     rules:
-      - record: node_filesystem_avail_gb_test
+      - record: node_filesystem_avail_gb
         expr: node_filesystem_avail_bytes / 1024 / 1024 / 1024
+
       - alert: LowDiskSpaceFree
         expr: (node_filesystem_avail_bytes{fstype!~"tmpfs"} / node_filesystem_size_bytes{fstype!~"tmpfs"}) * 100 < 10
         for: 1m
         labels:
-          severity: critical
+          severity: crit
           team: infra
         annotations:
-          summary: "Disk space critically low on {{ $labels.instance }}"
-          description: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} has less than 10% free space"
+          summary: "Disk space critically low on {{ $labels.node }} ({{ $labels.mountpoint }})"
+          description: "Disk {{ $labels.device }} ({{ $labels.mountpoint }}) has < 10% free on {{ $labels.node }}."
 
       - alert: WarningDiskSpaceFree
-        #expr: (node_filesystem_avail_bytes{fstype!~"tmpfs"} / node_filesystem_size_bytes{fstype!~"tmpfs"}) * 100 < 20
-        #expr: (node_filesystem_avail_bytes{fstype!~"tmpfs"} / node_filesystem_size_bytes{fstype!~"tmpfs"}) * 100 < 20
-        expr: |
-         ((node_filesystem_avail_bytes{fstype!~"tmpfs"} / node_filesystem_size_bytes{fstype!~"tmpfs"}) * 100 < 20)
-         * on (instance, mountpoint)
-         group_left(node_filesystem_avail_gb, node_filesystem_size_gb, node_filesystem_used_gb)
-         (
-           node_filesystem_avail_bytes / 1024 / 1024 / 1024,
-           node_filesystem_size_bytes / 1024 / 1024 / 1024,
-           (node_filesystem_size_bytes - node_filesystem_avail_bytes) / 1024 / 1024 / 1024
-         )
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs"} / node_filesystem_size_bytes{fstype!~"tmpfs"}) * 100 < 20
         for: 1m
         labels:
-          severity: warning
+          severity: warn
           team: infra
-          disk_avail_gb: "{{ $labels.node_filesystem_avail_gb }}"
-          disk_total_gb: "{{ $labels.node_filesystem_size_gb }}"
-          disk_used_gb: "{{ $labels.node_filesystem_used_gb }}"
         annotations:
-          summary: "Low disk space on {{ $labels.instance }} ({{ $labels.mountpoint }})"
-          description: "Disk {{ $labels.device }} ({{ $labels.mountpoint }}) on {{ $labels.instance }} has {{ $labels.disk_free_percent }}% free space ({{ $labels.node_filesystem_avail_gb }} / {{ $labels.node_filesystem_size_gb }} GB)"
+          summary: "Low disk space on {{ $labels.node }} ({{ $labels.mountpoint }})"
+          description: >-
+            Disk {{ $labels.device }} ({{ $labels.mountpoint }}) on {{ $labels.node }}
+            has {{ printf "%.1f" $value }}% free.
 
-      - alert: WarningDiskSpaceGrowth4hours
-        expr: predict_linear(node_filesystem_avail_bytes{job="node"}[1h], 4 * 3600) < 0
+      - alert: DiskFillingSoon12h
+        expr: |
+          (
+            node_filesystem_avail_bytes{
+              job="aws-sd-infra",
+              fstype!~"tmpfs|squashfs|overlay"
+            }
+            /
+            clamp_min(
+              -delta(
+                node_filesystem_avail_bytes{
+                  job="aws-sd-infra",
+                  fstype!~"tmpfs|squashfs|overlay"
+                }[4h]
+              ) / (4 * 3600),
+              1
+            )
+            / 3600
+          ) < 12
+          and on (instance, device, mountpoint)
+            (
+              (node_filesystem_size_bytes{job="aws-sd-infra"}
+               - node_filesystem_avail_bytes{job="aws-sd-infra"})
+              / node_filesystem_size_bytes{job="aws-sd-infra"}
+            ) > 0.50
+          and on (instance, device, mountpoint)
+            count_over_time(
+              node_filesystem_avail_bytes{job="aws-sd-infra"}[4h]
+            ) > 100
         for: 5m
         labels:
-          severity: warning
+          severity: warn
           team: infra
         annotations:
-          summary: "Disk space trend warning on {{ $labels.instance }} disk {{ $labels.mountpoint }}"
-          description: "The disk {{ $labels.mountpoint }} on {{ $labels.instance }} is predicted to be full in less than 4 hours at the rate of growth over the last hour"
+          summary: "Disk filling soon on {{ $labels.node }} ({{ $labels.mountpoint }})"
+          description: "At the current net 4h write rate, disk {{ $labels.mountpoint }} on {{ $labels.node }} will be full in under 12 hours."
 
-      - alert: WarningDiskSpaceGrowth3day
-        expr: predict_linear(node_filesystem_avail_bytes{job="node"}[12h], 72 * 3600) < 0
+      - alert: FileDescriptorsNearLimit
+        expr: (node_filefd_allocated / node_filefd_maximum) > 0.85
+        for: 10m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "File descriptors near limit on {{ $labels.node }}"
+          description: "FDs > 85% of system limit; may hit EMFILE soon."
+
+      - alert: FilesystemInodesLow
+        expr: (node_filesystem_files_free{fstype!~"tmpfs"}
+               / node_filesystem_files{fstype!~"tmpfs"}) < 0.10
         for: 5m
         labels:
-          severity: warning
+          severity: warn
           team: infra
         annotations:
-          summary: "Disk space trend warning on {{ $labels.instance }} disk {{ $labels.mountpoint }}"
-          description: "The disk {{ $labels.mountpoint }} on {{ $labels.instance }} is predicted to be full in the next 3 days at the rate of growth over the last day"
-
-      - alert: WarningDiskSpaceGrowth1week
-        expr: predict_linear(node_filesystem_avail_bytes{job="node"}[24h], 168 * 3600) < 0
-        for: 5m
-        labels:
-          severity: warning
-          team: infra
-        annotations:
-          summary: "Disk space trend warning on {{ $labels.instance }} disk {{ $labels.mountpoint }}"
-          description: "The disk {{ $labels.mountpoint }} on {{ $labels.instance }} is predicted to be full in the next week at the rate of growth over the last day"
+          summary: "Inodes low on {{ $labels.node }} {{ $labels.mountpoint }}"
+          description: "Filesystem {{ $labels.device }} has <10% free inodes."
