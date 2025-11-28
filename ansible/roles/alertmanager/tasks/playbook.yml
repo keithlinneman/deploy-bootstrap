@@ -108,21 +108,21 @@
 
      - name: Generate private key for local self signed ssl cert
        community.crypto.openssl_privatekey:
-         path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
-         owner: "{{ mimir_system_user }}"
+         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+         owner: "{{ alertmanager_system_user }}"
 
      - name: Generate CSR for self-signed certificate for local https listener
        community.crypto.openssl_csr_pipe:
-         privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
          common_name: "{{ ansible_nodename }}"
        register: csr
 
      - name: Generate self-signed certificate for local https listener
        community.crypto.x509_certificate:
-         path: /home/{{ mimir_system_user }}/conf/ssl/cert.pem
+         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
          csr_content: "{{ csr.csr }}"
-         privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
-         owner: "{{ mimir_system_user }}"
+         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+         owner: "{{ alertmanager_system_user }}"
          provider: selfsigned
 
 
