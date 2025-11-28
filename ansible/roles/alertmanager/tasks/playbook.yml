@@ -136,6 +136,14 @@
        notify: restart alertmanager service
        when: ansible_os_family == 'Debian'
 
+     - name: Modify alertmanager web configuration
+       template:
+         src: ../templates/alertmanager/conf/web-config.yml.j2
+         dest: /home/{{ alertmanager_system_user }}/conf/web-config.yml
+         mode: 0644
+       notify: restart alertmanager service
+       when: ansible_os_family == 'Debian'
+
      - name: Copy over alertmanager notification templates
        copy:
          src: ../files/alertmanager/templates/

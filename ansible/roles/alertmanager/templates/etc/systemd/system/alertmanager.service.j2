@@ -8,7 +8,7 @@ StartLimitIntervalSec=0
 WorkingDirectory=/home/{{ alertmanager_system_user }}
 User={{ alertmanager_system_user }}
 Group={{ alertmanager_system_user }}
-ExecStart=/home/{{ alertmanager_system_user }}/bin/alertmanager --config.file=/home/{{ alertmanager_system_user }}/conf/alertmanager.yml {% for peer in alertmanager_cluster_peers[ansible_ec2_instance_identity_document_availabilityzone] %}  --cluster.peer={{ peer }} {% endfor %} --storage.path /home/{{ alertmanager_system_user}}/data --web.external-url https://alertmanager.{{ hosted_zone_name }}
+ExecStart=/home/{{ alertmanager_system_user }}/bin/alertmanager --config.file=/home/{{ alertmanager_system_user }}/conf/alertmanager.yml --web.config.file=/home/{{ alertmanager_system_user }}/conf/web-config.yml {% for peer in alertmanager_cluster_peers[ansible_ec2_instance_identity_document_availabilityzone] %}  --cluster.peer={{ peer }} {% endfor %} --storage.path /home/{{ alertmanager_system_user}}/data --web.external-url https://alertmanager.{{ hosted_zone_name }}
 
 #StandardOutput=append:/var/log/{{ alertmanager_systemd_service_name }}.log
 #StandardError=append:/var/log/{{ alertmanager_systemd_service_name }}.log
