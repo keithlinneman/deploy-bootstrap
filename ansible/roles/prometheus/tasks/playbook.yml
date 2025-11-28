@@ -225,8 +225,8 @@
 
      - name: Modify blackbox_exporter main configuration
        template:
-         src: ../templates/prometheus/conf/blackbox_exporter.yml.j2
-         dest: /home/{{ prometheus_system_user }}/conf/blackbox_exporter.yml
+         src: ../templates/blackbox_exporter/conf/blackbox.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/blackbox.yml
          mode: 0644
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
