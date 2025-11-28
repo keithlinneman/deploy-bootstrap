@@ -106,26 +106,6 @@
          url: "{{ asset_url }}"
          dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
 
-     - name: Generate private key for local self signed ssl cert
-       community.crypto.openssl_privatekey:
-         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
-         owner: "{{ alertmanager_system_user }}"
-
-     - name: Generate CSR for self-signed certificate for local https listener
-       community.crypto.openssl_csr_pipe:
-         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
-         common_name: "{{ ansible_nodename }}"
-       register: csr
-
-     - name: Generate self-signed certificate for local https listener
-       community.crypto.x509_certificate:
-         path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
-         csr_content: "{{ csr.csr }}"
-         privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
-         owner: "{{ alertmanager_system_user }}"
-         provider: selfsigned
-
-
      - name: Decompress alertmanager installation package
        unarchive:
          src: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
