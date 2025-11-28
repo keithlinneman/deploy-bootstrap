@@ -3,9 +3,15 @@
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
   platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
   alertmanager_cluster_peers:
-    us-east-2a: alertmanager-2b.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }},alertmanager-2c.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
-    us-east-2b: alertmanager-2a.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }},alertmanager-2c.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
-    us-east-2c: alertmanager-2a.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }},alertmanager-2b.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+    us-east-2a:
+      - alertmanager-2b.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+      - alertmanager-2c.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+    us-east-2b:
+      - alertmanager-2a.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+      - alertmanager-2c.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+    us-east-2c:
+      - alertmanager-2a.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
+      - alertmanager-2b.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
   alertmanager_config_external_url: https://alertmanager.{{ hosted_zone_name }}/
   alertmanager_config_slack_url_page_crit: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/page_crit', region=ansible_ec2_instance_identity_document_region ) }}"
   alertmanager_config_slack_url_alert_prod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_prod', region=ansible_ec2_instance_identity_document_region ) }}"
