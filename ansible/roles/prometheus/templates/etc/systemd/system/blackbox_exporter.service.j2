@@ -1,0 +1,22 @@
+[Unit]
+Description=Prometheus blackbox_exporter for probing systems that dont expose a endpoint with standard prom metrics
+Requires=network.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/{{ prometheus_system_user }}
+User={{ prometheus_system_user }}
+Group={{ prometheus_system_user }}
+ExecStart=/home/{{ prometheus_system_user }}/bin/blackbox_exporter --config.file=/home/{{ prometheus_system_user }}/conf/blackbox_exporter.yml
+#StandardOutput=append:/var/log/{{ blackbox_exporter_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ blackbox_exporter_systemd_service_name }}.log
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

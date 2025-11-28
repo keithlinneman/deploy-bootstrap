@@ -4,3 +4,10 @@
     state: restarted
     enabled: true
     daemon_reload: true
+
+- name: restart blackbox_exporter service
+  systemd:
+    name: "{{ blackbox_exporter_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

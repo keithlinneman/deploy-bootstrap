@@ -5,14 +5,6 @@
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
   platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
   prometheus_node_exporter_tcp_port: 9100
-  prometheus_node_exporter_flags: >
-    --collector.ethtool
-    --collector.logind
-    --collector.mountstats
-    --collector.textfile.directory="/home/{{ prometheus_system_user }}/scrapedata"
-    --collector.diskstats.device-exclude="^(z?ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"
-    --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|run/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
-    --collector.filesystem.fs-types-exclude="^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$"
   prometheus_node_ids:
     us-east-2a: 2a
     us-east-2b: 2b

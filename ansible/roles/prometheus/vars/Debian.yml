@@ -1,4 +1,3 @@
 ---
-  oauth2proxy_systemd_service_name: oauth2-proxy
-  prometheus_node_exporter_systemd_service_name: node_exporter
+  blackbox_exporter_systemd_service_name: blackbox_exporter
   prometheus_systemd_service_name: prometheus
