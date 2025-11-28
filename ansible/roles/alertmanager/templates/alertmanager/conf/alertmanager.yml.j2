@@ -2,7 +2,8 @@ global:
   resolve_timeout: 5m
 
 route:
-  group_by: ['alertname', 'env', 'service']
+  #group_by: ['alertname', 'env', 'service']
+  group_by: ['env', 'region', 'service_name', 'service_role', 'alertname']
   group_wait: 30s
   group_interval: 2m
   repeat_interval: 1h
@@ -39,6 +40,12 @@ route:
         - severity =~ "page|crit"
       receiver: 'slack-page-crit'
 
+    # paging/critical alerts in obs/network
+    - matchers:
+        - env =~ "obs|network"
+        - severity =~ "page|crit"
+      receiver: 'slack-page-crit'
+
     # non-paging alerts in prod (warnings/info)
     - matchers:
         - env = "prod"
@@ -53,8 +60,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_nonprod }}"
         channel: '#alerts-nonprod'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -63,8 +69,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_page_crit }}"
         channel: '#page-crit'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -73,8 +78,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_prod }}"
         channel: '#alerts-prod'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -83,8 +87,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_changes }}"
         channel: '#alerts-changes'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -93,8 +96,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_security }}"
         channel: '#security-alerts'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -103,8 +105,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_cost }}"
         channel: '#cost-alarms'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
@@ -113,8 +114,7 @@ receivers:
       - api_url: "{{ alertmanager_config_slack_url_alert_slo }}"
         channel: '#slo-violations'
         send_resolved: true
-{% raw %}
-        title: '{{ template "slack.title" . }}'
+{% raw %}        title: '{{ template "slack.title" . }}'
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 

@@ -1,21 +1,21 @@
 {{ define "slack.title" -}}
-[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }}) – {{ .CommonLabels.env }}/{{ .CommonLabels.service }}
+[{{ .GroupLabels.env | toUpper }}][{{ .CommonLabels.severity | toUpper }}] {{ .CommonLabels.alertname }} – {{ .GroupLabels.service_name }} / {{ .GroupLabels.service_role }}
 {{- end }}
 
 {{ define "slack.text" -}}
-*Env:* {{ .CommonLabels.env }}
-*Service:* {{ .CommonLabels.service }}
-{{- if .CommonLabels.category }}
-*Category:* {{ .CommonLabels.category }}
-{{- end }}
-
-{{ if .CommonAnnotations.runbook_url }}
-*Runbook:* <{{ .CommonAnnotations.runbook_url }}|Runbook link>
-{{ end }}
+*Env:* {{ .GroupLabels.env }} / {{ .CommonLabels.region }}
+*Service:* {{ .GroupLabels.service_name }} / {{ .GroupLabels.service_role }}
+*Alerts:* {{ len .Alerts }} firing
 
 {{ range .Alerts }}
-• *{{ .Labels.alertname }}* on `{{ .Labels.instance }}` ({{ .Labels.job }}):
+• *{{ .Labels.alertname }}* on {{ or .Labels.node }} ({{ .Labels.host_id }})
   {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No summary.{{ end }}
-  {{ if .Annotations.description }}\n  {{ .Annotations.description }}{{ end }}
+{{ end }}
+
+{{ if .CommonAnnotations.runbook_url }}
+*Runbook:* <{{ .CommonAnnotations.runbook_url }}|Runbook>
+{{ end }}
+{{ if .CommonAnnotations.dashboard_url }}
+*Dashboard:* <{{ .CommonAnnotations.dashboard_url }}|Grafana dashboard>
 {{ end }}
 {{- end }}
