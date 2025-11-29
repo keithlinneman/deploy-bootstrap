@@ -11,8 +11,9 @@ scrape_configs:
           - mimir-compactor-2b.{{ hosted_zone_name }}:8443
           - mimir-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
-          service_name: mimir
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           namespace: mimir
+          service_name: mimir
           service_role: compactor
     relabel_configs:
       - source_labels: [__address__]
@@ -34,6 +35,7 @@ scrape_configs:
           - mimir-distributor-2b.{{ hosted_zone_name }}:8443
           - mimir-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: distributor
@@ -57,6 +59,7 @@ scrape_configs:
           - mimir-ingester-2b.{{ hosted_zone_name }}:8443
           - mimir-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: ingester
@@ -80,6 +83,7 @@ scrape_configs:
           - mimir-querier-2b.{{ hosted_zone_name }}:8443
           - mimir-querier-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: querier
@@ -103,6 +107,7 @@ scrape_configs:
           - mimir-query-frontend-2b.{{ hosted_zone_name }}:8443
           - mimir-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: query-frontend
@@ -126,6 +131,7 @@ scrape_configs:
           - mimir-query-scheduler-2b.{{ hosted_zone_name }}:8443
           - mimir-query-scheduler-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: query-scheduler
@@ -149,6 +155,7 @@ scrape_configs:
           - mimir-store-gateway-2b.{{ hosted_zone_name }}:8443
           - mimir-store-gateway-2c.{{ hosted_zone_name }}:8443
         labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: mimir
           namespace: mimir
           service_role: store-gateway
