@@ -135,6 +135,7 @@
        notify: restart prometheus service
        loop:
          - mimir
+         - loki
 
      - name: Create blackbox_exporter scrape job configurations
        template:
