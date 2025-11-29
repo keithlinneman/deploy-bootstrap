@@ -79,7 +79,6 @@
          - bin/sd
          - conf
          - conf/rules
-         - conf/rules/server
          - conf/scrape.d/
          - conf/scrape.d/apps
          - conf/scrape.d/infra
@@ -153,27 +152,16 @@
          - pyroscope
          - tempo
 
-     - name: Create alerting and recording rule configurations
-       template:
-         src: ../templates/prometheus/conf/rules/}}.yml.j2
-         dest: /home/{{ prometheus_system_user }}/conf/rules/server/{{ item }}.yml
-         mode: 0644
-         owner: "{{ prometheus_system_user }}"
-         group: "{{ prometheus_system_user }}"
-       notify: restart prometheus service
-       loop:
-         - server
-
      - name: Copy alerting and recording rules
        copy:
          src: ../files/prometheus/conf/rules/{{ item }}
-         dest: /home/{{ prometheus_system_user }}/conf/rules/{{ item }}
+         dest: /home/{{ prometheus_system_user }}/conf/rules/
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
          mode: 0640
        notify: restart prometheus service
        loop:
-         - server
+         - node
 
      #- name: Create prometheus apps scrape target configurations
      #  template:
