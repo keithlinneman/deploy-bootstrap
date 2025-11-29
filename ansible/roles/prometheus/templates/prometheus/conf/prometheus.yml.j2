@@ -44,6 +44,7 @@ rule_files:
 scrape_config_files:
   - /home/{{ prometheus_system_user }}/conf/scrape.d/apps/*.yml
   - /home/{{ prometheus_system_user }}/conf/scrape.d/infra/*.yml
+  - /home/{{ prometheus_system_user }}/conf/scrape.d/blackbox/*.yml
 
 # For storage in mimir
 remote_write:
