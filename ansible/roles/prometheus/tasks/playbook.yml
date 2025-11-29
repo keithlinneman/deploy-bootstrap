@@ -173,6 +173,7 @@
        notify: restart prometheus service
        loop:
          - node
+         - apps
 
      #- name: Create prometheus apps scrape target configurations
      #  template:
