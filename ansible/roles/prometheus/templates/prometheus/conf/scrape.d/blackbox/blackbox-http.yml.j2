@@ -7,7 +7,7 @@ scrape_configs:
 
     file_sd_configs:
       - files:
-          - /home/prometheus/conf/file_sd/blackbox-http/*.yml
+          - /home/prometheus/conf/file_sd.d/blackbox-http/*.yml
 
     relabel_configs:
       - source_labels: [__address__]

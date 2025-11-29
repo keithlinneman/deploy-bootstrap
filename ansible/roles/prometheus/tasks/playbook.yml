@@ -144,7 +144,12 @@
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
        loop:
+         - alertmanager
          - grafana
+         - loki
+         - mimir
+         - pyroscope
+         - tempo
 
      #- name: Create prometheus apps scrape target configurations
      #  template:
