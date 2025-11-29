@@ -252,7 +252,7 @@
        unarchive:
          src: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
          dest: /home/{{ prometheus_system_user }}/bin
-         #extra_opts: ['--strip-components=1','--show-stored-names']
+         extra_opts: ['--strip-components=1','--show-stored-names']
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
          mode: 0750
