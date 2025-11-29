@@ -39,6 +39,7 @@ alerting:
 
 # Alerting rules loaded once, evaluated every 'evaluation_interval'.
 rule_files:
+  - /home/prometheus/conf/rules/apps/*.yml
   - /home/prometheus/conf/rules/node/*.yml
 
 scrape_config_files:
