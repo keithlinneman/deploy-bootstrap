@@ -1,0 +1,21 @@
+scrape_configs:
+  - job_name: blackbox-http-internal
+    metrics_path: /probe
+    scrape_interval: 15s
+    params:
+      module: [http_2xx_strict_tls]
+
+    file_sd_configs:
+      - files:
+          - /home/prometheus/conf/file_sd.d/blackbox-http/*.yml
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      # override module per target *if* the label exists
+      - source_labels: [module]
+        target_label: __param_module
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
