@@ -1,0 +1,193 @@
+scrape_configs:
+
+  - job_name: 'loki/compactor'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-compactor-2a.{{ hosted_zone_name }}:8443
+          - loki-compactor-2b.{{ hosted_zone_name }}:8443
+          - loki-compactor-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          namespace: loki
+          service_name: loki
+          service_role: compactor
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/distributor'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-distributor-2a.{{ hosted_zone_name }}:8443
+          - loki-distributor-2b.{{ hosted_zone_name }}:8443
+          - loki-distributor-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: distributor
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/index-gateway'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-index-gateway-2a.{{ hosted_zone_name }}:8443
+          - loki-index-gateway-2b.{{ hosted_zone_name }}:8443
+          - loki-index-gateway-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: index-gateway
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/ingester'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-ingester-2a.{{ hosted_zone_name }}:8443
+          - loki-ingester-2b.{{ hosted_zone_name }}:8443
+          - loki-ingester-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: ingester
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/querier'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-querier-2a.{{ hosted_zone_name }}:8443
+          - loki-querier-2b.{{ hosted_zone_name }}:8443
+          - loki-querier-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: querier
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/query-frontend'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-query-frontend-2a.{{ hosted_zone_name }}:8443
+          - loki-query-frontend-2b.{{ hosted_zone_name }}:8443
+          - loki-query-frontend-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: query-frontend
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/query-scheduler'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-query-scheduler-2a.{{ hosted_zone_name }}:8443
+          - loki-query-scheduler-2b.{{ hosted_zone_name }}:8443
+          - loki-query-scheduler-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: query-scheduler
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'loki/ruler'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - loki-ruler-2a.{{ hosted_zone_name }}:8443
+          - loki-ruler-2b.{{ hosted_zone_name }}:8443
+          - loki-ruler-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: loki
+          namespace: loki
+          service_role: ruler
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
