@@ -1,0 +1,145 @@
+scrape_configs:
+
+  - job_name: 'tempo/compactor'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-compactor-2a.{{ hosted_zone_name }}:8443
+          - tempo-compactor-2b.{{ hosted_zone_name }}:8443
+          - tempo-compactor-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          namespace: tempo
+          service_name: tempo
+          service_role: compactor
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'tempo/distributor'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-distributor-2a.{{ hosted_zone_name }}:8443
+          - tempo-distributor-2b.{{ hosted_zone_name }}:8443
+          - tempo-distributor-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: tempo
+          namespace: tempo
+          service_role: distributor
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'tempo/ingester'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-ingester-2a.{{ hosted_zone_name }}:8443
+          - tempo-ingester-2b.{{ hosted_zone_name }}:8443
+          - tempo-ingester-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: tempo
+          namespace: tempo
+          service_role: ingester
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'tempo/metrics-generator'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-metrics-generator-2a.{{ hosted_zone_name }}:8443
+          - tempo-metrics-generator-2b.{{ hosted_zone_name }}:8443
+          - tempo-metrics-generator-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: tempo
+          namespace: tempo
+          service_role: metrics-generator
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'tempo/querier'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-querier-2a.{{ hosted_zone_name }}:8443
+          - tempo-querier-2b.{{ hosted_zone_name }}:8443
+          - tempo-querier-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: tempo
+          namespace: tempo
+          service_role: querier
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+  - job_name: 'tempo/query-frontend'
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets:
+          - tempo-query-frontend-2a.{{ hosted_zone_name }}:8443
+          - tempo-query-frontend-2b.{{ hosted_zone_name }}:8443
+          - tempo-query-frontend-2c.{{ hosted_zone_name }}:8443
+        labels:
+          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
+          service_name: tempo
+          namespace: tempo
+          service_role: query-frontend
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node

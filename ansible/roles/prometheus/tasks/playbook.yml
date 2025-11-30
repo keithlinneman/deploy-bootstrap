@@ -134,10 +134,11 @@
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
        loop:
-         - prometheus
-         - mimir
          - loki
+         - mimir
+         - prometheus
          - pyroscope
+         - tempo
 
      - name: Create blackbox_exporter scrape job configurations
        template:
