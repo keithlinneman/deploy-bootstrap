@@ -9,7 +9,7 @@ groups:
       min by (cluster, namespace) (cortex_ring_members{state="Unhealthy", name="ingester"}) > 0
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirRequestErrors
     annotations:
       message: |
@@ -27,7 +27,7 @@ groups:
     for: 15m
     labels:
       histogram: classic
-      severity: critical
+      severity: crit
   - alert: MimirRequestErrors
     annotations:
       message: |
@@ -45,7 +45,7 @@ groups:
     for: 15m
     labels:
       histogram: native
-      severity: critical
+      severity: crit
   - alert: MimirRequestLatency
     annotations:
       message: |
@@ -57,7 +57,7 @@ groups:
       2.5
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirInconsistentRuntimeConfig
     annotations:
       message: |
@@ -67,7 +67,7 @@ groups:
       count(count by(cluster, namespace, job, sha256) (cortex_runtime_config_hash)) without(sha256) > 1
     for: 1h
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirBadRuntimeConfig
     annotations:
       message: |
@@ -78,7 +78,7 @@ groups:
       cortex_runtime_config_last_reload_successful == 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirSchedulerQueriesStuck
     annotations:
       message: |
@@ -88,7 +88,7 @@ groups:
       sum by (cluster, namespace, job) (min_over_time(cortex_query_scheduler_queue_length[1m])) > 0
     for: 7m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirCacheRequestErrors
     annotations:
       message: |
@@ -106,7 +106,7 @@ groups:
       ) * 100 > 5
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirKVStoreFailure
     annotations:
       message: |
@@ -122,7 +122,7 @@ groups:
       == 1
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirMemoryMapAreasTooHigh
     annotations:
       message: '{{ $labels.job }}/{{ $labels.node }} has a number of mmap-ed areas close to the limit.'
@@ -131,7 +131,7 @@ groups:
       process_memory_map_areas{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} / process_memory_map_areas_limit{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} > 0.8
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterInstanceHasNoTenants
     annotations:
       message: Mimir ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has no tenants assigned.
@@ -164,7 +164,7 @@ groups:
       ) > 100000
     for: 1h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirRulerInstanceHasNoRuleGroups
     annotations:
       message: Mimir ruler {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has no rule groups assigned.
@@ -180,7 +180,7 @@ groups:
       (count by (cluster, namespace) (cortex_ruler_managers_total) > 2)
     for: 1h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirIngestedDataTooFarInTheFuture
     annotations:
       message: Mimir ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has ingested samples with timestamps more than 1h in the future.
@@ -193,7 +193,7 @@ groups:
       ) > 60*60
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirStoreGatewayTooManyFailedOperations
     annotations:
       message: Mimir store-gateway in {{ $labels.cluster }}/{{ $labels.namespace }} is experiencing {{ $value | humanizePercentage }} errors while doing {{ $labels.operation }} on the object storage.
@@ -202,7 +202,7 @@ groups:
       sum by(cluster, namespace, operation) (rate(thanos_objstore_bucket_operation_failures_total{component="store-gateway"}[1m])) > 0
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirServerInvalidClusterLabelRequests
     annotations:
       message: Mimir servers in {{ $labels.cluster }}/{{ $labels.namespace }} are receiving requests with invalid cluster validation labels.
@@ -212,7 +212,7 @@ groups:
       # Alert only for namespaces with Mimir clusters.
       and on (cluster, namespace) (mimir_build_info > 0)
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirClientInvalidClusterLabelRequests
     annotations:
       message: Mimir clients in {{ $labels.cluster }}/{{ $labels.namespace }} are having requests rejected due to invalid cluster validation labels.
@@ -222,7 +222,7 @@ groups:
       # Alert only for namespaces with Mimir clusters.
       and on (cluster, namespace) (mimir_build_info > 0)
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirRingMembersMismatch
     annotations:
       message: |
@@ -240,7 +240,7 @@ groups:
     for: 15m
     labels:
       component: ingester
-      severity: warning
+      severity: warn
   - alert: MimirHighGRPCStreamsPerConnection
     annotations:
       message: |
@@ -251,7 +251,7 @@ groups:
       /
       min(cortex_grpc_concurrent_streams_limit) by (cluster, namespace, container) > 0.9
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirMixedQuerierQueryPlanVersionSupport
     annotations:
       message: |
@@ -263,7 +263,7 @@ groups:
       max by (cluster, namespace, container) (cortex_querier_maximum_supported_query_plan_version)
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirMixedQueryFrontendQueryPlanVersionSupport
     annotations:
       message: |
@@ -275,7 +275,7 @@ groups:
       max by (cluster, namespace, container) (cortex_query_frontend_querier_ring_calculated_maximum_supported_query_plan_version)
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirQueryFrontendsAndQueriersDisagreeOnSupportedQueryPlanVersion
     annotations:
       message: |
@@ -304,7 +304,7 @@ groups:
       )
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirQueryFrontendNotComputingSupportedQueryPlanVersion
     annotations:
       message: |
@@ -314,7 +314,7 @@ groups:
       count by (cluster, namespace, container) (cortex_query_frontend_querier_ring_calculated_maximum_supported_query_plan_version == -1) > 0
     for: 5m
     labels:
-      severity: warning
+      severity: warn
 - name: mimir_instance_limits_alerts
   rules:
   - alert: MimirIngesterReachingSeriesLimit
@@ -330,7 +330,7 @@ groups:
       ) > 0.8
     for: 3h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirIngesterReachingSeriesLimit
     annotations:
       message: |
@@ -344,7 +344,7 @@ groups:
       ) > 0.9
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterReachingTenantsLimit
     annotations:
       message: |
@@ -358,7 +358,7 @@ groups:
       ) > 0.7
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirIngesterReachingTenantsLimit
     annotations:
       message: |
@@ -372,7 +372,7 @@ groups:
       ) > 0.8
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirReachingTCPConnectionsLimit
     annotations:
       message: |
@@ -383,7 +383,7 @@ groups:
       cortex_tcp_connections_limit > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirDistributorInflightRequestsHigh
     annotations:
       message: |
@@ -397,7 +397,7 @@ groups:
       ) > 0.8
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: RolloutOperatorNotReconciling
     annotations:
       message: |
@@ -407,7 +407,7 @@ groups:
       max by(cluster, namespace, rollout_group) (time() - rollout_operator_last_successful_group_reconcile_timestamp_seconds) > 600
     for: 5m
     labels:
-      severity: critical
+      severity: crit
 - name: mimir-provisioning
   rules:
   - alert: MimirAllocatingTooMuchMemory
@@ -428,7 +428,7 @@ groups:
       > 0.65
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirAllocatingTooMuchMemory
     annotations:
       message: |
@@ -447,7 +447,7 @@ groups:
       > 0.8
     for: 15m
     labels:
-      severity: critical
+      severity: crit
 - name: ruler_alerts
   rules:
   - alert: MimirRulerTooManyFailedPushes
@@ -464,7 +464,7 @@ groups:
       ) > 1
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirRulerTooManyFailedQueries
     annotations:
       message: |
@@ -479,7 +479,7 @@ groups:
       ) > 1
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirRulerMissedEvaluations
     annotations:
       message: |
@@ -493,7 +493,7 @@ groups:
       ) > 1
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirRulerFailedRingCheck
     annotations:
       message: |
@@ -504,7 +504,7 @@ groups:
          > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirRulerRemoteEvaluationFailing
     annotations:
       message: |
@@ -519,7 +519,7 @@ groups:
     for: 5m
     labels:
       histogram: classic
-      severity: warning
+      severity: warn
   - alert: MimirRulerRemoteEvaluationFailing
     annotations:
       message: |
@@ -534,7 +534,7 @@ groups:
     for: 5m
     labels:
       histogram: native
-      severity: warning
+      severity: warn
 - name: gossip_alerts
   rules:
   - alert: MimirGossipMembersTooHigh
@@ -547,7 +547,7 @@ groups:
       (sum by (cluster, namespace) (up{job=~".*/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}) + 10)
     for: 20m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirGossipMembersTooLow
     annotations:
       message: One or more Mimir nodes in {{ $labels.cluster }}/{{ $labels.namespace }} consistently sees a lower than expected number of gossip members.
@@ -558,7 +558,7 @@ groups:
       (sum by (cluster, namespace) (up{job=~".+/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}) * 0.5)
     for: 20m
     labels:
-      severity: warning
+      severity: warn
 - name: golang_alerts
   rules:
   - alert: MimirGoThreadsTooHigh
@@ -574,7 +574,7 @@ groups:
       and on (cluster, namespace) (count by (cluster, namespace) (cortex_build_info))
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirGoThreadsTooHigh
     annotations:
       message: |
@@ -588,7 +588,7 @@ groups:
       and on (cluster, namespace) (count by (cluster, namespace) (cortex_build_info))
     for: 15m
     labels:
-      severity: critical
+      severity: crit
 - name: alertmanager_alerts
   rules:
   - alert: MimirAlertmanagerSyncConfigsFailing
@@ -600,7 +600,7 @@ groups:
       rate(cortex_alertmanager_sync_configs_failed_total[5m]) > 0
     for: 30m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerRingCheckFailing
     annotations:
       message: |
@@ -610,7 +610,7 @@ groups:
       rate(cortex_alertmanager_ring_check_errors_total[2m]) > 0
     for: 10m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerStateMergeFailing
     annotations:
       message: |
@@ -620,7 +620,7 @@ groups:
       rate(cortex_alertmanager_partial_state_merges_failed_total[2m]) > 0
     for: 10m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerReplicationFailing
     annotations:
       message: |
@@ -630,7 +630,7 @@ groups:
       rate(cortex_alertmanager_state_replication_failed_total[2m]) > 0
     for: 10m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerPersistStateFailing
     annotations:
       message: |
@@ -640,7 +640,7 @@ groups:
       rate(cortex_alertmanager_state_persist_failed_total[15m]) > 0
     for: 1h
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerInitialSyncFailed
     annotations:
       message: |
@@ -649,7 +649,7 @@ groups:
     expr: |
       increase(cortex_alertmanager_state_initial_sync_completed_total{outcome="failed"}[1m]) > 0
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirAlertmanagerAllocatingTooMuchMemory
     annotations:
       message: |
@@ -661,7 +661,7 @@ groups:
       (container_spec_memory_limit_bytes{container="alertmanager"} > 0)
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirAlertmanagerAllocatingTooMuchMemory
     annotations:
       message: |
@@ -673,7 +673,7 @@ groups:
       (container_spec_memory_limit_bytes{container="alertmanager"} > 0)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirAlertmanagerInstanceHasNoTenants
     annotations:
       message: Mimir alertmanager {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} owns no tenants.
@@ -686,7 +686,7 @@ groups:
       max by(cluster, namespace) (cortex_alertmanager_tenants_owned) > 0
     for: 1h
     labels:
-      severity: warning
+      severity: warn
 - name: mimir_blocks_alerts
   rules:
   - alert: MimirIngesterNotShippingBlocks
@@ -711,7 +711,7 @@ groups:
       (max by (cluster, namespace) (max_over_time(cortex_blockbuilder_tsdb_last_successful_compact_and_upload_timestamp_seconds[30m])) > 0)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterNotShippingBlocksSinceStart
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not shipped any block in the last 4 hours.
@@ -725,7 +725,7 @@ groups:
       (max by (cluster, namespace) (max_over_time(cortex_blockbuilder_tsdb_last_successful_compact_and_upload_timestamp_seconds[30m])) > 0)
     for: 4h
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterHasUnshippedBlocks
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has compacted a block {{ $value | humanizeDuration }} ago but it hasn't been successfully uploaded to the storage yet.
@@ -739,7 +739,7 @@ groups:
       (max by (cluster, namespace) (max_over_time(cortex_blockbuilder_tsdb_last_successful_compact_and_upload_timestamp_seconds[30m])) > 0)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBHeadCompactionFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to compact TSDB head.
@@ -748,7 +748,7 @@ groups:
       rate(cortex_ingester_tsdb_compactions_failed_total[5m]) > 0
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBHeadTruncationFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to truncate TSDB head.
@@ -756,7 +756,7 @@ groups:
     expr: |
       rate(cortex_ingester_tsdb_head_truncations_failed_total[5m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBCheckpointCreateFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to create TSDB checkpoint.
@@ -764,7 +764,7 @@ groups:
     expr: |
       rate(cortex_ingester_tsdb_checkpoint_creations_failed_total[5m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBCheckpointDeleteFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to delete TSDB checkpoint.
@@ -772,7 +772,7 @@ groups:
     expr: |
       rate(cortex_ingester_tsdb_checkpoint_deletions_failed_total[5m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBWALTruncationFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to truncate TSDB WAL.
@@ -780,7 +780,7 @@ groups:
     expr: |
       rate(cortex_ingester_tsdb_wal_truncations_failed_total[5m]) > 0
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirIngesterTSDBWALCorrupted
     annotations:
       message: Mimir Ingester in {{ $labels.cluster }}/{{ $labels.namespace }} got a corrupted TSDB WAL.
@@ -793,7 +793,7 @@ groups:
       count by (cluster, namespace) (group by (cluster, namespace, job) (cortex_ingester_tsdb_wal_corruptions_total)) == 1
     labels:
       deployment: single-zone
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBWALCorrupted
     annotations:
       message: Mimir Ingester in {{ $labels.cluster }}/{{ $labels.namespace }} got a corrupted TSDB WAL.
@@ -806,7 +806,7 @@ groups:
       count by (cluster, namespace) (group by (cluster, namespace, job) (cortex_ingester_tsdb_wal_corruptions_total)) > 1
     labels:
       deployment: multi-zone
-      severity: critical
+      severity: crit
   - alert: MimirIngesterTSDBWALWritesFailed
     annotations:
       message: Mimir Ingester {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to write to TSDB WAL.
@@ -815,7 +815,7 @@ groups:
       rate(cortex_ingester_tsdb_wal_writes_failed_total[1m]) > 0
     for: 3m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirStoreGatewayHasNotSyncTheBucket
     annotations:
       message: Mimir store-gateway {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not successfully synched the bucket since {{ $value | humanizeDuration }}.
@@ -826,7 +826,7 @@ groups:
       cortex_bucket_stores_blocks_last_successful_sync_timestamp_seconds{component="store-gateway"} > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirStoreGatewayNoSyncedTenants
     annotations:
       message: Mimir store-gateway {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is not syncing any blocks for any tenant.
@@ -835,7 +835,7 @@ groups:
       min by(cluster, namespace, node) (cortex_bucket_stores_tenants_synced{component="store-gateway"}) == 0
     for: 1h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirBucketIndexNotUpdated
     annotations:
       message: Mimir bucket index for tenant {{ $labels.user }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not been updated since {{ $value | humanizeDuration }}.
@@ -843,7 +843,7 @@ groups:
     expr: |
       min by(cluster, namespace, user) (time() - (max_over_time(cortex_bucket_index_last_successful_update_timestamp_seconds[15m]))) > 2100
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirHighVolumeLevel1BlocksQueried
     annotations:
       message: Mimir store-gateway in {{ $labels.cluster }}/{{ $labels.namespace }} is querying level 1 blocks, indicating the compactor may not be keeping up with compaction.
@@ -856,7 +856,7 @@ groups:
       ) > 0.05
     for: 6h
     labels:
-      severity: warning
+      severity: warn
 - name: mimir_compactor_alerts
   rules:
   - alert: MimirCompactorNotCleaningUpBlocks
@@ -869,7 +869,7 @@ groups:
       (time() - cortex_compactor_block_cleanup_last_successful_run_timestamp_seconds > 60 * 60 * 6)
     for: 1h
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirCompactorNotRunningCompaction
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not run compaction in the last 24 hours.
@@ -883,7 +883,7 @@ groups:
     for: 1h
     labels:
       reason: in-last-24h
-      severity: critical
+      severity: crit
   - alert: MimirCompactorNotRunningCompaction
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not run compaction in the last 24 hours.
@@ -895,7 +895,7 @@ groups:
     for: 24h
     labels:
       reason: since-startup
-      severity: critical
+      severity: crit
   - alert: MimirCompactorNotRunningCompaction
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} failed to run 2 consecutive compactions.
@@ -904,7 +904,7 @@ groups:
       increase(cortex_compactor_runs_failed_total{reason!="shutdown"}[2h]) >= 2
     labels:
       reason: consecutive-failures
-      severity: critical
+      severity: crit
   - alert: MimirCompactorHasRunOutOfDiskSpace
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has run out of disk space.
@@ -913,7 +913,7 @@ groups:
       increase(cortex_compactor_disk_out_of_space_errors_total{}[24h]) >= 1
     labels:
       reason: non-transient
-      severity: critical
+      severity: crit
   - alert: MimirCompactorHasNotUploadedBlocks
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not uploaded any block in the last 24 hours.
@@ -927,7 +927,7 @@ groups:
       (sum by(cluster, namespace, node) (rate(cortex_compactor_group_compaction_runs_started_total[24h])) > 0)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
       time_period: 24h
   - alert: MimirCompactorHasNotUploadedBlocks
     annotations:
@@ -940,7 +940,7 @@ groups:
       (sum by(cluster, namespace, node) (rate(cortex_compactor_group_compaction_runs_started_total[24h])) > 0)
     for: 24h
     labels:
-      severity: critical
+      severity: crit
       time_period: since-start
   - alert: MimirCompactorSkippedUnhealthyBlocks
     annotations:
@@ -950,7 +950,7 @@ groups:
       increase(cortex_compactor_blocks_marked_for_no_compaction_total[5m]) > 0
     for: 1m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirCompactorSkippedUnhealthyBlocks
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has found and ignored unhealthy blocks.
@@ -959,7 +959,7 @@ groups:
       increase(cortex_compactor_blocks_marked_for_no_compaction_total[5m]) > 1
     for: 30m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirCompactorBuildingSparseIndexFailed
     annotations:
       message: Mimir Compactor {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to build sparse index headers
@@ -968,7 +968,7 @@ groups:
       (sum by(cluster, namespace, node) (increase(cortex_compactor_build_sparse_headers_failures_total[5m])) > 0)
     for: 30m
     labels:
-      severity: warning
+      severity: warn
 - name: mimir_distributor_alerts
   rules:
   - alert: MimirDistributorGcUsesTooMuchCpu
@@ -989,7 +989,7 @@ groups:
       and (count by (cluster, namespace) (mimir_build_info) > 0)
     for: 10m
     labels:
-      severity: warning
+      severity: warn
 - name: mimir_ingest_storage_alerts
   rules:
   - alert: MimirIngesterOffsetCommitFailed
@@ -1003,7 +1003,7 @@ groups:
       > 0.2
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterKafkaReadFailed
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is failing to read records from Kafka.
@@ -1013,7 +1013,7 @@ groups:
       > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterKafkaFetchErrorsRateTooHigh
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is receiving fetch errors when reading records from Kafka.
@@ -1025,7 +1025,7 @@ groups:
       > 0.1
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirStartingIngesterKafkaDelayGrowing
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} in "starting" phase is not reducing consumption lag of write requests read from Kafka.
@@ -1038,7 +1038,7 @@ groups:
       )[5m:1m]) > 0
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirRunningIngesterReceiveDelayTooHigh
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} in "running" phase is too far behind in its consumption of write requests from Kafka.
@@ -1051,7 +1051,7 @@ groups:
       ) > (2 * 60)
     for: 3m
     labels:
-      severity: critical
+      severity: crit
       threshold: very_high_for_short_period
   - alert: MimirRunningIngesterReceiveDelayTooHigh
     annotations:
@@ -1065,7 +1065,7 @@ groups:
       ) > 30
     for: 15m
     labels:
-      severity: critical
+      severity: crit
       threshold: relatively_high_for_long_period
   - alert: MimirIngesterKafkaProcessingFailed
     annotations:
@@ -1086,7 +1086,7 @@ groups:
       unless (max by (cluster, namespace, node) (max_over_time(cortex_ingester_tsdb_forced_compactions_in_progress[1m])) > 0)
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterKafkaProcessingStuck
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is stuck processing write requests from Kafka.
@@ -1103,7 +1103,7 @@ groups:
       (sum by (cluster, namespace, node) (cortex_ingest_storage_reader_buffered_fetched_records) > 0)
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirIngesterMissedRecordsFromKafka
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} missed processing records from Kafka. There may be data loss.
@@ -1112,7 +1112,7 @@ groups:
       # Alert if the ingester missed some records from Kafka.
       increase(cortex_ingest_storage_reader_missed_records_total[10m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirStrongConsistencyEnforcementFailed
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} fails to enforce strong-consistency on read-path.
@@ -1121,7 +1121,7 @@ groups:
       sum by (cluster, namespace, node) (rate(cortex_ingest_storage_strong_consistency_failures_total[1m])) > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirStrongConsistencyOffsetMissing
     annotations:
       message: Mimir ingesters in {{ $labels.cluster }}/{{ $labels.namespace }} are receiving an unexpected high number of strongly consistent requests without an offset specified.
@@ -1133,7 +1133,7 @@ groups:
       * 100 > 5
     for: 5m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirKafkaClientProduceBufferHigh
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} Kafka client produce buffer utilization is {{ printf "%.2f" $value }}%.
@@ -1151,7 +1151,7 @@ groups:
       * 100 > 50
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirBlockBuilderSchedulerPendingJobs
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} reports {{ printf "%.2f" $value }} pending jobs.
@@ -1160,7 +1160,7 @@ groups:
       sum by (cluster, namespace, node) (cortex_blockbuilder_scheduler_pending_jobs) > 0
     for: 40m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirBlockBuilderCompactAndUploadFailed
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} fails to compact and upload blocks.
@@ -1168,7 +1168,7 @@ groups:
     expr: |
       sum by (cluster, namespace, node) (rate(cortex_blockbuilder_tsdb_compact_and_upload_failed_total[1m])) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirBlockBuilderHasNotShippedBlocks
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has not shipped any block in the last 4 hours.
@@ -1182,7 +1182,7 @@ groups:
       (max by (cluster, namespace) (cortex_ingester_shipper_last_successful_upload_timestamp_seconds) > 0)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirBlockBuilderSchedulerNotRunning
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} is not running.
@@ -1191,7 +1191,7 @@ groups:
       max by (cluster, namespace, node) (histogram_count(increase(cortex_blockbuilder_scheduler_schedule_update_seconds[5m])) == 0)
     for: 30m
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirBlockBuilderDataSkipped
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has detected skipped data.
@@ -1199,7 +1199,7 @@ groups:
     expr: |
       increase(cortex_blockbuilder_scheduler_job_gap_detected[1m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirBlockBuilderPersistentJobFailure
     annotations:
       message: Mimir {{ $labels.node }} in {{ $labels.cluster }}/{{ $labels.namespace }} has detected a persistently failing job.
@@ -1207,7 +1207,7 @@ groups:
     expr: |
       increase(cortex_blockbuilder_scheduler_persistent_job_failures_total[1m]) > 0
     labels:
-      severity: critical
+      severity: crit
   - alert: MimirFewerIngestersConsumingThanActivePartitions
     annotations:
       message: Mimir ingesters in {{ $labels.cluster }}/{{ $labels.namespace }} have fewer ingesters consuming than active partitions.
@@ -1216,7 +1216,7 @@ groups:
       max(cortex_partition_ring_partitions{name="ingester-partitions", state="Active"}) by (cluster, namespace) > count(count(cortex_ingest_storage_reader_last_consumed_offset{}) by (cluster, namespace, partition)) by (cluster, namespace)
     for: 15m
     labels:
-      severity: critical
+      severity: crit
 - name: mimir_continuous_test
   rules:
   - alert: MimirContinuousTestNotRunningOnWrites
@@ -1227,7 +1227,7 @@ groups:
       sum by(cluster, namespace, test) (rate(mimir_continuous_test_writes_failed_total[5m])) > 0
     for: 1h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirContinuousTestNotRunningOnReads
     annotations:
       message: Mimir continuous test {{ $labels.test }} in {{ $labels.cluster }}/{{ $labels.namespace }} is not effectively running because queries are failing.
@@ -1236,7 +1236,7 @@ groups:
       sum by(cluster, namespace, test) (rate(mimir_continuous_test_queries_failed_total[5m])) > 0
     for: 1h
     labels:
-      severity: warning
+      severity: warn
   - alert: MimirContinuousTestFailed
     annotations:
       message: Mimir continuous test {{ $labels.test }} in {{ $labels.cluster }}/{{ $labels.namespace }} failed when asserting query results.
@@ -1244,4 +1244,4 @@ groups:
     expr: |
       sum by(cluster, namespace, test) (rate(mimir_continuous_test_query_result_checks_failed_total[10m])) > 0
     labels:
-      severity: warning
+      severity: warn

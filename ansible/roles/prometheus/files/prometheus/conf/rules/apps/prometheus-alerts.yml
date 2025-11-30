@@ -11,7 +11,7 @@ groups:
       max_over_time(prometheus_config_last_reload_successful{job="prometheus/prometheus"}[5m]) == 0
     for: 10m
     labels:
-      severity: critical
+      severity: crit
   - alert: PrometheusSDRefreshFailure
     annotations:
       description: Prometheus {{$labels.node}} has failed to refresh SD with mechanism {{$labels.mechanism}}.
@@ -20,7 +20,7 @@ groups:
       increase(prometheus_sd_refresh_failures_total{job="prometheus/prometheus"}[10m]) > 0
     for: 20m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusNotificationQueueRunningFull
     annotations:
       description: Alert notification queue of Prometheus {{$labels.node}} is running full.
@@ -35,7 +35,7 @@ groups:
       )
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusErrorSendingAlertsToSomeAlertmanagers
     annotations:
       description: '{{ printf "%.1f" $value }}% of alerts sent by Prometheus {{$labels.node}} to Alertmanager {{$labels.alertmanager}} were affected by errors.'
@@ -50,7 +50,7 @@ groups:
       > 1
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusNotConnectedToAlertmanagers
     annotations:
       description: Prometheus {{$labels.node}} is not connected to any Alertmanagers.
@@ -61,7 +61,7 @@ groups:
       max_over_time(prometheus_notifications_alertmanagers_discovered{job="prometheus/prometheus"}[5m]) < 1
     for: 10m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusTSDBReloadsFailing
     annotations:
       description: Prometheus {{$labels.node}} has detected {{$value | humanize}} reload failures over the last 3h.
@@ -70,7 +70,7 @@ groups:
       increase(prometheus_tsdb_reloads_failures_total{job="prometheus/prometheus"}[3h]) > 0
     for: 4h
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusTSDBCompactionsFailing
     annotations:
       description: Prometheus {{$labels.node}} has detected {{$value | humanize}} compaction failures over the last 3h.
@@ -79,7 +79,7 @@ groups:
       increase(prometheus_tsdb_compactions_failed_total{job="prometheus/prometheus"}[3h]) > 0
     for: 4h
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusNotIngestingSamples
     annotations:
       description: Prometheus {{$labels.node}} is not ingesting samples.
@@ -96,7 +96,7 @@ groups:
       )
     for: 10m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusDuplicateTimestamps
     annotations:
       description: Prometheus {{$labels.node}} is dropping {{ printf "%.4g" $value  }} samples/s with different values but duplicated timestamp.
@@ -105,7 +105,7 @@ groups:
       rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{job="prometheus/prometheus"}[5m]) > 0
     for: 10m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusOutOfOrderTimestamps
     annotations:
       description: Prometheus {{$labels.node}} is dropping {{ printf "%.4g" $value  }} samples/s with timestamps arriving out of order.
@@ -114,7 +114,7 @@ groups:
       rate(prometheus_target_scrapes_sample_out_of_order_total{job="prometheus/prometheus"}[5m]) > 0
     for: 10m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusRemoteStorageFailures
     annotations:
       description: Prometheus {{$labels.node}} failed to send {{ printf "%.1f" $value }}% of the samples to {{ $labels.remote_name}}:{{ $labels.url }}
@@ -133,7 +133,7 @@ groups:
       > 1
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: PrometheusRemoteWriteBehind
     annotations:
       description: Prometheus {{$labels.node}} remote write is {{ printf "%.1f" $value }}s behind for {{ $labels.remote_name}}:{{ $labels.url }}.
@@ -149,7 +149,7 @@ groups:
       > 120
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: PrometheusRemoteWriteDesiredShards
     annotations:
       description: Prometheus {{$labels.node}} remote write desired shards calculation wants to run {{ $value }} shards for queue {{ $labels.remote_name}}:{{ $labels.url }}, which is more than the max of {{ printf `prometheus_remote_storage_shards_max{node="%s",job="prometheus/prometheus"}` $labels.node | query | first | value }}.
@@ -164,7 +164,7 @@ groups:
       )
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusRuleFailures
     annotations:
       description: Prometheus {{$labels.node}} has failed to evaluate {{ printf "%.0f" $value }} rules in the last 5m.
@@ -173,7 +173,7 @@ groups:
       increase(prometheus_rule_evaluation_failures_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: critical
+      severity: crit
   - alert: PrometheusMissingRuleEvaluations
     annotations:
       description: Prometheus {{$labels.node}} has missed {{ printf "%.0f" $value }} rule group evaluations in the last 5m.
@@ -182,7 +182,7 @@ groups:
       increase(prometheus_rule_group_iterations_missed_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusTargetLimitHit
     annotations:
       description: Prometheus {{$labels.node}} has dropped {{ printf "%.0f" $value }} targets because the number of targets exceeded the configured target_limit.
@@ -191,7 +191,7 @@ groups:
       increase(prometheus_target_scrape_pool_exceeded_target_limit_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusLabelLimitHit
     annotations:
       description: Prometheus {{$labels.node}} has dropped {{ printf "%.0f" $value }} targets because some samples exceeded the configured label_limit, label_name_length_limit or label_value_length_limit.
@@ -200,7 +200,7 @@ groups:
       increase(prometheus_target_scrape_pool_exceeded_label_limits_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusScrapeBodySizeLimitHit
     annotations:
       description: Prometheus {{$labels.node}} has failed {{ printf "%.0f" $value }} scrapes in the last 5m because some targets exceeded the configured body_size_limit.
@@ -209,7 +209,7 @@ groups:
       increase(prometheus_target_scrapes_exceeded_body_size_limit_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusScrapeSampleLimitHit
     annotations:
       description: Prometheus {{$labels.node}} has failed {{ printf "%.0f" $value }} scrapes in the last 5m because some targets exceeded the configured sample_limit.
@@ -218,7 +218,7 @@ groups:
       increase(prometheus_target_scrapes_exceeded_sample_limit_total{job="prometheus/prometheus"}[5m]) > 0
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusTargetSyncFailure
     annotations:
       description: '{{ printf "%.0f" $value }} targets in Prometheus {{$labels.node}} have failed to sync because invalid configuration was supplied.'
@@ -227,7 +227,7 @@ groups:
       increase(prometheus_target_sync_failed_total{job="prometheus/prometheus"}[30m]) > 0
     for: 5m
     labels:
-      severity: critical
+      severity: crit
   - alert: PrometheusHighQueryLoad
     annotations:
       description: Prometheus {{$labels.node}} query API has less than 20% available capacity in its query engine for the last 15 minutes.
@@ -236,7 +236,7 @@ groups:
       avg_over_time(prometheus_engine_queries{job="prometheus/prometheus"}[5m]) / max_over_time(prometheus_engine_queries_concurrent_max{job="prometheus/prometheus"}[5m]) > 0.8
     for: 15m
     labels:
-      severity: warning
+      severity: warn
   - alert: PrometheusErrorSendingAlertsToAnyAlertmanager
     annotations:
       description: '{{ printf "%.1f" $value }}% minimum errors while sending alerts from Prometheus {{$labels.node}} to any Alertmanager.'
@@ -251,4 +251,4 @@ groups:
       > 3
     for: 15m
     labels:
-      severity: critical
+      severity: crit
