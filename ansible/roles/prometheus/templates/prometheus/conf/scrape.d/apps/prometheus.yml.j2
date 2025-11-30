@@ -1,0 +1,92 @@
+scrape_configs:
+  - job_name: 'prometheus/prometheus'
+    scrape_interval: 15s
+    ec2_sd_configs:
+      - region: {{ ansible_ec2_instance_identity_document_region }}
+        filters:
+          - name: tag:PrometheusMonitored
+            values: ["True"]
+          - name: instance-state-name
+            values: ["running"]
+          - name: 'tag:AppName'
+            values: ['prometheus']
+          #- name: tag:Environment
+          #  values: ["{{ platform_env }}"]
+    relabel_configs:
+      #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
+      #  action: keep
+      #  regex: True
+
+      #- source_labels: [__meta_ec2_tag_Environment]
+      #  action: keep
+      #  regex: {{ platform_env }}
+
+      - source_labels: [__meta_ec2_region]
+        target_label: region
+
+      - source_labels: [__meta_ec2_tag_AppName]
+        target_label: service_name
+
+      - source_labels: [service_name]
+        regex: ^$
+        replacement: unknown
+        target_label: service_name
+
+      - source_labels: [__meta_ec2_tag_AppRole]
+        target_label: service_role
+
+      - source_labels: [service_role]
+        regex: ^$
+        replacement: unknown
+        target_label: service_role
+
+      - source_labels: [__meta_ec2_tag_Environment]
+        target_label: env
+
+      - source_labels: [__meta_ec2_tag_Name]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
+
+      - source_labels: [__meta_ec2_tag_Project]
+        target_label: project
+
+      - source_labels: [project]
+        regex: ^$
+        replacement: unknown
+        target_label: project
+
+      - source_labels: [__meta_ec2_tag_Company]
+        target_label: company
+
+      - source_labels: [company]
+        regex: ^$
+        replacement: unknown
+        target_label: company
+
+      - target_label: cloud_provider
+        replacement: 'aws'
+
+      - target_label: cloud_platform
+        replacement: 'aws_ec2'
+
+      - source_labels: [__meta_ec2_owner_id]
+        target_label: cloud_account_id
+
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: cloud_availability_zone
+
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: __address__
+        replacement: "$1:{{ prometheus_tcp_port }}"
+
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: host_ip
+
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: host_id
+
+      #- source_labels: [__meta_ec2_private_dns_name]
+      #  target_label: host_name
+
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: host_fqdn
