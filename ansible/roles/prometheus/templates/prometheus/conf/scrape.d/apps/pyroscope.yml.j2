@@ -6,9 +6,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-compactor-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-compactor-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-compactor-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-compactor-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-compactor-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-compactor-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           namespace: pyroscope
@@ -29,9 +29,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-distributor-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-distributor-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-distributor-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-distributor-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-distributor-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-distributor-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
@@ -52,9 +52,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-ingester-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-ingester-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-ingester-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-ingester-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-ingester-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-ingester-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
@@ -75,9 +75,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-querier-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-querier-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-querier-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-querier-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-querier-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-querier-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
@@ -98,9 +98,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-query-frontend-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-query-frontend-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-query-frontend-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-query-frontend-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-query-frontend-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-query-frontend-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
@@ -121,9 +121,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-query-scheduler-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-query-scheduler-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-query-scheduler-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-query-scheduler-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-query-scheduler-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-query-scheduler-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
@@ -144,9 +144,9 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
       - targets:
-          - pyroscope-store-gateway-2a.{{ hosted_zone_name }}:8443
-          - pyroscope-store-gateway-2b.{{ hosted_zone_name }}:8443
-          - pyroscope-store-gateway-2c.{{ hosted_zone_name }}:8443
+          - pyroscope-store-gateway-2a.{{ hosted_zone_name }}:8080
+          - pyroscope-store-gateway-2b.{{ hosted_zone_name }}:8080
+          - pyroscope-store-gateway-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_name: pyroscope
