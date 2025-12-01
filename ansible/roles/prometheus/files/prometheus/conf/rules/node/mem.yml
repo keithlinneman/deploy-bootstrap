@@ -13,14 +13,14 @@ groups:
 
   - alert: SwapAnyUse
     expr: (node_memory_SwapTotal_bytes > 0)
-          and (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) > 64 * 1024 * 1024
+          and (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) > 128 * 1024 * 1024
     for: 10m
     labels:
       severity: warn
       team: infra
     annotations:
       summary: "Swap in use on {{ $labels.node }}"
-      description: "Swap usage > 64MiB for 10m; host has been under memory pressure."
+      description: "Swap usage > 128MiB for 10m; host has been under memory pressure."
 
   - alert: SwapCritical
     expr: (node_memory_SwapTotal_bytes > 0)
