@@ -154,6 +154,7 @@
     command:
       cmd: mv /etc/apt/apt.conf.d/99update-notifier /etc/apt/apt.conf.d/99update-notifier.disabled
       creates: /etc/apt/apt.conf.d/99update-notifier.disabled
+    ignore_errors: true
 
   - name: Download Amazon SSM agent package file
     get_url:
@@ -221,3 +222,28 @@
       - { regexp: '^pool 1.ubuntu.pool.ntp.org.*', line: 'pool 2.us.pool.ntp.org iburst maxsources 4' }
       - { regexp: '^pool 2.ubuntu.pool.ntp.org.*', line: 'server time.nist.gov iburst' }
     notify: Restart service chrony
+
+  - name: Allocate 2gb swap file for emergencies
+    shell:
+      cmd: fallocate -l 2G /swapfile
+
+  - name: Set swap file permissions
+    shell:
+      cmd: chmod 600 /swapfile
+
+  - name: Initialize swap file
+    shell:
+      cmd: mkswap /swapfile
+
+  - name: Add swap to /etc/fstab
+    lineinfile:
+      path: /etc/fstab
+      line: "/swapfile none swap sw 0 0"
+      #backup: true
+      create: true
+
+  - name: Add sysctl swap configuration
+    copy:
+      src: ../files/etc/sysctl.d/99-swap.conf
+      dest: /etc/sysctl.d/99-swap.conf
+    when: ansible_os_family == 'Debian'
