@@ -30,6 +30,9 @@ global:
 
 # Alertmanager configuration
 alerting:
+  alert_relabel_configs:
+    - action: labeldrop
+      regex:  '__replica__'
   alertmanagers:
     - scheme: https
       static_configs:
