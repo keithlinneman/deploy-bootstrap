@@ -247,3 +247,44 @@
       src: ../files/etc/sysctl.d/99-swap.conf
       dest: /etc/sysctl.d/99-swap.conf
     when: ansible_os_family == 'Debian'
+
+  # too many deploy failures from apt related tasks, doing this in common for golden amis from now on since all nodes use alloy
+  - name: Install dependency packages
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - apt-transport-https
+      - software-properties-common
+
+  - name: Install the grafana gpg key
+    shell:
+      cmd: curl -s https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
+      creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+
+  - name: Ensure grafana gpg key is 644 not 640 or apt breaks
+    file:
+      path: /usr/share/keyrings/grafana-archive-keyring.gpg
+      mode: 0644
+      owner: root
+      group: root
+
+  - name: Add the grafana apt repository
+    apt_repository:
+      repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
+      state: present
+      filename: grafana
+      # causing apt locks somehow
+      update_cache: true
+      #update_cache: false
+
+  - name: Install the alloy package
+    package:
+      name: alloy
+      state: present
+
+  - name: Ensure alloy isnt running (default config now, nodes will configure and enable it)
+    systemd:
+      name: alloy
+      enabled: false
+      state: stopped

@@ -32,56 +32,57 @@
        set_fact:
          hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
-     - name: Stop ssm to prevent apt conflicts on fresh box patching
-       command:
-         cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
+     # 12/1/25 - this is all in common now to prevent deploy time failures involving apt conflicts since all nodes need this
+     # - name: Stop ssm to prevent apt conflicts on fresh box patching
+     #   command:
+     #     cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
 
-     - name: Install dependency packages
-       package:
-         name: "{{ item }}"
-         state: present
-       with_items:
-         - apt-transport-https
-         - software-properties-common
-         - wget
+     # - name: Install dependency packages
+     #   package:
+     #     name: "{{ item }}"
+     #     state: present
+     #   with_items:
+     #     - apt-transport-https
+     #     - software-properties-common
+     #     - wget
 
-     - name: Install the grafana gpg key
-       shell:
-         cmd: wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
-         creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+     # - name: Install the grafana gpg key
+     #   shell:
+     #     cmd: wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
+     #     creates: /usr/share/keyrings/grafana-archive-keyring.gpg
 
-     - name: Ensure grafana gpg key is 644 not 640 or apt breaks
-       file:
-         path: /usr/share/keyrings/grafana-archive-keyring.gpg
-         mode: 0644
-         owner: root
-         group: root
+     # - name: Ensure grafana gpg key is 644 not 640 or apt breaks
+     #   file:
+     #     path: /usr/share/keyrings/grafana-archive-keyring.gpg
+     #     mode: 0644
+     #     owner: root
+     #     group: root
 
-     - name: Add the grafana apt repository
-       apt_repository:
-         repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
-         state: present
-         filename: grafana
-         # causing apt locks somehow
-         #update_cache: true
-         update_cache: false
+     # - name: Add the grafana apt repository
+     #   apt_repository:
+     #     repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
+     #     state: present
+     #     filename: grafana
+     #     # causing apt locks somehow
+     #     #update_cache: true
+     #     update_cache: false
 
-     - name: Update apt cache after adding repo
-       apt:
-         update_cache: yes
-       register: apt_update
-       until: apt_update is succeeded
-       retries: 10
-       delay: 6
+     # - name: Update apt cache after adding repo
+     #   apt:
+     #     update_cache: yes
+     #   register: apt_update
+     #   until: apt_update is succeeded
+     #   retries: 10
+     #   delay: 6
 
-     - name: Install alloy package
-       package:
-         name: alloy
-         state: present
+     # - name: Install alloy package
+     #   package:
+     #     name: alloy
+     #     state: present
 
-     - name: Start ssm service
-       command:
-         cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
+     # - name: Start ssm service
+     #   command:
+     #    cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
 
      - name: Modify alloy main configuration
        template:
@@ -107,10 +108,11 @@
        when: ansible_os_family == 'Debian'
 
      - name: Enable alloy systemd service
-       service:
+       systemd:
          name: "{{ alloy_systemd_service_name }}"
          state: started
          enabled: true
+         daemon_reload: true
 
    handlers:
      - name: restart alloy service
