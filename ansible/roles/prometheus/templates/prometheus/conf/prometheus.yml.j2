@@ -13,12 +13,13 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-      cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-      region: "{{ ansible_ec2_instance_identity_document_region }}"
-      env: "{{ platform_env }}"
-      company: "{{ company_name }}"
-      __replica__: "{{ ansible_ec2_instance_identity_document_availabilityzone }}"
-      monitor: "prometheus-ha-{{ ansible_ec2_instance_identity_document_region }}"
+    cluster: "{{ company_name }}-{{ platform_env }}-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
+    region: "{{ ansible_ec2_instance_identity_document_region }}"
+    env: "{{ platform_env }}"
+    company: "{{ company_name }}"
+    #__replica__: "{{ ansible_ec2_instance_identity_document_availabilityzone }}"
+    __replica__: "{{ region_short_name[ansible_ec2_instance_identity_document_region] }}-{{ ansible_ec2_instance_identity_document_availabilityzone.split('-')[-1] }}"
+    monitor: "prometheus-ha-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
 
   #scrape_failure_log_file: 
   # The max number of samples that can be returned per scrape or it will be rejected
@@ -36,14 +37,20 @@ alerting:
   alertmanagers:
     - scheme: https
       static_configs:
-        - targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
+        #- targets: ['alertmanager-2a.{{ hosted_zone_name }}:9093', 'alertmanager-2b.{{ hosted_zone_name }}:9093', 'alertmanager-2c.{{ hosted_zone_name }}:9093']
+        - targets:
+{% for endpoint in alerts_push_endpoints.split(',') %}
+            - '{{ endpoint }}'
+{% endfor %}
       tls_config:
         insecure_skip_verify: true
 
 # Alerting rules loaded once, evaluated every 'evaluation_interval'.
 rule_files:
-  - /home/prometheus/conf/rules/apps/*.yml
-  - /home/prometheus/conf/rules/node/*.yml
+  - /home/{{ prometheus_system_user }}/conf/rules/recording/apps/*.yml
+  - /home/{{ prometheus_system_user }}/conf/rules/recording/node/*.yml
+  - /home/{{ prometheus_system_user }}/conf/rules/alerting/apps/*.yml
+  - /home/{{ prometheus_system_user }}/conf/rules/alerting/node/*.yml
 
 scrape_config_files:
   - /home/{{ prometheus_system_user }}/conf/scrape.d/apps/*.yml
@@ -52,10 +59,11 @@ scrape_config_files:
 
 # For storage in mimir
 remote_write:
-  - url: "https://mimir-distributor.{{ hosted_zone_name }}/api/v1/push"
+  - url: "{{ metrics_push_endpoint }}"
     headers:
       X-Scope-OrgID: "{{ prometheus_tenant_name }}"
-    name: mimir-{{ platform_env }}
+    #name: mimir-{{ platform_env }}
+    name: mimir
     send_exemplars: true
     remote_timeout: 30s
     queue_config:

@@ -8,7 +8,11 @@
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
 
-   tasks:
+   pre_tasks:
+     - name: Load env-specific Prometheus vars
+       include_vars:
+         file: "../vars/env/{{ env }}.yml"
+
      - name: Get instance metadata
        ec2_metadata_facts:
 
@@ -17,12 +21,21 @@
          var: hostvars[inventory_hostname]
          verbosity: 2
 
-     #- name: Ensure required variables are defined
-     #  fail:
-     #    msg: "{{ item }} must be defined use -e {{ item }}=value"
-     #  when: (lookup('vars', item, default=None)) is none
-     #  loop:
-     #    - env
+     - name: Ensure required variables are defined
+       fail:
+         msg: "{{ item }} must be defined use -e {{ item }}=value"
+       when: (lookup('vars', item, default=None)) is none
+       loop:
+         - env
+
+   tasks:
+     - name: Create prometheus user
+       user:
+         name: "{{ prometheus_system_user }}"
+         password: '*'
+         umask: 0027
+         shell: /usr/sbin/nologin
+         system: true
 
      - name: Get latest Prometheus release info from github
        uri:
@@ -34,35 +47,48 @@
        set_fact:
          prometheus_release_tag: "{{ prometheus_release_info.json.tag_name }}"
 
+     - name: Check if a newer prometheus version exists than the pinned version
+       ansible.builtin.debug:
+         msg: |
+           #################################################################
+           # WARNING: New prometheus version available              #
+           #   Pinned: {{ prometheus_version }}                     #
+           #   Latest: {{ prometheus_release_tag }}                            #
+           #################################################################
+       when: prometheus_release_tag[1:] is version(prometheus_version, '>')
+       run_once: true
+       changed_when: false
+
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    prometheus_filename: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      linux-arm64.tar.gz
+     #      {%- else -%}
+     #      linux-amd64.tar.gz
+     #      {%- endif -%}
+
      - name: Set filename based on architecture
        set_fact:
-         prometheus_filename: >-
+         prometheus_asset_url: >-
            {%- if ansible_architecture == "aarch64" -%}
-           linux-arm64.tar.gz
+           https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-arm64.tar.gz
            {%- else -%}
-           linux-amd64.tar.gz
+           https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
            {%- endif -%}
 
-     - name: Find {{ ansible_architecture }} asset URL from release assets
-       set_fact:
-         prometheus_asset_url: "{{ item.browser_download_url }}"
-       loop: "{{ prometheus_release_info.json.assets }}"
-       when: "prometheus_filename in item.name"
+     #- name: Find {{ ansible_architecture }} asset URL from release assets
+     #  set_fact:
+     #    prometheus_asset_url: "{{ item.browser_download_url }}"
+     #  loop: "{{ prometheus_release_info.json.assets }}"
+     #  when: "prometheus_filename in item.name"
 
-     - name: Fail if {{ ansible_architecture }} asset not found
-       fail:
-         msg: "No {{ ansible_architecture }} asset found github latest release response."
-       when: prometheus_asset_url is not defined
+     #- name: Fail if {{ ansible_architecture }} asset not found
+     #  fail:
+     #    msg: "No {{ ansible_architecture }} asset found github latest release response."
+     #  when: prometheus_asset_url is not defined
 
-     - name: Create prometheus user
-       user:
-         name: "{{ prometheus_system_user }}"
-         password: '*'
-         umask: 0027
-         shell: /usr/sbin/nologin
-         system: true
-
-     - name: Download the latest Prometheus ({{ prometheus_release_tag }}) linux-amd64 release from github ({{ prometheus_asset_url }})
+     - name: Download the pinned Prometheus ({{ prometheus_version }}) linux-amd64 release from github ({{ prometheus_asset_url }})
        get_url:
          url: "{{ prometheus_asset_url }}"
          dest: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
@@ -79,6 +105,12 @@
          - bin/sd
          - conf
          - conf/rules
+         - conf/rules/recording
+         - conf/rules/recording/node
+         - conf/rules/recording/apps
+         - conf/rules/alerting
+         - conf/rules/alerting/node
+         - conf/rules/alerting/apps
          - conf/scrape.d/
          - conf/scrape.d/apps
          - conf/scrape.d/infra
@@ -121,9 +153,7 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       loop:
-         - aws-sd-infra
-         - aws-sd-ebpf
+       loop: "{{ prometheus.scrape.infra | default([]) }}"
 
      - name: Create prometheus app scrape target configurations
        template:
@@ -133,13 +163,7 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       loop:
-         - alertmanager
-         - loki
-         - mimir
-         - prometheus
-         - pyroscope
-         - tempo
+       loop: "{{ prometheus.scrape.apps | default([]) }}"
 
      - name: Create blackbox_exporter scrape job configurations
        template:
@@ -149,8 +173,7 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       loop:
-         - blackbox-http
+       loop: "{{ prometheus.scrape.blackbox | default([]) }}"
 
      - name: Create blackbox_exporter file_sd target configurations
        template:
@@ -160,43 +183,27 @@
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       loop:
-         - alertmanager
-         - grafana
-         - loki
-         - mimir
-         - pyroscope
-         - tempo
+       loop: "{{ prometheus.scrape.blackbox_http | default([]) }}"
 
-     - name: Copy alerting and recording rules
+     - name: Copy recording rules
        copy:
-         src: ../files/prometheus/conf/rules/{{ item }}
-         dest: /home/{{ prometheus_system_user }}/conf/rules/
+         src: ../files/prometheus/conf/rules/{{ item }}.yml
+         dest: /home/{{ prometheus_system_user }}/conf/rules/recording/{{ item }}.yml
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
          mode: 0640
        notify: restart prometheus service
-       loop:
-         - node
-         - apps
+       loop: "{{ prometheus.rules.recording | default([]) }}"
 
-     #- name: Create prometheus apps scrape target configurations
-     #  template:
-     #    src: ../templates/prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
-     #    dest: /home/{{ prometheus_system_user }}/conf/scrape.d/apps/{{ item }}.yml
-     #    mode: 0644
-     #    owner: "{{ prometheus_system_user }}"
-     #    group: "{{ prometheus_system_user }}"
-     #  notify: restart prometheus service
-     #  when: ansible_os_family == 'Debian'
-     #  loop:
-     #    - alertmanager
-     #    - grafana
-     #    - mimir
-     #    - monitoring-etcd
-     #    - memcached-mimir
-     #    - memcached-loki
-     #    - prometheus
+     - name: Copy alerting rules
+       copy:
+         src: ../files/prometheus/conf/rules/{{ item }}.yml
+         dest: /home/{{ prometheus_system_user }}/conf/rules/alerting/{{ item }}.yml
+         owner: "{{ prometheus_system_user }}"
+         group: "{{ prometheus_system_user }}"
+         mode: 0640
+       notify: restart prometheus service
+       loop: "{{ prometheus.rules.alerting | default([]) }}"
 
      - name: Create prometheus systemd service
        template:
