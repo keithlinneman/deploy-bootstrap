@@ -6,5 +6,5 @@
   alloy_http_port: 8443
   alloy_release_tag: v1.11.3
   log_level: info
-  pyroscope_ingestion_endpoint: https://pyroscope-distributor.{{ hosted_zone_name }}
+  profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
   pyroscope_tenant_name: "{{ company_name }}-{{ platform_env }}"

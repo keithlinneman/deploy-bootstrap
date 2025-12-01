@@ -26,7 +26,7 @@ discovery.relabel "profiling_targets" {
 // Writer: send profiles to Pyroscope cluster over https
 pyroscope.write "pyro" {
   endpoint {
-    url = "https://pyroscope-distributor.{{ hosted_zone_name }}"
+    url = "{{ profiles_push_endpoint }}"
     headers = {
       "X-Scope-OrgID" = "{{ company_name }}-{{ platform_env }}",
     }
