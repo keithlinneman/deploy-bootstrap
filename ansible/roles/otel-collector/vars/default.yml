@@ -1,7 +1,7 @@
 ---
   company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
   hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  loki_ingestion_endpoint: https://loki-distributor.{{ hosted_zone_name }}:443/otlp/
+  logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
   loki_tenant_name: "{{ company_name }}-{{ platform_env }}"
   otel_system_user: otel
   otel_collector_configs_baseline: >
@@ -17,5 +17,5 @@
     zpages: 55679
     healthcheck: 13133
   platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  tempo_ingestion_endpoint: https://tempo-distributor.{{ hosted_zone_name }}:443/otlp/
+  traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
   tempo_tenant_name: "{{ company_name }}-{{ platform_env }}"

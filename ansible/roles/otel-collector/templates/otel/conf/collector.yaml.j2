@@ -438,7 +438,7 @@ processors:
 exporters:
   # Loki for log storage
   otlphttp/loki:
-    endpoint: "{{ loki_ingestion_endpoint }}"
+    endpoint: "{{ logs_push_endpoint }}"
     headers:
       X-Scope-OrgID: "{{ loki_tenant_name }}"
     tls:
@@ -446,7 +446,7 @@ exporters:
 
   # Tempo for trace storage
   otlphttp/tempo:
-    endpoint: "{{ tempo_ingestion_endpoint }}"
+    endpoint: "{{ traces_push_endpoint }}"
     headers:
       X-Scope-OrgID: "{{ tempo_tenant_name }}"
     tls:
