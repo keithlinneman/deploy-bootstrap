@@ -128,9 +128,9 @@
            https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-amd64
            {%- endif -%}
 
-     - name: Download the pinned mimir release {{ mimir_version }} from github
+     - name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
        get_url:
-         url: "{{ asset_url }}"
+         url: "{{ mimir_asset_url }}"
          dest: /home/{{ mimir_system_user }}/bin/mimir
          owner: "{{ mimir_system_user }}"
          group: "{{ mimir_system_user }}"
