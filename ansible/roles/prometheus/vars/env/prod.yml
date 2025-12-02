@@ -9,6 +9,8 @@ prometheus:
 
   rules:
     recording:
+    alerting:
+      - apps/prometheus-alerts
       - node/cpu
       - node/disk
       - node/mem
@@ -16,5 +18,3 @@ prometheus:
       - node/os
       - node/time
       - node/up
-    alerting:
-      - apps/prometheus-alerts
