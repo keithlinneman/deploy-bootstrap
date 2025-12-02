@@ -5,6 +5,7 @@
   mimir_grpc_tcp_port: 9095
   mimir_replication_factor: 3
   mimir_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/monitoring/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  mimir_version: 2.17.3
   mimir_system_user: mimir
   mimir_systemd_service_name:
     distributor: mimir-distributor
