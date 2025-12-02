@@ -23,6 +23,11 @@ prometheus:
 
   rules:
     recording:
+      - apps/loki-rules
+      - apps/mimir-rules
+      - apps/pyroscope-rules
+      - apps/tempo-rules
+    alerting:
       - node/cpu
       - node/disk
       - node/mem
@@ -30,11 +35,6 @@ prometheus:
       - node/os
       - node/time
       - node/up
-      - apps/loki-rules
-      - apps/mimir-rules
-      - apps/pyroscope-rules
-      - apps/tempo-rules
-    alerting:
       - apps/alertmanager-alerts
       - apps/loki-alerts
       - apps/mimir-alerts
