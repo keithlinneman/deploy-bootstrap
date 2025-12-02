@@ -28,7 +28,7 @@ pyroscope.write "pyro" {
   endpoint {
     url = "{{ profiles_push_endpoint }}"
     headers = {
-      "X-Scope-OrgID" = "{{ company_name }}-{{ platform_env }}",
+      "X-Scope-OrgID" = "{{ pyroscope_tenant_name }}",
     }
   }
   // Labels attached to every profile (like external_labels in Prometheus)
