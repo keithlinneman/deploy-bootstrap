@@ -87,17 +87,17 @@
          mimir_release_tag: "{{ release_info.json.tag_name }}"
        when: not mimir_binary.stat.exists
 
-     - name: Check if a newer mimir version exists than the pinned version
-       ansible.builtin.debug:
-         msg: |
-           #################################################################
-           # WARNING: New mimir version available              #
-           #   Pinned: {{ mimir_version }}                     #
-           #   Latest: {{ mimir_release_tag }}                            #
-           #################################################################
-       when: mimir_release_tag[1:] is version(mimir_version, '>')
-       run_once: true
-       changed_when: false
+     ##- name: Check if a newer mimir version exists than the pinned version
+     ##  ansible.builtin.debug:
+     ##    msg: |
+     ##      #################################################################
+     ##      # WARNING: New mimir version available              #
+     ##      #   Pinned: {{ mimir_version }}                     #
+     ##      #   Latest: {{ mimir_release_tag }}                            #
+     ##      #################################################################
+     ##  when: mimir_release_tag[1:] is version(mimir_version, '>')
+     ##  run_once: true
+     ##  changed_when: false
 
      # - name: Set filename based on architecture
      #   set_fact:
