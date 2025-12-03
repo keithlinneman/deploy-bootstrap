@@ -1,0 +1,19 @@
+prometheus:
+
+  scrape:
+    apps:
+      - prometheus
+    infra:
+      - aws-sd-infra
+      - aws-sd-ebpf
+
+  rules:
+    alerting:
+      - apps/prometheus-alerts
+      - node/cpu
+      - node/disk
+      - node/mem
+      - node/net
+      - node/os
+      - node/time
+      - node/up
