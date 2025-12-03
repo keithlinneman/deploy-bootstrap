@@ -25,7 +25,6 @@
     --collector.ethtool.device-exclude="^(veth|docker).*"
     --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|run/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
     --collector.filesystem.fs-types-exclude="^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$"
-    --collector.systemd.unit-include='^(prometheus|alertmanager(-.*)?|loki(-.*)?|mimir(-.*)?|tempo(-.*)?|pyroscope(-.*)?|grafana(-server|-.*)?|blackbox_exporter|node_exporter|ebpf_exporter|otel_collector|alloy(-.*)?|etcd(-.*)?|memcached(-.*)?|memcached_exporter|wg-quick@wg0|sshd)\.service$'
-    --collector.systemd.unit-exclude='.+\.slice'
-    --collector.textfile.directory="/home/{{ prometheus_system_user }}/scrapedata"
+    --collector.systemd.unit-include='^(prometheus|alertmanager(-.*)?|loki(-.*)?|mimir(-.*)?|tempo(-.*)?|pyroscope(-.*)?|grafana(-server|-.*)?|blackbox_exporter|node_exporter|ebpf_exporter|otel_collector|alloy(-.*)?|etcd(-.*)?|memcached(-.*)?|memcached_exporter|wg-quick@wg0|sshd)\\.service$'
+    --collector.systemd.unit-exclude='.+\\.slice'
     --log.format=json
