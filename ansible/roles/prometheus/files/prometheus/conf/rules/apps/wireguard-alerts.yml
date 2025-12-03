@@ -1,0 +1,42 @@
+groups:
+- name: wireguard.rules
+    rules:
+      # 1) Systemd unit not active
+      - alert: WireguardServiceDown
+        expr: max by (node) (
+          node_systemd_unit_state{name="wg-quick@wg0.service",state!="active"}
+        ) == 1
+        for: 1m
+        labels:
+          severity: critical
+          app: wireguard
+        annotations:
+          summary: "WireGuard service down on {{ $labels.node }}"
+          description: |
+            systemd unit wg-quick@wg0.service is not active on {{ $labels.node }}
+            for more than 1 minute.
+
+      # 2) Interface down
+      - alert: WireguardInterfaceDown
+        expr: node_network_up{device="wg0"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          app: wireguard
+        annotations:
+          summary: "WireGuard interface wg0 is down on {{ $labels.node }}"
+          description: |
+            node_network_up{device="wg0"} == 0 for more than 1 minute.
+
+      # 3) No traffic over tunnel (optional “liveness” check)
+      - alert: WireguardNoTraffic
+        expr: rate(node_network_receive_bytes_total{device="wg0"}[5m]) < 10
+        for: 15m
+        labels:
+          severity: warning
+          app: wireguard
+        annotations:
+          summary: "Low or no WireGuard traffic on {{ $labels.node }}"
+          description: |
+            wg0 has had < 10 bytes/sec incoming over 15 minutes.
+            This might be normal during quiet periods; tune or silence as needed.
