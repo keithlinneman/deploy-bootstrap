@@ -1,16 +1,16 @@
 [Unit]
-Description=Provides web frontend for sitesuper application
+Description=Provides web web for sitesuper application
 Requires=network.target
 After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-WorkingDirectory=/home/{{ sitesuper_frontend_system_user }}
-User={{ sitesuper_frontend_system_user }}
-Group={{ sitesuper_frontend_system_user }}
-ExecStart=/home/{{ sitesuper_frontend_system_user }}/bin/sitesuper-frontend
-#StandardOutput=append:/var/log/{{ sitesuper_frontend_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ sitesuper_frontend_systemd_service_name }}.log
+WorkingDirectory=/home/{{ sitesuper_web_system_user }}
+User={{ sitesuper_web_system_user }}
+Group={{ sitesuper_web_system_user }}
+ExecStart=/home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+#StandardOutput=append:/var/log/{{ sitesuper_web_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ sitesuper_web_systemd_service_name }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
