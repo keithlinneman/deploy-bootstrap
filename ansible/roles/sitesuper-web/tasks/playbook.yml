@@ -30,7 +30,7 @@
          shell: /usr/sbin/nologin
          system: true
 
-     - name: Create sitesuper bin, log directories
+     - name: Create sitesuper directories
        file:
          path: /home/{{ sitesuper_web_system_user }}/{{ item }}
          owner: "{{ sitesuper_web_system_user }}"
@@ -41,35 +41,25 @@
          - bin
          - log
 
-     - name: Set release tag fact
+     - name: Set architecture format based on normalized naming
        set_fact:
-         sitesuper_web_release_tag: "{{ sitesuper_web_release_info.json.tag_name }}"
-
-     - name: Get latest sitesuper-web release info from parameter store
-       uri:
-         url: https://api.github.com/repos/FIXME/sitesuper-web/releases/latest
-         return_content: yes
-       register: sitesuper_release_info
-
-     - name: Get sitesuper-web release from s3
-       uri:
-         url: https://api.github.com/repos/FIXME/sitesuper-web/releases/latest
-         return_content: yes
-       register: sitesuper_release_info
-
-     - name: Set filename based on architecture
-       set_fact:
-         sitesuper_web_filename: >-
+         architecture_normalized_name: >-
            {%- if ansible_architecture == "aarch64" -%}
-           linux-arm64
+           arm64
            {%- else -%}
-           linux-amd64
+           amd64
            {%- endif -%}
 
-     - name: Download the latest sitesuper-web ({{ sitesuper_web_release_tag }}) linux-amd64 release from s3 ({{ sitesuper_web_asset_url }})
-       get_url:
-         url: "{{ sitesuper_web_asset_url }}"
+     - name: Temporarily bail out early
+       ansible.builtin.meta: end_play
+
+     - name: Get sitesuper-web release from s3
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "/apps/sitesuper/web/releases/v{{ sitesuper_version }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
          dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+         mode: get
+         overwrite: different
 
      - name: Create sitesuper-web systemd service
        template:
@@ -92,109 +82,7 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Create oauth2-proxy user
-       user:
-         name: "{{ oauth2proxy_system_user }}"
-         password: '*'
-         umask: 0027
-         shell: /usr/sbin/nologin
-         system: true
-
-     - name: Get latest oauth2-proxy release name from github redirect
-       uri:
-         url: https://github.com/oauth2-proxy/oauth2-proxy/releases/latest
-         method: HEAD
-         return_content: no
-       register: latest_release_redirect
-
-     - name: Get release version from URL
-       set_fact:
-         latest_version: "{{ latest_release_redirect.url | regex_replace('^.*/tag/', '') }}"
-
-     - name: Set filename based on architecture
-       set_fact:
-         oauth_arch: >-
-           {%- if ansible_architecture == "aarch64" -%}
-           linux-arm64
-           {%- else -%}
-           linux-amd64
-           {%- endif -%}
-
-     - name: Build download url for latest release
-       set_fact:
-         download_url: "https://github.com/oauth2-proxy/oauth2-proxy/releases/download/{{ latest_version }}/oauth2-proxy-{{ latest_version }}.{{ oauth_arch }}.tar.gz"
-
-     - name: Download the latest oauth2-proxy release
-       get_url:
-         url: "{{ download_url }}"
-         dest: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
-
-     - name: Create oauth2-proxy bin, conf, log directories
-       file:
-         path: /home/{{ oauth2proxy_system_user }}/{{ item }}
-         owner: "{{ oauth2proxy_system_user }}"
-         group: "{{ oauth2proxy_system_user }}"
-         mode: 0750
-         state: directory
-       loop:
-         - bin
-         - conf
-         - log
-
-     - name: Decompress oauth2proxy package
-       unarchive:
-         src: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
-         dest: /home/{{ oauth2proxy_system_user }}/bin
-         extra_opts: ['--strip-components=1','--show-stored-names']
-         owner: "{{ oauth2proxy_system_user }}"
-         group: "{{ oauth2proxy_system_user }}"
-         mode: 0750
-         creates: /home/{{ oauth2proxy_system_user }}/bin/oauth2-proxy
-
-     - name: Remove the oauth2-proxy installation package
-       file:
-         path: /home/{{ oauth2proxy_system_user }}/oauth2-proxy.tar.gz
-         state: absent
-
-     - name: Create oauth2-proxy systemd service
-       template:
-         src: ../templates/etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service.j2
-         dest: /etc/systemd/system/{{ oauth2proxy_systemd_service_name }}.service
-         mode: 0644
-       notify: restart oauth2-proxy service
-
-     - name: Modify oauth2-proxy main configuration
-       template:
-         src: ../templates/oauth2-proxy/conf/oauth2-proxy.conf.j2
-         dest: /home/{{ oauth2proxy_system_user }}/conf/oauth2-proxy.conf
-         mode: 0644
-       notify: restart oauth2-proxy service
-       when: ansible_os_family == 'Debian'
-
-     - name: Run handlers immediately to refresh systemd daemon configuration
-       meta: flush_handlers
-
-     - name: Enable oauth2-proxy systemd service
-       service:
-         name: "{{ oauth2proxy_systemd_service_name }}"
-         state: started
-         enabled: true
-
-     - name: Allow oauth2-proxy traffic through firewall
-       ufw:
-         port: "{{ oauth2proxy_tcp_port }}"
-         proto: tcp
-         rule: allow
-       when: ansible_distribution == 'Ubuntu'
-
    handlers:
-     - name: restart oauth2-proxy service
-       service:
-         name: "{{ oauth2proxy_systemd_service_name }}"
-         state: restarted
-         enabled: true
-         daemon_reload: true
-
      - name: restart sitesuper-web service
        systemd:
          name: "{{ sitesuper_web_systemd_service_name }}"
