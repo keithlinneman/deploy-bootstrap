@@ -50,16 +50,21 @@
            amd64
            {%- endif -%}
 
-     - name: Temporarily bail out early
-       ansible.builtin.meta: end_play
-
      - name: Get sitesuper-web release from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "/apps/sitesuper/web/releases/v{{ sitesuper_version }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
+         object: "apps/sitesuper/web/releases/v{{ sitesuper_version }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
          dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
          mode: get
          overwrite: different
+       notify: restart sitesuper-web service
+
+     - name: Ensure sitesuper-web binary is executable
+       file:
+         path: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+         owner: "{{ sitesuper_web_system_user }}"
+         group: "{{ sitesuper_web_system_user }}"
+         mode: 0750
 
      - name: Create sitesuper-web systemd service
        template:
