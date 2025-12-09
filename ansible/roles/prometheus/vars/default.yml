@@ -10,6 +10,7 @@
   blackbox_exporter_version: 0.27.0
   ebpf_exporter_tcp_port: 9435
   alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+  local_tsdb_retention_time: 1d
   metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
   prometheus_node_exporter_tcp_port: 9100
   prometheus_node_ids:

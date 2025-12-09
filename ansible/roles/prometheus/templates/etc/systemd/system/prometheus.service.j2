@@ -8,7 +8,7 @@ StartLimitIntervalSec=0
 WorkingDirectory=/home/{{ prometheus_system_user }}
 User={{ prometheus_system_user }}
 Group={{ prometheus_system_user }}
-ExecStart=/home/{{ prometheus_system_user }}/bin/prometheus --config.file=/home/{{ prometheus_system_user }}/conf/prometheus.yml
+ExecStart=/home/{{ prometheus_system_user }}/bin/prometheus --config.file=/home/{{ prometheus_system_user }}/conf/prometheus.yml --storage.tsdb.retention.time={{ local_tsdb_retention_time }}
 #StandardOutput=append:/var/log/{{ prometheus_systemd_service_name }}.log
 #StandardError=append:/var/log/{{ prometheus_systemd_service_name }}.log
 KillMode=mixed
