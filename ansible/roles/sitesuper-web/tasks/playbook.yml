@@ -87,6 +87,13 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
+     - name: Allow sitesuper-web admin port traffic through firewall
+       ufw:
+         port: "{{ sitesuper_web_admin_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
    handlers:
      - name: restart sitesuper-web service
        systemd:

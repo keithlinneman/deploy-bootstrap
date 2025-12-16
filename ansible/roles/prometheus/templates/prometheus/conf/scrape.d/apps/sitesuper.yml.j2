@@ -2,9 +2,9 @@ scrape_configs:
 
   - job_name: 'sitesuper/web'
     metrics_path: /metrics
-    scheme: https
-    tls_config:
-      insecure_skip_verify: true
+    #scheme: https
+    #tls_config:
+    #  insecure_skip_verify: true
     static_configs:
       - targets:
           #- sitesuper-web-2a.{{ hosted_zone_name }}:9000
