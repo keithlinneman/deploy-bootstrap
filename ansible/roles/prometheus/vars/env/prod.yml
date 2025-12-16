@@ -3,6 +3,7 @@ prometheus:
   scrape:
     apps:
       - prometheus
+      - sitesuper
     infra:
       - aws-sd-infra
       - aws-sd-ebpf

@@ -528,6 +528,22 @@ service:
       exporters: [otlphttp/loki]
       #exporters: [otlphttp/loki,debug]
 
+    # -------- OTLP logs from apps ----------
+    traces/otlp:
+      receivers: [otlp]
+      processors:
+        - resourcedetection/ec2
+        - resource/system_metadata
+        #- transform/severity_from_priority
+        # - level_traces
+        # this is set in receiver now, otherwise multiple logs get batched together incorrectly
+        # - transform/service_canonical
+        # - transform/resource_enrich
+        - transform/promote_for_labels
+        - attributes/prune_noise
+        - batch
+      exporters: [otlphttp/tempo]
+
     # -------- (Optional) Syslog ----------
     # logs/syslog:
     #   receivers: [syslog]
