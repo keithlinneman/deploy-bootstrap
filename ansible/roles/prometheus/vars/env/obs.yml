@@ -3,6 +3,7 @@ prometheus:
   scrape:
     apps:
       - alertmanager
+      - grafana
       - loki
       - mimir
       - prometheus
@@ -35,6 +36,7 @@ prometheus:
       - node/os
       - node/time
       - node/up
+      - apps/grafana-alerts
       - apps/alertmanager-alerts
       - apps/loki-alerts
       - apps/mimir-alerts
