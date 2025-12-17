@@ -1,0 +1,11 @@
+groups:
+- name: alertmanager.rules
+  rules:
+  - alert: GrafanaVersionMismatch
+    expr: count(count by (version) (grafana_build_info and on(instance) up{job=~"grafana.*"} == 1)) > 1
+    for: 5m
+    labels:
+      severity: warn
+    annotations:
+      summary: "Grafana version mismatch"
+      description: "More than one Grafana version is running across instances"
