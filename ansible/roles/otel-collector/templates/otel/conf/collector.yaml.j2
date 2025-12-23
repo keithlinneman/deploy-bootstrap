@@ -4,7 +4,6 @@ extensions:
   zpages:
 
 receivers:
-  # Local OTLP endpoint (for apps that ship logs directly via OTLP)
   otlp:
     protocols:
       grpc:
@@ -12,101 +11,34 @@ receivers:
       http:
         endpoint: 127.0.0.1:4318
 
-  # Systemd/Journald
   journald:
     directory: /var/log/journal
     start_at: end
     operators:
-      # 1) Prefer the user service unit if present
       - id: logger-from-user-unit
         type: add
         if: 'body["_SYSTEMD_USER_UNIT"] != nil'
         field: attributes["logger_raw"]
         value: EXPR(body["_SYSTEMD_USER_UNIT"])
 
-      # 2) Otherwise fall back to _SYSTEMD_UNIT
       - id: logger-from-unit
         type: add
         if: 'attributes["logger_raw"] == nil && body["_SYSTEMD_UNIT"] != nil'
         field: attributes["logger_raw"]
         value: EXPR(body["_SYSTEMD_UNIT"])
 
-      # 3) Trim suffixes (.service, .scope, .slice..., @instance) down to a base name
       - id: logger-trim-suffixes
         type: regex_parser
         if: 'attributes["logger_raw"] != nil'
         parse_from: attributes["logger_raw"]
-        # regex: '^(?P<service_name_canonical>[^.@]+)'
-        # regex: '^(?P<service_name_canonical>user@\d+|[^.@]+)'
         regex: '^(?P<logger_name_canonical>user@\d+|[^@]+?)(?:@.*)?(?:\.service|\.scope|\.slice\d+)?$'
 
-      # 4) Set logger name as attribute
       - id: logger-to-attribute
         type: add
         if: 'attributes["logger_name_canonical"] != nil'
         field: attributes["logger"]
         value: EXPR(attributes["logger_name_canonical"])
 
-  # Cloud-init one-off file
-  #filelog/cloudinit_output:
-  #  include: [/var/log/cloud-init-output.log]
-  #  start_at: beginning
-  #  include_file_path: true
-  #  include_file_name: true
-  #  operators:
-  #    - type: move     # body -> attributes.message, then we restore to body later
-  #      from: body
-  #      to: attributes.message
-
-  #    - type: router
-  #      routes:
-  #        - output: error_detected
-  #          expr: body matches "(?i)error"
-  #        - output: normal
-  #          expr: "true"
-
-  #    - type: router
-  #      routes:
-  #        - output: warn_detected
-  #          expr: body matches "(?i)warn"
-  #        - output: normal
-  #          expr: "true"
-
-  #    - id: warn_detected
-  #      type: add
-  #      field: attributes.log.level
-  #      value: warn
-
-  #    - id: error_detected
-  #      type: add
-  #      field: attributes.log.level
-  #      value: error
-
-  #    - id: normal
-  #      type: add
-  #      field: attributes.log.level
-  #      value: info
-
-  #    - type: add
-  #      field: attributes.log_format
-  #      value: plaintext
-  #    - type: add
-  #      field: attributes.log_source
-  #      value: filelog
-  #    - type: add
-  #      field: attributes.source_type
-  #      value: cloud-init
-  #    - type: add
-  #      field: attributes.service.name
-  #      value: cloud-init
-  #    - type: copy
-  #      from: attributes.service.name
-  #      to: attributes.service_name
-  #    - type: move
-  #      from: attributes.message
-  #      to: body
-
-  # Apt/dpkg logs
   filelog/apt_logs:
     include: [/var/log/apt/*.log, /var/log/dpkg.log]
     start_at: end
@@ -159,115 +91,78 @@ receivers:
       - type: move
         from: attributes.message
         to: body
-  # syslog:
-  #   tcp:
-  #     listen_address: 0.0.0.0:5514
-  #   protocol: rfc5424
 
 processors:
-  # Discover cloud + host facts (EC2 hostname, cloud.region, host.id, etc.)
   resourcedetection/ec2:
     detectors: [ec2, system]
     timeout: 2s
-    #ec2:
-    #  tags: []
 
-  # Your static + templated metadata (resource attributes)
+  # Canonical identity + inventory metadata (RESOURCE attributes)
   resource/system_metadata:
     attributes:
-      - {key: company,      value: {{ company_name }}, action: upsert}
-      # done in resourcedetection/ec2
-      # - {key: host.id,      value: {{ ansible_board_asset_tag }}, action: upsert}
-      - {key: host.ip,      value: {{ ansible_default_ipv4.address }}, action: upsert}
-      - {key: host.type,    value: {{ ansible_ec2_instance_identity_document_instancetype }}, action: upsert}
-      - {key: host.fqdn,    value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
-      - {key: env,          value: {{ platform_env }}, action: upsert}
-      - {key: node,         value: {{ hostname_no_instanceid }}, action: upsert}
-      - {key: service.name, value: {{ app_name }}, action: upsert}
-      - {key: service.role, value: {{ app_role }}, action: upsert}
-      - {key: project,      value: {{ project }}, action: upsert}
-      - {key: region,       value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
+      - {key: company, value: {{ company_name }}, action: upsert}
+      - {key: project, value: {{ project }}, action: upsert}
 
-  # Tag the source at the resource-level per pipeline (labels come from resource)
+      # Environment (new meaning) + compatibility alias for existing Loki queries
+      - {key: deployment.environment.name, value: {{ platform_env }}, action: upsert}
+      - {key: env, value: {{ platform_env }}, action: upsert}
+
+      # Account identity
+      - {key: phxi.account.name, value: {{ account_name }}, action: upsert}
+      - {key: phxi.account.label, value: {{ account_name }}-{{ platform_env }}, action: upsert}
+
+      # Service identity (your new plan)
+      - {key: service.namespace, value: {{ namespace }}, action: upsert}
+      - {key: service.name, value: {{ service_name }}-{{ service_component }}, action: upsert}
+      - {key: phxi.service.name, value: {{ service_name }}, action: upsert}
+      - {key: phxi.service.component, value: {{ service_component }}, action: upsert}
+
+      # Instance/host inventory
+      - {key: service.instance.id, value: {{ ansible_ec2_instance_identity_document_instanceid }}, action: upsert}
+      - {key: host.ip, value: {{ ansible_default_ipv4.address }}, action: upsert}
+      - {key: host.type, value: {{ ansible_ec2_instance_identity_document_instancetype }}, action: upsert}
+      - {key: host.fqdn, value: {{ hostname_no_instanceid }}.{{ hosted_zone_name }}, action: upsert}
+      - {key: node, value: {{ hostname_no_instanceid }}, action: upsert}
+      - {key: region, value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
+
   resource/source_journald:
     attributes:
       - {key: source, value: journald, action: upsert}
   resource/source_file:
     attributes:
       - {key: source, value: filelog, action: upsert}
-  # resource/source_syslog:
-  #   attributes:
-  #     - {key: source, value: syslog, action: upsert}
+  resource/source_otlp:
+    attributes:
+      - {key: source, value: otlp, action: upsert}
 
-  # --- Journald-specific extraction (pull fields BEFORE we replace body) ---
   transform/journald_extract:
     log_statements:
       - context: log
         statements:
-          - set(log.attributes["journal.priority"], log.body["PRIORITY"])          where log.body["PRIORITY"] != nil
-          - set(log.attributes["journal.user_unit"],     log.body["_SYSTEMD_USER_UNIT"])     where log.body["_SYSTEMD_USER_UNIT"] != nil
-          - set(log.attributes["journal.unit"],     log.body["_SYSTEMD_UNIT"])     where log.body["_SYSTEMD_UNIT"] != nil
-          - set(log.attributes["journal.identifier"],           ToLowerCase(log.body["SYSLOG_IDENTIFIER"])) where log.body["SYSLOG_IDENTIFIER"] != nil
-          - set(log.attributes["exe"],              log.body["_EXE"])              where log.body["_EXE"] != nil
-          - set(log.attributes["cmdline"],          log.body["_CMDLINE"])          where log.body["_CMDLINE"] != nil
-          - set(log.body, log.body["MESSAGE"])                                     where log.body["MESSAGE"] != nil
+          - set(log.attributes["journal.priority"], log.body["PRIORITY"]) where log.body["PRIORITY"] != nil
+          - set(log.attributes["journal.user_unit"], log.body["_SYSTEMD_USER_UNIT"]) where log.body["_SYSTEMD_USER_UNIT"] != nil
+          - set(log.attributes["journal.unit"], log.body["_SYSTEMD_UNIT"]) where log.body["_SYSTEMD_UNIT"] != nil
+          - set(log.attributes["journal.identifier"], ToLowerCase(log.body["SYSLOG_IDENTIFIER"])) where log.body["SYSLOG_IDENTIFIER"] != nil
+          - set(log.attributes["exe"], log.body["_EXE"]) where log.body["_EXE"] != nil
+          - set(log.attributes["cmdline"], log.body["_CMDLINE"]) where log.body["_CMDLINE"] != nil
+          - set(log.body, log.body["MESSAGE"]) where log.body["MESSAGE"] != nil
 
-  # Map journald PRIORITY -> severity_text/number (source of truth)
-  transform/severity_from_priority:
+  transform/journald_parse_json:
+    error_mode: ignore
     log_statements:
       - context: log
         statements:
-        # Only fill severity from PRIORITY if nothing else has set it yet
-        - set(log.severity_text, "debug")
-          where log.severity_text == nil
-            and log.attributes["journal.priority"] == "7"
+          - set(log.cache["parsed"], ParseJSON(log.body))
+            where IsString(log.body) and Substring(log.body, 0, 1) == "{"
+          - set(log.attributes["level"], ToLowerCase(log.cache["parsed"]["level"]))
+            where log.cache["parsed"]["level"] != nil
+          - set(log.attributes["msg"], log.cache["parsed"]["msg"])
+            where log.attributes["msg"] == nil and log.cache["parsed"]["msg"] != nil
+          - set(log.attributes["caller"], log.cache["parsed"]["caller"])
+            where log.attributes["caller"] == nil and log.cache["parsed"]["caller"] != nil
+          - delete_key(log.cache, "parsed")
+            where log.cache["parsed"] != nil
 
-        - set(log.severity_text, "info")
-          where log.severity_text == nil
-            and (log.attributes["journal.priority"] == "6"
-                 or log.attributes["journal.priority"] == "5")
-
-        - set(log.severity_text, "warn")
-          where log.severity_text == nil
-            and log.attributes["journal.priority"] == "4"
-
-        - set(log.severity_text, "error")
-          where log.severity_text == nil
-            and (log.attributes["journal.priority"] == "3"
-                 or log.attributes["journal.priority"] == "2")
-
-        - set(log.severity_text, "fatal")
-          where log.severity_text == nil
-            and (log.attributes["journal.priority"] == "1"
-                 or log.attributes["journal.priority"] == "0")
-
-        # Only fill numbers if they aren't set yet
-        - set(log.severity_number, 7)
-          where log.severity_number == nil
-            and log.severity_text == "debug"
-
-        - set(log.severity_number, 9)
-          where log.severity_number == nil
-            and log.severity_text == "info"
-
-        - set(log.severity_number, 13)
-          where log.severity_number == nil
-            and log.severity_text == "warn"
-
-        - set(log.severity_number, 17)
-          where log.severity_number == nil
-            and log.severity_text == "error"
-
-        - set(log.severity_number, 24)
-          where log.severity_number == nil
-            and log.severity_text == "fatal"
-
-        ## And only back-fill "level" from severity if level is still missing
-        #- set(log.attributes["level"], log.severity_text)
-        #  where log.attributes["level"] == nil
-        #    and log.severity_text != nil
-
-  # Common level normalization for *any* source (filelog/syslog/OTLP)
   transform/level_common:
     log_statements:
       - context: log
@@ -276,167 +171,47 @@ processors:
           - set(log.attributes["level"], log.attributes["log.level"]) where log.attributes["level"] == nil and log.attributes["log.level"] != nil
           - set(log.attributes["level"], ToLowerCase(log.attributes["detected_level"])) where log.attributes["level"] == nil and log.attributes["detected_level"] != nil
           - set(log.attributes["level"], "warn") where log.attributes["level"] == "warning"
-          - set(log.attributes["level"], "info") where log.attributes["level"] == "notice"
-          - set(log.attributes["level"], "info") where log.attributes["level"] == "unknown"
+          - set(log.attributes["level"], "info") where log.attributes["level"] == "notice" or log.attributes["level"] == "unknown"
           - set(log.severity_text, log.attributes["level"]) where log.severity_text == nil and log.attributes["level"] != nil
-          - set(log.severity_number, 7)   where log.severity_number == nil and log.severity_text == "debug"
-          - set(log.severity_number, 9)   where log.severity_number == nil and log.severity_text == "info"
-          - set(log.severity_number, 13)  where log.severity_number == nil and log.severity_text == "warn"
-          - set(log.severity_number, 17)  where log.severity_number == nil and log.severity_text == "error"
-          - set(log.severity_number, 24)  where log.severity_number == nil and log.severity_text == "fatal"
+          - set(log.severity_number, 7)  where log.severity_number == nil and log.severity_text == "debug"
+          - set(log.severity_number, 9)  where log.severity_number == nil and log.severity_text == "info"
+          - set(log.severity_number, 13) where log.severity_number == nil and log.severity_text == "warn"
+          - set(log.severity_number, 17) where log.severity_number == nil and log.severity_text == "error"
+          - set(log.severity_number, 24) where log.severity_number == nil and log.severity_text == "fatal"
 
   transform/level_journald:
     log_statements:
       - context: log
         statements:
-          # 1) Normalize any existing level (e.g. from JSON)
-          - set(log.attributes["level"], ToLowerCase(log.attributes["level"]))
-            where log.attributes["level"] != nil
+          - set(log.attributes["level"], ToLowerCase(log.attributes["level"])) where log.attributes["level"] != nil
+          - set(log.attributes["level"], "warn") where log.attributes["level"] == "warning"
+          - set(log.attributes["level"], "info") where log.attributes["level"] == "notice" or log.attributes["level"] == "unknown"
 
-          - set(log.attributes["level"], "warn")
-            where log.attributes["level"] == "warning"
+          - set(log.attributes["level"], "debug") where log.attributes["level"] == nil and log.attributes["journal.priority"] == "7"
+          - set(log.attributes["level"], "info")  where log.attributes["level"] == nil and (log.attributes["journal.priority"] == "6" or log.attributes["journal.priority"] == "5")
+          - set(log.attributes["level"], "warn")  where log.attributes["level"] == nil and log.attributes["journal.priority"] == "4"
+          - set(log.attributes["level"], "error") where log.attributes["level"] == nil and (log.attributes["journal.priority"] == "3" or log.attributes["journal.priority"] == "2")
+          - set(log.attributes["level"], "fatal") where log.attributes["level"] == nil and (log.attributes["journal.priority"] == "1" or log.attributes["journal.priority"] == "0")
+          - set(log.attributes["level"], "info")  where log.attributes["level"] == nil
 
-          - set(log.attributes["level"], "info")
-            where log.attributes["level"] == "notice"
-               or log.attributes["level"] == "unknown"
+          - set(log.severity_text, log.attributes["level"]) where log.attributes["level"] != nil
+          - set(log.severity_number, 7)  where log.severity_text == "debug"
+          - set(log.severity_number, 9)  where log.severity_text == "info"
+          - set(log.severity_number, 13) where log.severity_text == "warn"
+          - set(log.severity_number, 17) where log.severity_text == "error"
+          - set(log.severity_number, 24) where log.severity_text == "fatal"
 
-          # 2) If still no level, derive from journald PRIORITY
-          - set(log.attributes["level"], "debug")
-            where log.attributes["level"] == nil
-              and log.attributes["journal.priority"] == "7"
-
-          - set(log.attributes["level"], "info")
-            where log.attributes["level"] == nil
-              and (log.attributes["journal.priority"] == "6"
-                   or log.attributes["journal.priority"] == "5")
-
-          - set(log.attributes["level"], "warn")
-            where log.attributes["level"] == nil
-              and log.attributes["journal.priority"] == "4"
-
-          - set(log.attributes["level"], "error")
-            where log.attributes["level"] == nil
-              and (log.attributes["journal.priority"] == "3"
-                   or log.attributes["journal.priority"] == "2")
-
-          - set(log.attributes["level"], "fatal")
-            where log.attributes["level"] == nil
-              and (log.attributes["journal.priority"] == "1"
-                   or log.attributes["journal.priority"] == "0")
-
-          # 3) Last-resort fallback if something is really weird
-          - set(log.attributes["level"], "info")
-            where log.attributes["level"] == nil
-
-          # 4) Now level is canonical → drive severity from it
-          - set(log.severity_text, log.attributes["level"])
-            where log.attributes["level"] != nil
-
-          # overwriting severity_number, in case json overwrote the level
-          - set(log.severity_number, 7)
-            where log.severity_text == "debug"
-          - set(log.severity_number, 9)
-            where log.severity_text == "info"
-          - set(log.severity_number, 13)
-            where log.severity_text == "warn"
-          - set(log.severity_number, 17)
-            where log.severity_text == "error"
-          - set(log.severity_number, 24)
-            where log.severity_text == "fatal"
-
-  # Build a single canonical 'service' and clean suffixes
-  transform/service_canonical:
-    log_statements:
-      - context: log
-        statements:
-          # precedence: journal.user.unit -> extracted -> existing service.name -> systemd unit -> logger
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.user_unit"]))      where log.attributes["journal.user_unit"] != nil
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil and not IsMatch(log.attributes["journal.unit"], "^user@\\d+\\.service$")
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["service_name_extracted"])) where log.attributes["service"] == nil and log.attributes["service_name_extracted"] != nil
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["journal.unit"]))           where log.attributes["service"] == nil and log.attributes["journal.unit"] != nil
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["service.name"]))           where log.attributes["service"] == nil and log.attributes["service.name"] != nil
-          - set(log.attributes["service.name"], ToLowerCase(log.attributes["logger"]))                 where log.attributes["service"] == nil and log.attributes["logger"] != nil
-
-          # trim systemd suffixes
-          - replace_pattern(log.attributes["service.name"], "\\.service$", "")   where log.attributes["service.name"] != nil
-          - replace_pattern(log.attributes["service.name"], "\\.scope$", "")     where log.attributes["service.name"] != nil
-          - replace_pattern(log.attributes["service.name"], "\\.slice\\d+$", "") where log.attributes["service.name"] != nil
-          - replace_pattern(log.attributes["service.name"], "\\.slice\\d+$", "") where log.attributes["service.name"] != nil
-          - replace_pattern(log.attributes["service.name"], "@.*$", "") where log.attributes["service.name"] != nil and not IsMatch(log.attributes["service.name"], "^user@\\d+$")
-
-          # clean up the temporary extracted key
-          - delete_key(log.attributes, "service_name_extracted") where log.attributes["service_name_extracted"] != nil
-
-
-  # Resource enrichment & alignment (labels live at resource level for Loki OTLP)
-  # transform/resource_enrich:
-  #   log_statements:
-  #     - context: resource
-  #       statements:
-  #         # ensure host.name exists (resourcedetection will usually fill this)
-  #         # - set(resource.attributes["host.name"], resource.attributes["host"])               where resource.attributes["host.name"] == nil and resource.attributes["host"] != nil
-  #         ## already set in resource/system_metadata
-  #         # mirror cloud.region to short 'region'
-  #         # - set(resource.attributes["region"], resource.attributes["cloud.region"])          where resource.attributes["cloud.region"] != nil
-
-  transform/promote_for_labels:
-    log_statements:
-      - context: log
-        statements:
-          # promote attributes → resource labels
-          # 11/22/25 - dont set resource attributes that are log level scope - they apply to multiple bundled log records
-          # - set(resource.attributes["source"], log.attributes["source"]) where log.attributes["source"] != nil
-          # - set(resource.attributes["level"],  log.attributes["level"])  where log.attributes["level"]  != nil
-
-  transform/journald_parse_json:
-    error_mode: ignore
-    log_statements:
-      - context: log
-        statements:
-        # Only touch logs whose log.body *looks* like JSON
-        - set(log.cache["parsed"], ParseJSON(log.body))
-          where IsString(log.body) and Substring(log.body, 0, 1) == "{"
-
-        # Let JSON "level" override the level if present
-        - set(log.attributes["level"], ToLowerCase(log.cache["parsed"]["level"]))
-          where log.cache["parsed"]["level"] != nil
-
-        # Copy msg if we don't already have one
-        - set(log.attributes["msg"], log.cache["parsed"]["msg"])
-          where log.attributes["msg"] == nil
-            and log.cache["parsed"]["msg"] != nil
-
-        # Copy caller if we don't already have one
-        - set(log.attributes["caller"], log.cache["parsed"]["caller"])
-          where log.attributes["caller"] == nil
-            and log.cache["parsed"]["caller"] != nil
-
-        # Optional: capture ts for later if you want to drive log.time from it
-        # - set(attributes["ts"], log.cache["parsed"]["ts"])
-        #   where attributes["ts"] == nil
-        #     and log.cache["parsed"]["ts"] != nil
-
-        # Clean up so we don't leak the parsed blob into attributes
-        - delete_key(log.cache, "parsed")
-          where log.cache["parsed"] != nil
-
-  # Optional: prune noise we won't query on
-  attributes/prune_noise:
+  attributes/prune_noise_logs:
     actions:
       - {action: delete, key: journal.priority}
       - {action: delete, key: journal.unit}
-      #- {action: delete, key: logfmt}
       - {action: delete, key: metadata}
-      # - {action: delete, key: detected_level}
-      # - {action: delete, key: level_extracted}
       - {action: delete, key: logger_raw}
-      #- {action: delete, key: service_name_canonical}
       - {action: delete, key: logger_name_canonical}
 
   batch:
 
 exporters:
-  # Loki for log storage
   otlphttp/loki:
     endpoint: "{{ logs_push_endpoint }}"
     headers:
@@ -444,7 +219,6 @@ exporters:
     tls:
       insecure: false
 
-  # Tempo for trace storage
   otlphttp/tempo:
     endpoint: "{{ traces_push_endpoint }}"
     headers:
@@ -452,7 +226,6 @@ exporters:
     tls:
       insecure: false
 
-  # debug output for troubleshooting
   debug:
     verbosity: detailed
 
@@ -460,7 +233,6 @@ service:
   extensions: [health_check, pprof, zpages]
 
   pipelines:
-    # -------- Journald ----------
     logs/journald:
       receivers: [journald]
       processors:
@@ -468,36 +240,12 @@ service:
         - resource/system_metadata
         - resource/source_journald
         - transform/journald_extract
-        #- transform/severity_from_priority
         - transform/journald_parse_json
         - transform/level_journald
-        # this is set in receiver now, otherwise multiple logs get batched together incorrectly
-        # - transform/service_canonical
-        # - transform/resource_enrich
-        - transform/promote_for_labels
-        - attributes/prune_noise
+        - attributes/prune_noise_logs
         - batch
       exporters: [otlphttp/loki]
-      #exporters: [otlphttp/loki,debug]
 
-    # -------- Cloud-init file ----------
-    #logs/cloudinit_output:
-    #  receivers: [filelog/cloudinit_output]
-    #  processors:
-    #    - resourcedetection/ec2
-    #    - resource/system_metadata
-    #    - resource/source_file
-    #    - transform/level_common
-    #    - transform/severity_from_priority
-    #    - transform/service_canonical
-    #    - transform/resource_enrich
-    #    - transform/promote_for_labels
-    #    - attributes/prune_noise
-    #    - batch
-    #  exporters: [otlphttp/loki]
-    #  #exporters: [otlphttp/loki,debug]
-
-    # -------- Apt/Dpkg files ----------
     logs/apt_logs:
       receivers: [filelog/apt_logs]
       processors:
@@ -505,56 +253,25 @@ service:
         - resource/system_metadata
         - resource/source_file
         - transform/level_common
-        - transform/service_canonical
-        # - transform/resource_enrich
-        - transform/promote_for_labels
-        - attributes/prune_noise
+        - attributes/prune_noise_logs
         - batch
       exporters: [otlphttp/loki]
-      #exporters: [otlphttp/loki,debug]
 
-    # -------- OTLP logs from apps ----------
     logs/otlp:
       receivers: [otlp]
       processors:
         - resourcedetection/ec2
         - resource/system_metadata
+        - resource/source_otlp
         - transform/level_common
-        - transform/service_canonical
-        # - transform/resource_enrich
-        - transform/promote_for_labels
-        - attributes/prune_noise
         - batch
       exporters: [otlphttp/loki]
-      #exporters: [otlphttp/loki,debug]
 
-    # -------- OTLP logs from apps ----------
     traces/otlp:
       receivers: [otlp]
       processors:
         - resourcedetection/ec2
         - resource/system_metadata
-        #- transform/severity_from_priority
-        # - level_traces
-        # this is set in receiver now, otherwise multiple logs get batched together incorrectly
-        # - transform/service_canonical
-        # - transform/resource_enrich
-        - transform/promote_for_labels
-        - attributes/prune_noise
+        - resource/source_otlp
         - batch
       exporters: [otlphttp/tempo]
-
-    # -------- (Optional) Syslog ----------
-    # logs/syslog:
-    #   receivers: [syslog]
-    #   processors:
-    #     - resourcedetection/ec2
-    #     - resource/system_metadata
-    #     - resource/source_syslog
-    #     - transform/level_common       # syslog receiver already sets severity; this keeps it aligned
-    #     - transform/service_canonical  # service from appname (logger) if present
-    #     - transform/resource_enrich
-    #     - transform/promote_for_labels
-    #     - attributes/prune_noise
-    #     - batch
-    #   exporters: [otlphttp/loki]

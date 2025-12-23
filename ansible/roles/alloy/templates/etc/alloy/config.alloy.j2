@@ -37,19 +37,23 @@ pyroscope.write "pyro" {
   }
   // Labels attached to every profile (like external_labels in Prometheus)
   external_labels = {
-    cloud_account_id = "{{ ansible_ec2_identity_credentials_ec2_info_accountid }}",
+    cloud_account_id   = "{{ ansible_ec2_identity_credentials_ec2_info_accountid }}",
     cloud_availability_zone = "{{ ansible_ec2_instance_identity_document_availabilityzone }}",
-    company          = "{{ company_name }}",
-    env              = "{{ platform_env }}",
-    host_fqdn        = "{{ hostname_no_instanceid }}.{{ hosted_zone_name }}",
-    host_id          = "{{ ansible_ec2_instance_identity_document_instanceid }}",
-    host_ip          = "{{ ansible_default_ipv4.address }}",
-    host_image_id    = "{{ ansible_ec2_instance_identity_document_imageid }}",
-    host_type        = "{{ ansible_ec2_instance_identity_document_instancetype }}",
-    node             = "{{ hostname_no_instanceid }}",
-    project          = "{{ project }}",
-    region           = "{{ ansible_ec2_instance_identity_document_region }}",
-    service_name     = "{{ app_name }}",
-    service_role     = "{{ app_role }}",
+    company            = "{{ company_name }}",
+    deployment_environment_name = "{{ platform_env }}",
+    host_fqdn          = "{{ hostname_no_instanceid }}.{{ hosted_zone_name }}",
+    host_id            = "{{ ansible_ec2_instance_identity_document_instanceid }}",
+    host_ip            = "{{ ansible_default_ipv4.address }}",
+    host_image_id      = "{{ ansible_ec2_instance_identity_document_imageid }}",
+    host_type          = "{{ ansible_ec2_instance_identity_document_instancetype }}",
+    node               = "{{ hostname_no_instanceid }}",
+    project            = "{{ project }}",
+    region             = "{{ ansible_ec2_instance_identity_document_region }}",
+    service_name       = "{{ service_name }}-{{ service_component }}",
+    service_namespace  = "{{ namespace }}",
+    phxi_service_name  = "{{ service_name }}",
+    phxi_service_component  = "{{ service_component }}",
+    phxi_account_name  = "{{ account_name }}",
+    phxi_account_label = "{{ account_name }}-{{ platform_env }}"
   }
 }
