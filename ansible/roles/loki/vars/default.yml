@@ -7,7 +7,7 @@
   loki_http_tcp_port: 8443
   loki_replication_factor: 3
   loki_system_user: loki
-  loki_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/monitoring/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  loki_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/loki/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
   loki_systemd_service_name:
     compactor: loki-compactor
     distributor: loki-distributor
