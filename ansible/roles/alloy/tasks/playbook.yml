@@ -22,6 +22,10 @@
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
          namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
+     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+       set_fact:
+         hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
+
      - name: Ensure required variables are defined
        fail:
          msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
@@ -33,10 +37,6 @@
          - project
          - namespace
          - hostname_no_instanceid
-
-     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
-       set_fact:
-         hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
      # 12/1/25 - this is all in common now to prevent deploy time failures involving apt conflicts since all nodes need this
      # - name: Stop ssm to prevent apt conflicts on fresh box patching
