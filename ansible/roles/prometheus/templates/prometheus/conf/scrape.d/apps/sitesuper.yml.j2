@@ -12,9 +12,10 @@ scrape_configs:
           #- sitesuper-web-2c.{{ hosted_zone_name }}:9000
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          namespace: sitesuper
-          service_name: sitesuper
-          service_role: web
+          service_namespace: sitesuper
+          service_name: sitesuper-web
+          phxi_service_name: sitesuper
+          phxi_service_component: web
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

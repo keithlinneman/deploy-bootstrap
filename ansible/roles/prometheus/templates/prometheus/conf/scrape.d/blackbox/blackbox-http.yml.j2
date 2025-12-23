@@ -2,6 +2,7 @@ scrape_configs:
   - job_name: blackbox-http-internal
     metrics_path: /probe
     scrape_interval: 15s
+    scrape_timeout: 10s
     params:
       module: [http_2xx_strict_tls]
 
@@ -12,10 +13,22 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
+      
+      #- source_labels: [__param_target]
+      #  target_label: instance
+
       - source_labels: [__param_target]
+        target_label: probe_target
+
+      - source_labels: [__param_target]
+        regex: https?://([^/]+).*
         target_label: instance
-      # override module per target *if* the label exists
+
+      # override module per target only if non-empty
       - source_labels: [module]
+        regex: (.+)
         target_label: __param_module
+
       - target_label: __address__
         replacement: 127.0.0.1:9115
+

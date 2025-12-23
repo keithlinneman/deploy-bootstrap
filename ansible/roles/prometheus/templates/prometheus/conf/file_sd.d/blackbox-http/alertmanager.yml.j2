@@ -2,9 +2,14 @@
     - https://alertmanager.{{ hosted_zone_name }}/healthz
     - https://alertmanager.{{ hosted_zone_name }}/api/health
   labels:
-    env: {{ platform_env }}
-    region: {{ ansible_ec2_instance_identity_document_region }}
-    service_name: alertmanager
-    service_role: alertmanager
+    check_type: health
+    probe_kind: endpoint
+    deployment_environment_name: {{ platform_env }}
+    cloud_region: {{ ansible_ec2_instance_identity_document_region }}
+    service_namespace: observability
+    service_name: alertmanager-server
+    phxi_service_name: alertmanager
+    phxi_service_component: server
+    phxi_account_name: {{ account_name }}
+    phxi_account_label: {{ account_name }}-{{ platform_env }}
     severity: page
-    # check_type: alb

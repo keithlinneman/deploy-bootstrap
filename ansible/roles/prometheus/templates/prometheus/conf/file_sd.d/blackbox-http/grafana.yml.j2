@@ -2,9 +2,14 @@
     - https://grafana.{{ hosted_zone_name }}/healthz
     - https://grafana.{{ hosted_zone_name }}/api/health
   labels:
-    env: {{ platform_env }}
-    region: {{ ansible_ec2_instance_identity_document_region }}
-    service_name: grafana
-    service_role: grafana
+    check_type: readiness
+    probe_kind: endpoint
+    deployment_environment_name: {{ platform_env }}
+    cloud_region: {{ ansible_ec2_instance_identity_document_region }}
+    service_namespace: observability
+    service_name: grafana-server
+    phxi_service_name: grafana
+    phxi_service_component: server
+    phxi_account_name: {{ account_name }}
+    phxi_account_label: {{ account_name }}-{{ platform_env }}
     severity: page
-    # check_type: alb

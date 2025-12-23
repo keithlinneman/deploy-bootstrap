@@ -11,9 +11,10 @@ scrape_configs:
           - pyroscope-compactor-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          namespace: pyroscope
-          service_name: pyroscope
-          service_role: compactor
+          service_namespace: observability
+          service_name: pyroscope-compactor
+          phxi_service_name: pyroscope
+          phxi_service_component: compactor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -34,9 +35,10 @@ scrape_configs:
           - pyroscope-distributor-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: distributor
+          service_namespace: observability
+          service_name: pyroscope-distributor
+          phxi_service_name: pyroscope
+          phxi_service_component: distributor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -57,9 +59,10 @@ scrape_configs:
           - pyroscope-ingester-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: ingester
+          service_namespace: observability
+          service_name: pyroscope-ingester
+          phxi_service_name: pyroscope
+          phxi_service_component: ingester
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -80,9 +83,10 @@ scrape_configs:
           - pyroscope-querier-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: querier
+          service_namespace: observability
+          service_name: pyroscope-querier
+          phxi_service_name: pyroscope
+          phxi_service_component: querier
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -103,9 +107,10 @@ scrape_configs:
           - pyroscope-query-frontend-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: query-frontend
+          service_namespace: observability
+          service_name: pyroscope-query-frontend
+          phxi_service_name: pyroscope
+          phxi_service_component: query-frontend
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -126,9 +131,10 @@ scrape_configs:
           - pyroscope-query-scheduler-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: query-scheduler
+          service_namespace: observability
+          service_name: pyroscope-query-scheduler
+          phxi_service_name: pyroscope
+          phxi_service_component: query-scheduler
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -149,9 +155,10 @@ scrape_configs:
           - pyroscope-store-gateway-2c.{{ hosted_zone_name }}:8080
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: pyroscope
-          namespace: pyroscope
-          service_role: store-gateway
+          service_namespace: observability
+          service_name: pyroscope-store-gateway
+          phxi_service_name: pyroscope
+          phxi_service_component: store-gateway
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

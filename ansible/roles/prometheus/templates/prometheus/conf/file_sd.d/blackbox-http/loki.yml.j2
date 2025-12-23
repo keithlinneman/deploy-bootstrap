@@ -1,19 +1,29 @@
 - targets:
     - https://loki-query-frontend.{{ hosted_zone_name }}/ready
   labels:
-    env: {{ platform_env }}
-    region: {{ ansible_ec2_instance_identity_document_region }}
-    service_name: loki
-    service_role: query-frontend
+    check_type: readiness
+    probe_kind: endpoint
+    deployment_environment_name: {{ platform_env }}
+    cloud_region: {{ ansible_ec2_instance_identity_document_region }}
+    service_namespace: observability
+    service_name: loki-query-frontend
+    phxi_service_name: loki
+    phxi_service_component: query-frontend
+    phxi_account_name: {{ account_name }}
+    phxi_account_label: {{ account_name }}-{{ platform_env }}
     severity: page
-    # check_type: alb
 
 - targets:
     - https://loki-distributor.{{ hosted_zone_name }}/ready
   labels:
-    env: {{ platform_env }}
-    region: {{ ansible_ec2_instance_identity_document_region }}
-    service_name: loki
-    service_role: distributor
+    check_type: readiness
+    probe_kind: endpoint
+    deployment_environment_name: {{ platform_env }}
+    cloud_region: {{ ansible_ec2_instance_identity_document_region }}
+    service_namespace: observability
+    service_name: loki-distributor
+    phxi_service_name: loki
+    phxi_service_component: distributor
+    phxi_account_name: {{ account_name }}
+    phxi_account_label: {{ account_name }}-{{ platform_env }}
     severity: page
-    # check_type: alb

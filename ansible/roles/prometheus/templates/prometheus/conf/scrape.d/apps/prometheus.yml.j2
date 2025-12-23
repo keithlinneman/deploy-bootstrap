@@ -1,73 +1,65 @@
 scrape_configs:
-  - job_name: 'prometheus/prometheus'
+  - job_name: 'prometheus/server'
     scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+
     ec2_sd_configs:
       - region: {{ ansible_ec2_instance_identity_document_region }}
         filters:
           - name: tag:PrometheusMonitored
-            values: ["True"]
+            values: ["true", "True"]
           - name: instance-state-name
             values: ["running"]
-          - name: 'tag:AppName'
+          - name: 'tag:ServiceName'
             values: ['prometheus']
-          #- name: tag:Environment
-          #  values: ["{{ platform_env }}"]
+          - name: 'tag:ServiceComponent'
+            values: ['server']
+          - name: tag:Environment
+            values: ["{{ platform_env }}"]
+
     relabel_configs:
-      #- source_labels: [__meta_ec2_tag_PrometheusMonitored]
-      #  action: keep
-      #  regex: True
 
       #- source_labels: [__meta_ec2_tag_Environment]
-      #  action: keep
-      #  regex: {{ platform_env }}
-
-      - source_labels: [__meta_ec2_region]
-        target_label: region
-
-      - source_labels: [__meta_ec2_tag_AppName]
-        target_label: service_name
-
-      - source_labels: [service_name]
-        regex: ^$
-        replacement: unknown
-        target_label: service_name
-
-      - source_labels: [__meta_ec2_tag_AppRole]
-        target_label: service_role
-
-      - source_labels: [service_role]
-        regex: ^$
-        replacement: unknown
-        target_label: service_role
-
+      #  target_label: env
       - source_labels: [__meta_ec2_tag_Environment]
-        target_label: env
+        target_label: deployment_environment_name
 
-      - source_labels: [__meta_ec2_tag_Name]
-        regex: "([^.]*)\\.?.*"
-        target_label: node
+      - source_labels: [__meta_ec2_tag_AccountName]
+        target_label: phxi_account_name
+      - source_labels: [__meta_ec2_tag_AccountName, __meta_ec2_tag_Environment]
+        regex: (.+);(.+)
+        replacement: $1-$2
+        target_label: phxi_account_label
+
+      - source_labels: [__meta_ec2_tag_Namespace]
+        target_label: service_namespace
+
+      - source_labels: [__meta_ec2_tag_ServiceName]
+        target_label: phxi_service_name
+      - source_labels: [__meta_ec2_tag_ServiceComponent]
+        target_label: phxi_service_component
+
+      - source_labels: [__meta_ec2_tag_ServiceName, __meta_ec2_tag_ServiceComponent]
+        regex: (.+);(.+)
+        replacement: $1-$2
+        target_label: service_name
 
       - source_labels: [__meta_ec2_tag_Project]
-        target_label: project
-
-      - source_labels: [project]
-        regex: ^$
-        replacement: unknown
         target_label: project
 
       - source_labels: [__meta_ec2_tag_Company]
         target_label: company
 
-      - source_labels: [company]
-        regex: ^$
-        replacement: unknown
-        target_label: company
+      - source_labels: [__meta_ec2_region]
+        target_label: cloud_region
 
       - target_label: cloud_provider
-        replacement: 'aws'
+        replacement: aws
 
       - target_label: cloud_platform
-        replacement: 'aws_ec2'
+        replacement: aws_ec2
 
       - source_labels: [__meta_ec2_owner_id]
         target_label: cloud_account_id
@@ -85,8 +77,9 @@ scrape_configs:
       - source_labels: [__meta_ec2_instance_id]
         target_label: host_id
 
-      #- source_labels: [__meta_ec2_private_dns_name]
-      #  target_label: host_name
-
       - source_labels: [__meta_ec2_tag_Name]
         target_label: host_fqdn
+
+      - source_labels: [__meta_ec2_tag_Name]
+        regex: "([^.]*)\\.?.*"
+        target_label: node

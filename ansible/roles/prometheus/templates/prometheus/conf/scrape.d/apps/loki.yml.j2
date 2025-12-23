@@ -12,9 +12,10 @@ scrape_configs:
           - loki-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          namespace: loki
-          service_name: loki
-          service_role: compactor
+          service_namespace: observability
+          service_name: loki-compactor
+          phxi_service_name: loki
+          phxi_service_component: compactor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -36,9 +37,10 @@ scrape_configs:
           - loki-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: distributor
+          service_namespace: observability
+          service_name: loki-distributor
+          phxi_service_name: loki
+          phxi_service_component: distributor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -60,9 +62,10 @@ scrape_configs:
           - loki-index-gateway-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: index-gateway
+          service_namespace: observability
+          service_name: loki-index-gateway
+          phxi_service_name: loki
+          phxi_service_component: index-gateway
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -84,9 +87,10 @@ scrape_configs:
           - loki-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: ingester
+          service_namespace: observability
+          service_name: loki-ingester
+          phxi_service_name: loki
+          phxi_service_component: ingester
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -108,9 +112,10 @@ scrape_configs:
           - loki-querier-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: querier
+          service_namespace: observability
+          service_name: loki-querier
+          phxi_service_name: loki
+          phxi_service_component: querier
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -132,9 +137,11 @@ scrape_configs:
           - loki-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: query-frontend
+          service_namespace: observability
+          service_name: loki-query-frontend
+          phxi_service_name: loki
+          phxi_service_component: query-frontend
+
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -156,9 +163,10 @@ scrape_configs:
           - loki-query-scheduler-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: query-scheduler
+          service_namespace: observability
+          service_name: loki-query-scheduler
+          phxi_service_name: loki
+          phxi_service_component: query-scheduler
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -180,9 +188,10 @@ scrape_configs:
           - loki-ruler-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: loki
-          namespace: loki
-          service_role: ruler
+          service_namespace: observability
+          service_name: loki-ruler
+          phxi_service_name: loki
+          phxi_service_component: ruler
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

@@ -12,9 +12,10 @@ scrape_configs:
           - mimir-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          namespace: mimir
-          service_name: mimir
-          service_role: compactor
+          service_namespace: observability
+          service_name: mimir-compactor
+          phxi_service_name: mimir
+          phxi_service_component: compactor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -36,9 +37,10 @@ scrape_configs:
           - mimir-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: distributor
+          service_namespace: observability
+          service_name: mimir-distributor
+          phxi_service_name: mimir
+          phxi_service_component: distributor
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -60,9 +62,10 @@ scrape_configs:
           - mimir-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: ingester
+          service_namespace: observability
+          service_name: mimir-ingester
+          phxi_service_name: mimir
+          phxi_service_component: ingester
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -84,9 +87,10 @@ scrape_configs:
           - mimir-querier-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: querier
+          service_namespace: observability
+          service_name: mimir-querier
+          phxi_service_name: mimir
+          phxi_service_component: querier
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -108,9 +112,10 @@ scrape_configs:
           - mimir-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: query-frontend
+          service_namespace: observability
+          service_name: mimir-query-frontend
+          phxi_service_name: mimir
+          phxi_service_component: query-frontend
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -132,9 +137,10 @@ scrape_configs:
           - mimir-query-scheduler-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: query-scheduler
+          service_namespace: observability
+          service_name: mimir-query-scheduler
+          phxi_service_name: mimir
+          phxi_service_component: query-scheduler
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -156,9 +162,10 @@ scrape_configs:
           - mimir-store-gateway-2c.{{ hosted_zone_name }}:8443
         labels:
           cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
-          service_name: mimir
-          namespace: mimir
-          service_role: store-gateway
+          service_namespace: observability
+          service_name: mimir-store-gateway
+          phxi_service_name: mimir
+          phxi_service_component: store-gateway
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
