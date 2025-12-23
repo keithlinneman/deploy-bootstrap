@@ -21,9 +21,10 @@
 
      - name: Set facts from environment variables
        set_fact:
-         app_name: "{{ ansible_env.APPNAME | default('unknown') }}"
-         app_role: "{{ ansible_env.APPROLE | default(ansible_env.APPNAME | default('unknown')) }}"
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
      - name: Ensure required variables are defined
        fail:
@@ -31,9 +32,10 @@
        when: vars[item] is not defined or vars[item] is none
        with_items:
          - platform_env
-         - app_name
-         - app_role
+         - service_name
+         - service_component
          - project
+         - namespace
          - hostname_no_instanceid
 
      - name: Create otel user

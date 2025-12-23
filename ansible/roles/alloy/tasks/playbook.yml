@@ -24,10 +24,15 @@
 
      - name: Ensure required variables are defined
        fail:
-         msg: "{{ item }} must be defined use -e {{ item }}=value"
-       when: (lookup('vars', item, default=None)) is none
+         msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
+       when: vars[item] is not defined or vars[item] is none
        with_items:
-         - env
+         - platform_env
+         - service_name
+         - service_component
+         - project
+         - namespace
+         - hostname_no_instanceid
 
      - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
        set_fact:
