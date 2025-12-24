@@ -15,6 +15,9 @@
 
      - name: Get instance metadata
        ec2_metadata_facts:
+     - name: Set account name fact from instance metadata
+        set_fact: 
+          account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Load account-specific Prometheus vars
        include_vars:
