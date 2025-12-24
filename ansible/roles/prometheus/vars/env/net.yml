@@ -1,9 +1,3 @@
-company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-
 prometheus:
   scrape:
     apps:
