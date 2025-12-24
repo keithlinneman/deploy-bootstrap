@@ -9,12 +9,27 @@
      - ../vars/{{ ansible_os_family }}.yml
 
    pre_tasks:
-     - name: Load env-specific Prometheus vars
+     # - name: Load env-specific Prometheus vars
+     #   include_vars:
+     #     file: "../vars/env/{{ env }}.yml"
+
+     - name: Load account-specific Prometheus vars
        include_vars:
-         file: "../vars/env/{{ env }}.yml"
+         file: "../vars/env/{{ account_name }}.yml"
 
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+
+     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+       set_fact:
+         hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -23,10 +38,15 @@
 
      - name: Ensure required variables are defined
        fail:
-         msg: "{{ item }} must be defined use -e {{ item }}=value"
-       when: (lookup('vars', item, default=None)) is none
-       loop:
-         - env
+         msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
+       when: vars[item] is not defined or vars[item] is none
+       with_items:
+         - platform_env
+         - service_name
+         - service_component
+         - project
+         - namespace
+         - hostname_no_instanceid
 
    tasks:
      - name: Create prometheus user
