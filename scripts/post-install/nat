@@ -34,14 +34,14 @@ if [[ ! "${validenvs[@]}" =~ "${ENVIRONMENT}" ]];then
 fi
 
 # ensure hostname has instanceid and environment in name, and is of format *<instanceid>.<regionshort>.<env>.*.* domain name and individual naming schemes can vary by app
-validhost=".*${localinstanceid}\.us.*\.${ENVIRONMENT}\..*\..*"
+validhost=".*${localinstanceid:0:6}\.us.*\.${ENVIRONMENT}\..*\..*"
 if [[ ! "${localname}" =~ ${validhost} ]];then
   echo "${localname} did not pass sanity check (${validhost}) - refusing to update dns"
   exit 1
 fi
 
 # get local hostname without instanceid for CNAME alias
-localcname="$( echo "${localname}" | sed "s/-${localinstanceid}//" )"
+localcname="$( echo "${localname}" | sed "s/-${localinstanceid:0:6}//" )"
 if [ "${localcname}x" == "x" ];then
   echo "Failed to generate localcname from ${localname}"
   exit 1
