@@ -70,16 +70,17 @@ distributor:
   # will test soon
   kafka_writes_enabled: false
   ingester_writes_enabled: true
-  otlp_config:
-    default_resource_attributes_as_index_labels:
-      - env
-      - instance
-      - host.id
-      # - instance_id
-      - project
-      - region
-      - level
-      - source
+  # this is handled in limits_config now to keep it in one place
+  # otlp_config:
+  #   default_resource_attributes_as_index_labels:
+  #     - env
+  #     - instance
+  #     - host.id
+  #     # - instance_id
+  #     - project
+  #     - region
+  #     - level
+  #     - source
 
 query_scheduler:
   #max_outstanding_requests_per_tenant: 32000
@@ -260,7 +261,7 @@ limits_config:
   max_entries_limit_per_query: 5000
   max_cache_freshness_per_query: 10m
   max_metadata_cache_freshness: 1d
-  query_timeout: 1m
+  query_timeout: 30s
   ruler_remote_write_disabled: false
   retention_period: 366d
   otlp_config:
@@ -276,8 +277,18 @@ limits_config:
           attributes:
             - cloud.account.id
             - cloud.availability_zone
+            - cloud.region
+            - deployment.environment.name
             - company
-            - env
+            - service.name
+            - service.namespace
+            - phxi.account.name
+            - phxi.account.label
+            - phxi.service.name
+            - phxi.service.component
+
+            # renamed to deployment.environment.name
+            # - env
             # renamed to node
             # - instance
             # log attribute
@@ -286,9 +297,10 @@ limits_config:
             # - logger
             - node
             - project
-            - region
-            - service.name
-            - service.role
+            # renamed to cloud.region
+            # - region
+            # - service.name
+            # - service.role
             # log attribute
             # - source
           #regex: "^(app_name|app_role|env|instance|instance_id|project)$"
@@ -377,7 +389,11 @@ ruler:
   alertmanager_url: https://alertmanager.{{ hosted_zone_name }}/
   enable_api: true
   external_labels:
-    monitor: loki-{{ env }}-ha
+    monitor: "loki-{{ account_name }}-{{ platform_env }}-ha"
+    phxi_account_name: "{{ account_name }}"
+    phxi_account_label: "{{ account_name }}-{{ platform_env }}"
+    deployment_environment_name: "{{ platform_env }}"
+    cloud_region: "{{ ansible_ec2_instance_identity_document_region }}"
 
 #ruler:
 #  storage:
