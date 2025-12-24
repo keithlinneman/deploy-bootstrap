@@ -13,12 +13,12 @@
      #   include_vars:
      #     file: "../vars/env/{{ env }}.yml"
 
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
      - name: Load account-specific Prometheus vars
        include_vars:
          file: "../vars/env/{{ account_name }}.yml"
-
-     - name: Get instance metadata
-       ec2_metadata_facts:
 
      - name: Set facts from environment variables
        set_fact:
