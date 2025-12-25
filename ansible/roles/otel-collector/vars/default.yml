@@ -1,22 +1,16 @@
 ---
-  account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
   loki_tenant_name: "{{ company_name }}"
+  tempo_tenant_name: "{{ company_name }}"
   otel_system_user: otel
   otel_collector_configs_baseline: >
     journald
     syslog
   otel_collector_configs_additional:
   otel_collector_feature_gates:
-  otel_collector_release_tag: v0.139.0
+  otel_collector_version: 0.142.0
   otel_collector_tcp_ports:
     scrape: 8888
 #    otlp_grpc: 4317
 #    otlp_http: 4318
     zpages: 55679
     healthcheck: 13133
-  platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-  tempo_tenant_name: "{{ company_name }}"

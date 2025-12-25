@@ -6,7 +6,7 @@
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
 
@@ -38,6 +38,7 @@
          - namespace
          - hostname_no_instanceid
 
+   tasks:
      # 12/1/25 - this is all in common now to prevent deploy time failures involving apt conflicts since all nodes need this
      # - name: Stop ssm to prevent apt conflicts on fresh box patching
      #   command:
