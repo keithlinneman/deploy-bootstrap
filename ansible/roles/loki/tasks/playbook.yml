@@ -8,9 +8,25 @@
    vars:
      loki_role: "{{ lookup('env', 'LOKIROLE') }}"
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
+       set_fact: 
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -29,7 +45,7 @@
        with_items:
          - env
          - loki_role
-
+   tasks:
      - name: Create loki user
        user:
          name: "{{ loki_system_user }}"
