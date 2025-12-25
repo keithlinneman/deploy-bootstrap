@@ -164,6 +164,13 @@
          mode: get
          overwrite: different
 
+     - name: Ensure mimir binary is executable
+       file:
+         path: /home/{{ mimir_system_user }}/bin/mimir
+         owner: "{{ mimir_system_user }}"
+         group: "{{ mimir_system_user }}"
+         mode: 0750
+
      - name: Create mimir systemd service
        template:
          src: ../templates/etc/systemd/system/mimir.service.j2
