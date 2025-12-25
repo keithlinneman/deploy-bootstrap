@@ -9,6 +9,9 @@
    pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+       
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region       
+       set_facts:
          pyroscope_tenant_name: "{{ company_name }}"
          account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
          company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
