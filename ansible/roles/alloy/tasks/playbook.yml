@@ -9,11 +9,12 @@
    pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
-
-     - name: Print all environment vars for debugging
-       debug:
-         var: hostvars[inventory_hostname]
-         verbosity: 2
+         pyroscope_tenant_name: "{{ company_name }}"
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
        set_fact:
@@ -22,9 +23,14 @@
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
          namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
-     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc as node
        set_fact:
          hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
+
+     - name: Print all environment vars for debugging
+       debug:
+         var: hostvars[inventory_hostname]
+         verbosity: 2
 
      - name: Ensure required variables are defined
        fail:
