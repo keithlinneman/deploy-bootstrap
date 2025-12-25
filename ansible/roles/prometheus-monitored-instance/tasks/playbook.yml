@@ -34,7 +34,7 @@
        with_items:
          - platform_env
          - artifacts_bucket_name
-
+         
    tasks:
      - name: Create prometheus user
        user:
