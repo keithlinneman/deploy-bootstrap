@@ -1,4 +1,5 @@
 ---
+  artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
   ebpf_exporter_tcp_port: 9435
   ebpf_exporter_flags: >
     --config.dir={{ ebpf_exporter_base_directory }}/modules
