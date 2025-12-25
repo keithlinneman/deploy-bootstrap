@@ -25,6 +25,8 @@
          alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
        set_fact:
@@ -32,6 +34,8 @@
          service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
          namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+         loki_tenant_name: "{{ company_name }}"
+         tempo_tenant_name: "{{ company_name }}"
 
      - name: Print all environment vars for debugging
        debug:

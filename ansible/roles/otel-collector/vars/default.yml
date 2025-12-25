@@ -1,6 +1,4 @@
 ---
-  loki_tenant_name: "{{ company_name }}"
-  tempo_tenant_name: "{{ company_name }}"
   otel_system_user: otel
   otel_collector_configs_baseline: >
     journald
