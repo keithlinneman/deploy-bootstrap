@@ -91,27 +91,28 @@
          owner: "{{ loki_system_user }}"
          provider: selfsigned
 
-     - name: Get latest Loki release info from github
-       uri:
-         url: https://api.github.com/repos/grafana/loki/releases/latest
-         return_content: yes
-       register: latest_release_info
+# running into github api rate limits. moving this to a central system using sbom soon
+#     - name: Get latest Loki release info from github
+#       uri:
+#         url: https://api.github.com/repos/grafana/loki/releases/latest
+#         return_content: yes
+#       register: latest_release_info
 
-     - name: Set release tag fact
-       set_fact:
-         latest_release_tag: "{{ latest_release_info.json.tag_name }}"
+#     - name: Set release tag fact
+#       set_fact:
+#         latest_release_tag: "{{ latest_release_info.json.tag_name }}"
 
-     - name: Warn if a newer Loki version exists
-       ansible.builtin.debug:
-         msg: |
-           #################################################################
-           # WARNING: New Loki version available                           #
-           #   Pinned: {{ loki_version }}                                  #
-           #   Latest: {{ latest_release_tag }}                           #
-           #################################################################
-       when: latest_release_tag[1:] is version(loki_version, '>')
-       run_once: true
-       changed_when: false
+#     - name: Warn if a newer Loki version exists
+#       ansible.builtin.debug:
+#         msg: |
+#           #################################################################
+#           # WARNING: New Loki version available                           #
+#           #   Pinned: {{ loki_version }}                                  #
+#           #   Latest: {{ latest_release_tag }}                           #
+#           #################################################################
+#       when: latest_release_tag[1:] is version(loki_version, '>')
+#       run_once: true
+#       changed_when: false
 
 #     - name: Get pinned Loki release info from github
 #       uri:
@@ -139,11 +140,20 @@
 #         msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
 #       when: asset_url is not defined
 
-     - name: Download the pinned Loki release ({{ loki_version }}) from github ({{ asset_url }})
-       get_url:
-         url: https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-arm64.zip
-         dest: /home/{{ loki_system_user }}/loki.zip
+#     - name: Download the pinned Loki release ({{ loki_version }}) from github ({{ asset_url }})
+#       get_url:
+#         url: https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki-linux-arm64.zip
+#         dest: /home/{{ loki_system_user }}/loki.zip
 
+
+     - name: Get pinned Loki release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/grafana/loki/v{{ loki_version }}/{{ loki_filename }}"
+         dest: /home/{{ loki_system_user }}/bin/loki.zip
+         mode: get
+         overwrite: different
+       
      - name: Decompress loki installation package
        unarchive:
          src: /home/{{ loki_system_user }}/loki.zip

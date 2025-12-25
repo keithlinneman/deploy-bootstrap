@@ -75,17 +75,17 @@
          path: /home/{{ mimir_system_user }}/bin/mimir
        register: mimir_binary
 
-     - name: Get latest mimir release info from github
-       uri:
-         url: https://api.github.com/repos/grafana/mimir/releases/latest
-         return_content: yes
-       register: release_info
-       when: not mimir_binary.stat.exists
+     #- name: Get latest mimir release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/grafana/mimir/releases/latest
+     #    return_content: yes
+     #  register: release_info
+     #  when: not mimir_binary.stat.exists
 
-     - name: Set release tag fact
-       set_fact:
-         mimir_release_tag: "{{ release_info.json.tag_name }}"
-       when: not mimir_binary.stat.exists
+     #- name: Set release tag fact
+     #  set_fact:
+     #    mimir_release_tag: "{{ release_info.json.tag_name }}"
+     #  when: not mimir_binary.stat.exists
 
      ##- name: Check if a newer mimir version exists than the pinned version
      ##  ansible.builtin.debug:
@@ -119,23 +119,40 @@
      #     msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
      #   when: asset_url is not defined and not mimir_binary.stat.exists
 
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    mimir_asset_url: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-arm64
+     #      {%- else -%}
+     #      https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-amd64
+     #      {%- endif -%}
+
+     #- name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
+     #  get_url:
+     #    url: "{{ mimir_asset_url }}"
+     #    dest: /home/{{ mimir_system_user }}/bin/mimir
+     #    owner: "{{ mimir_system_user }}"
+     #    group: "{{ mimir_system_user }}"
+     #    mode: 0750
+     #  when: not mimir_binary.stat.exists
+
      - name: Set filename based on architecture
        set_fact:
-         mimir_asset_url: >-
+         arch_normalized: >-
            {%- if ansible_architecture == "aarch64" -%}
-           https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-arm64
+           arm64
            {%- else -%}
-           https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-amd64
+           amd64
            {%- endif -%}
 
-     - name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
-       get_url:
-         url: "{{ mimir_asset_url }}"
+     - name: Get pinned Mimir release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/grafana/mimir/mimir-{{ mimir_version }}/mimir-linux-{{ arch_normalized }}"
          dest: /home/{{ mimir_system_user }}/bin/mimir
-         owner: "{{ mimir_system_user }}"
-         group: "{{ mimir_system_user }}"
-         mode: 0750
-       when: not mimir_binary.stat.exists
+         mode: get
+         overwrite: different
 
      - name: Create mimir systemd service
        template:

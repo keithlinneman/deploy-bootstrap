@@ -3,7 +3,9 @@
   ebpf_exporter_flags: >
     --config.dir={{ ebpf_exporter_base_directory }}/modules
     --config.names=biolatency,ext4dist,oomkill,percpu-softirq,softirq-latency,syscalls,tcp-retransmit,tcp-syn-backlog,tcp-window-clamps,udp-drops,unix-socket-backlog
+  ebpf_exporter_version: 2.5.1
   prometheus_node_exporter_tcp_port: 9100
+  prometheus_node_exporter_version: 1.10.2
   prometheus_system_user: prometheus
   prometheus_node_exporter_flags: >
     --no-collector.bonding

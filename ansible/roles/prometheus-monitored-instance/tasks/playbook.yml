@@ -40,15 +40,15 @@
         - bin
         - scrapedata
 
-     - name: Get latest prometheus node_exporter release info from github
-       uri:
-         url: https://api.github.com/repos/prometheus/node_exporter/releases/latest
-         return_content: yes
-       register: node_exporter_release_info
+     #- name: Get latest prometheus node_exporter release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/prometheus/node_exporter/releases/latest
+     #    return_content: yes
+     #  register: node_exporter_release_info
 
-     - name: Set release tag fact
-       set_fact:
-         node_exporter_release_tag: "{{ node_exporter_release_info.json.tag_name }}"
+     #- name: Set release tag fact
+     #  set_fact:
+     #    node_exporter_release_tag: "{{ node_exporter_release_info.json.tag_name }}"
 
      - name: Set filename based on architecture
        set_fact:
@@ -59,21 +59,29 @@
            linux-amd64
            {%- endif -%}
 
-     - name: Find architecture asset URL from release assets
-       set_fact:
-         node_exporter_asset_url: "{{ item.browser_download_url }}"
-       loop: "{{ node_exporter_release_info.json.assets }}"
-       when: "nodeexporter_arch in item.name"
+     #- name: Find architecture asset URL from release assets
+     #  set_fact:
+     #    node_exporter_asset_url: "{{ item.browser_download_url }}"
+     #  loop: "{{ node_exporter_release_info.json.assets }}"
+     #  when: "nodeexporter_arch in item.name"
 
-     - name: Fail if {{ nodeexporter_arch }} asset not found
-       fail:
-         msg: "No {{ nodeexporter_arch }} asset found github latest release response."
-       when: node_exporter_asset_url is not defined
+     #- name: Fail if {{ nodeexporter_arch }} asset not found
+     #  fail:
+     #    msg: "No {{ nodeexporter_arch }} asset found github latest release response."
+     #  when: node_exporter_asset_url is not defined
 
-     - name: Download the latest node_exporter ({{ node_exporter_release_tag }}) {{ nodeexporter_arch }} release from github ({{ node_exporter_asset_url }})
-       get_url:
-         url: "{{ node_exporter_asset_url }}"
+     #- name: Download the latest node_exporter ({{ node_exporter_release_tag }}) {{ nodeexporter_arch }} release from github ({{ node_exporter_asset_url }})
+     #  get_url:
+     #    url: "{{ node_exporter_asset_url }}"
+     #    dest: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
+
+     - name: Get pinned node_exporter release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/prometheus/node_exporter/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ nodeexporter_arch }}.tar.gz"
          dest: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Decompress node_exporter installation package
        unarchive:
@@ -113,24 +121,24 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Get latest cloudflare ebpf_exporter release info from github
-       uri:
-         url: https://api.github.com/repos/cloudflare/ebpf_exporter/releases/latest
-         return_content: yes
-       register: ebpf_exporter_release_info
+     #- name: Get latest cloudflare ebpf_exporter release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/cloudflare/ebpf_exporter/releases/latest
+     #    return_content: yes
+     #  register: ebpf_exporter_release_info
 
-     - name: Set release tag fact
-       set_fact:
-         ebpf_exporter_release_tag: "{{ ebpf_exporter_release_info.json.tag_name }}"
+     #- name: Set release tag fact
+     #  set_fact:
+     #    ebpf_exporter_release_tag: "{{ ebpf_exporter_release_info.json.tag_name }}"
 
-     - name: Fail if latest release asset not found
-       fail:
-         msg: "No release_tag found in github latest release response"
-       when: ebpf_exporter_release_tag is not defined
+     #- name: Fail if latest release asset not found
+     #  fail:
+     #    msg: "No release_tag found in github latest release response"
+     #  when: ebpf_exporter_release_tag is not defined
 
-     - name: Set filename based on architecture
-       set_fact:
-         ebpf_exporter_asset_url: https://github.com/cloudflare/ebpf_exporter/releases/download/{{ ebpf_exporter_release_tag }}/ebpf_exporter.{{ ansible_architecture }}
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    ebpf_exporter_asset_url: https://github.com/cloudflare/ebpf_exporter/releases/download/{{ ebpf_exporter_release_tag }}/ebpf_exporter.{{ ansible_architecture }}
 
      - name: Create ebpf_exporter /opt directories
        file:
@@ -144,13 +152,21 @@
          - "{{ ebpf_exporter_base_directory }}/bin"
          - "{{ ebpf_exporter_base_directory }}/modules"
 
-     - name: Download the latest cloudflare ebpf_exporter release from github
-       get_url:
-         url: "{{ ebpf_exporter_asset_url }}"
-         dest: "{{ ebpf_exporter_base_directory }}/bin/ebpf_exporter"
-         owner: root
-         group: root
-         mode: 0750
+     #- name: Download the latest cloudflare ebpf_exporter release from github
+     #  get_url:
+     #    url: "{{ ebpf_exporter_asset_url }}"
+     #    dest: "{{ ebpf_exporter_base_directory }}/bin/ebpf_exporter"
+     #    owner: root
+     #    group: root
+     #    mode: 0750
+
+     - name: Get pinned ebpf_exporter release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/cloudflare/ebpf_exporter/{{ ebpf_exporter_version }}/ebpf_exporter.{{ ansible_architecture }}"
+         dest: /home/{{ prometheus_system_user }}/bin/ebpf_exporter
+         mode: get
+         overwrite: different
 
      - name: Copy custom ebpf modules and configs
        copy:
