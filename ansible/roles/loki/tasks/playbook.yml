@@ -153,7 +153,7 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "thirdparty/grafana/loki/v{{ loki_version }}/{{ loki_filename }}"
-         dest: /home/{{ loki_system_user }}/bin/loki.zip
+         dest: /home/{{ loki_system_user }}/loki.zip
          mode: get
          overwrite: different
        
