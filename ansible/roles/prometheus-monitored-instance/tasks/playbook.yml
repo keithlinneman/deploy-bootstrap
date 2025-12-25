@@ -8,7 +8,20 @@
    handlers:
      - import_tasks: ../handlers/main.yml
 
-   tasks:
+   pre_tasks:
+     - name: Get instance metadata
+       ec2_metadata_facts:
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
+       set_fact: 
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         #account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         #company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         #hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         #alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         #metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+
      - name: Print all environment vars for debugging
        debug:
          var: hostvars[inventory_hostname]
@@ -19,8 +32,10 @@
          msg: "{{ item }} must be defined use -e {{ item }}=value"
        when: (lookup('vars', item, default=None)) is none
        with_items:
-         - env
+         - platform_env
+         - artifacts_bucket_name
 
+   tasks:
      - name: Create prometheus user
        user:
          name: "{{ prometheus_system_user }}"
