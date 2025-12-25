@@ -1,14 +1,8 @@
 ---
-  account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
   mimir_cluster_memberlist_port: 7946
   mimir_http_tcp_port: 8443
   mimir_grpc_tcp_port: 9095
   mimir_replication_factor: 3
-  mimir_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/mimir/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
   mimir_version: 2.17.3
   mimir_system_user: mimir
   mimir_systemd_service_name:

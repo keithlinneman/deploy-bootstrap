@@ -8,9 +8,18 @@
    vars:
      mimir_role: "{{ lookup('env', 'MIMIRROLE') }}"
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set variables from ssm vars that require ec2 metadata
+       set_fact:
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         mimir_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/mimir/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -30,6 +39,7 @@
          - env
          - mimir_role
 
+   tasks:
      - name: Create mimir user
        user:
          name: "{{ mimir_system_user }}"
