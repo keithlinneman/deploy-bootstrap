@@ -99,7 +99,7 @@ frontend:
   results_cache:
     backend: memcached
     memcached:
-      addresses: memcached-mimir-2a.{{ hosted_zone_name }}:11211,memcached-mimir-2b.{{ hosted_zone_name }}:11211,memcached-mimir-2c.{{ hosted_zone_name }}:11211
+      addresses: mimir-memcached-2a.{{ hosted_zone_name }}:11211,mimir-memcached-2b.{{ hosted_zone_name }}:11211,mimir-memcached-2c.{{ hosted_zone_name }}:11211
       timeout: 200ms
       connect_timeout: 200ms
       #max_item_size: 2097152
@@ -194,21 +194,21 @@ blocks_storage:
     index_cache:
       backend: memcached
       memcached:
-        addresses: memcached-mimir-2a.{{ hosted_zone_name }}:11211,memcached-mimir-2b.{{ hosted_zone_name }}:11211,memcached-mimir-2c.{{ hosted_zone_name }}:11211
+        addresses: mimir-memcached-2a.{{ hosted_zone_name }}:11211,mimir-memcached-2b.{{ hosted_zone_name }}:11211,mimir-memcached-2c.{{ hosted_zone_name }}:11211
         timeout: 200ms
         connect_timeout: 200ms
         max_item_size: 8388608
     chunks_cache:
       backend: memcached
       memcached:
-        addresses: memcached-mimir-2a.{{ hosted_zone_name }}:11211,memcached-mimir-2b.{{ hosted_zone_name }}:11211,memcached-mimir-2c.{{ hosted_zone_name }}:11211
+        addresses: mimir-memcached-2a.{{ hosted_zone_name }}:11211,mimir-memcached-2b.{{ hosted_zone_name }}:11211,mimir-memcached-2c.{{ hosted_zone_name }}:11211
         timeout: 200ms
         connect_timeout: 200ms
         max_item_size: 8388608
     metadata_cache:
       backend: memcached
       memcached:
-        addresses: memcached-mimir-2a.{{ hosted_zone_name }}:11211,memcached-mimir-2b.{{ hosted_zone_name }}:11211,memcached-mimir-2c.{{ hosted_zone_name }}:11211
+        addresses: mimir-memcached-2a.{{ hosted_zone_name }}:11211,mimir-memcached-2b.{{ hosted_zone_name }}:11211,mimir-memcached-2c.{{ hosted_zone_name }}:11211
         timeout: 200ms
         connect_timeout: 200ms
         max_item_size: 8388608

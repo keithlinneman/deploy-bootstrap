@@ -212,7 +212,7 @@ cache:
       # high volume - testing
       - parquet-page
       memcached:
-        addresses: memcached-tempo-2a.{{ hosted_zone_name }}:11211,memcached-tempo-2b.{{ hosted_zone_name }}:11211,memcached-tempo-2c.{{ hosted_zone_name }}:11211
+        addresses: tempo-memcached-2a.{{ hosted_zone_name }}:11211,tempo-memcached-2b.{{ hosted_zone_name }}:11211,tempo-memcached-2c.{{ hosted_zone_name }}:11211
 
 overrides:
   defaults:
