@@ -183,10 +183,17 @@
          mode: get
          overwrite: different
 
+     - name: Ensure ebpf_exporter binary is executable
+       file:
+         path: "{{ ebpf_exporter_base_directory }}/bin/ebpf_exporter"
+         owner: root
+         group: root
+         mode: 0750
+
      - name: Copy custom ebpf modules and configs
        copy:
          src: ../files/ebpf_exporter/modules/{{ ansible_architecture }}/
-         dest: /opt/ebpf_exporter/modules/
+         dest: "{{ ebpf_exporter_base_directory }}/modules/"
          owner: root
          group: root
          mode: 0640
