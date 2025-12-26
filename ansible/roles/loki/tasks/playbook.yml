@@ -48,6 +48,7 @@
        with_items:
          - env
          - loki_role
+         
    tasks:
      - name: Create loki user
        user:

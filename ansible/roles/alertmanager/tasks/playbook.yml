@@ -6,9 +6,32 @@
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+       
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region       
+       set_fact:
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_external_url: https://alertmanager.{{ hosted_zone_name }}/
+         alertmanager_config_slack_url_page_crit: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/page_crit', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_prod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_prod', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_nonprod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_nonprod', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_changes: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_changes', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_security: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_security', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_cost: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_cost', region=ansible_ec2_instance_identity_document_region ) }}"
+         alertmanager_config_slack_url_alert_slo: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_slo', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+         pyroscope_tenant_name: "{{ company_name }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -20,37 +43,45 @@
          msg: "{{ item }} must be defined use -e {{ item }}=value"
        when: (lookup('vars', item, default=None)) is none
        with_items:
-         - env
+         - account_name
+         - company_name
+         - hosted_zone_name
+         - platform_env
+         - service_name
+         - service_component
+         - project
+         - namespace
 
-     - name: Get latest Alertmanager release info from github
-       uri:
-         url: https://api.github.com/repos/prometheus/alertmanager/releases/latest
-         return_content: yes
-       register: release_info
+   tasks:
+     #- name: Get latest Alertmanager release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/prometheus/alertmanager/releases/latest
+     #    return_content: yes
+     #  register: release_info
 
-     - name: Set release tag fact
-       set_fact:
-         release_tag: "{{ release_info.json.tag_name }}"
+     #- name: Set release tag fact
+     #  set_fact:
+     #    release_tag: "{{ release_info.json.tag_name }}"
 
-     - name: Set filename based on architecture
-       set_fact:
-         alertmanager_filename: >-
-           {%- if ansible_architecture == "aarch64" -%}
-           linux-arm64.tar.gz
-           {%- else -%}
-           linux-amd64.tar.gz
-           {%- endif -%}
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    alertmanager_filename: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      linux-arm64.tar.gz
+     #      {%- else -%}
+     #      linux-amd64.tar.gz
+     #      {%- endif -%}
 
-     - name: Find {{ ansible_architecture }} asset URL from release assets
-       set_fact:
-         asset_url: "{{ item.browser_download_url }}"
-       loop: "{{ release_info.json.assets }}"
-       when: "alertmanager_filename in item.name"
+     #- name: Find {{ ansible_architecture }} asset URL from release assets
+     #  set_fact:
+     #    asset_url: "{{ item.browser_download_url }}"
+     #  loop: "{{ release_info.json.assets }}"
+     #  when: "alertmanager_filename in item.name"
 
-     - name: Fail if architecture asset not found
-       fail:
-         msg: "No {{ ansible_architecture }} asset found github latest release response."
-       when: asset_url is not defined
+     #- name: Fail if architecture asset not found
+     #  fail:
+     #    msg: "No {{ ansible_architecture }} asset found github latest release response."
+     #  when: asset_url is not defined
 
      - name: Create alertmanager user
        user:
@@ -101,10 +132,27 @@
          provider: selfsigned
        when: not alertmanager_cert.stat.exists
 
-     - name: Download the latest Alertmanager ({{ release_tag }}) linux-amd64 release from github
-       get_url:
-         url: "{{ asset_url }}"
+     #- name: Download the latest Alertmanager ({{ release_tag }}) linux-amd64 release from github
+     #  get_url:
+     #    url: "{{ asset_url }}"
+     #    dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+
+     - name: Set normalized architecture name
+       set_fact:
+         arch_normalized: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           arm64
+           {%- else -%}
+           amd64
+           {%- endif -%}
+
+     - name: Get pinned alertmanager release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/prometheus/alertmanager/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-{{ arch_normalized }}.tar.gz"
          dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Decompress alertmanager installation package
        unarchive:
