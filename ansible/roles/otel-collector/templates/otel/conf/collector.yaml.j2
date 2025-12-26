@@ -143,6 +143,10 @@ processors:
     log_statements:
       - context: log
         statements:
+          - set(log.attributes["systemd.user_unit"], log.body["_SYSTEMD_USER_UNIT"]) where log.body["_SYSTEMD_USER_UNIT"] != nil
+          - set(log.attributes["systemd.unit"], log.body["_SYSTEMD_UNIT"]) where log.body["_SYSTEMD_UNIT"] != nil
+
+
           - set(log.attributes["journal.priority"], log.body["PRIORITY"]) where log.body["PRIORITY"] != nil
           - set(log.attributes["journal.user_unit"], log.body["_SYSTEMD_USER_UNIT"]) where log.body["_SYSTEMD_USER_UNIT"] != nil
           - set(log.attributes["journal.unit"], log.body["_SYSTEMD_UNIT"]) where log.body["_SYSTEMD_UNIT"] != nil
