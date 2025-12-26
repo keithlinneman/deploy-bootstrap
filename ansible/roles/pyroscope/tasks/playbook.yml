@@ -8,9 +8,29 @@
    vars:
      pyroscope_role: "{{ lookup('env', 'PYROSCOPEROLE') }}"
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
+       set_fact: 
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         pyroscope_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/pyroscope/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -30,6 +50,7 @@
          - env
          - pyroscope_role
 
+   tasks:
      - name: Create pyroscope user
        user:
          name: "{{ pyroscope_system_user }}"
@@ -83,34 +104,51 @@
          path: /home/{{ pyroscope_system_user }}/bin/pyroscope
        register: pyroscope_binary
 
-     - name: Get latest pyroscope release info from github
-       uri:
-         url: https://api.github.com/repos/grafana/pyroscope/releases/latest
-         return_content: yes
-       register: pyroscope_release_info
+     #- name: Get latest pyroscope release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/grafana/pyroscope/releases/latest
+     #    return_content: yes
+     #  register: pyroscope_release_info
 
-     - name: Set release tag fact
+     #- name: Set release tag fact
+     #  set_fact:
+     #    pyroscope_release_tag: "{{ pyroscope_release_info.json.tag_name }}"
+
+     #- name: Fail if pyroscope_release_tag asset not found
+     #  fail:
+     #    msg: "No asset found github latest release response"
+     #  when: pyroscope_release_tag is not defined
+
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    pyroscopecollector_asset_url: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_arm64.tar.gz
+     #      {%- else -%}
+     #      https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_amd64.tar.gz
+     #      {%- endif -%}
+
+     #- name: Download the latest pyroscope release from github
+     #  get_url:
+     #    url: "{{ pyroscopecollector_asset_url }}"
+     #    dest: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
+
+     - name: Set normalized architecture name
        set_fact:
-         pyroscope_release_tag: "{{ pyroscope_release_info.json.tag_name }}"
-
-     - name: Fail if pyroscope_release_tag asset not found
-       fail:
-         msg: "No asset found github latest release response"
-       when: pyroscope_release_tag is not defined
-
-     - name: Set filename based on architecture
-       set_fact:
-         pyroscopecollector_asset_url: >-
+         arch_normalized: >-
            {%- if ansible_architecture == "aarch64" -%}
-           https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_arm64.tar.gz
+           arm64
            {%- else -%}
-           https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_amd64.tar.gz
+           amd64
            {%- endif -%}
 
-     - name: Download the latest pyroscope release from github
-       get_url:
-         url: "{{ pyroscopecollector_asset_url }}"
+     - name: Get pinned pyroscope release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/grafana/pyroscope/v{{ pyroscope_version }}/pyroscope_{{ pyroscope_version }}_linux_{{ arch_normalized }}.tar.gz"
          dest: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Decompress pyroscope installation package
        unarchive:
@@ -122,6 +160,11 @@
          group: "{{ pyroscope_system_user }}"
          mode: 0750
          creates: /home/{{ pyroscope_system_user }}/bin/pyroscope
+
+     - name: Remove the pyroscope package
+       file:
+         path: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
+         state: absent
 
      - name: Create pyroscope systemd service
        template:

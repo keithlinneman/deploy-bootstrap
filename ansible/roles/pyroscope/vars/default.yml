@@ -6,7 +6,6 @@
   pyroscope_http_tcp_port: 8080
   pyroscope_grpc_tcp_port: 9095
   pyroscope_replication_factor: 3
-  pyroscope_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/pyroscope/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
   pyroscope_system_user: pyroscope
   pyroscope_systemd_service_name:
     distributor: pyroscope-distributor
@@ -16,4 +15,5 @@
     query-scheduler: pyroscope-query-scheduler
     store-gateway: pyroscope-store-gateway
     compactor: pyroscope-compactor
+  pyroscope_version: "1.17.0"
 
