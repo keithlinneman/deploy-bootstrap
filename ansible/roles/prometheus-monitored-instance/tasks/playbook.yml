@@ -179,7 +179,7 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "thirdparty/cloudflare/ebpf_exporter/{{ ebpf_exporter_version }}/ebpf_exporter.{{ ansible_architecture }}"
-         dest: /home/{{ prometheus_system_user }}/bin/ebpf_exporter
+         dest: /home/{{ ebpf_exporter_base_directory }}/bin/ebpf_exporter
          mode: get
          overwrite: different
 
