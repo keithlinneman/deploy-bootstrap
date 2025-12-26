@@ -8,9 +8,28 @@
    vars:
      tempo_role: "{{ lookup('env', 'TEMPOROLE') }}"
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
+       set_fact: 
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         tempo_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/tempo/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -30,6 +49,7 @@
          - env
          - tempo_role
 
+   tasks:
      - name: Create tempo user
        user:
          name: "{{ tempo_system_user }}"
@@ -85,50 +105,68 @@
          path: /home/{{ tempo_system_user }}/bin/tempo
        register: tempo_binary
 
-     - name: Get latest tempo release info from github
-       uri:
-         url: https://api.github.com/repos/grafana/tempo/releases/latest
-         return_content: yes
-       register: release_info
-       when: not tempo_binary.stat.exists
+     #- name: Get latest tempo release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/grafana/tempo/releases/latest
+     #    return_content: yes
+     #  register: release_info
+     #  when: not tempo_binary.stat.exists
 
-     - name: Set release tag fact
-       set_fact:
-         release_tag: "{{ release_info.json.tag_name[1:] }}"
-       when: not tempo_binary.stat.exists
+     #- name: Set release tag fact
+     #  set_fact:
+     #    release_tag: "{{ release_info.json.tag_name[1:] }}"
+     #  when: not tempo_binary.stat.exists
 
-     - name: Set filename based on architecture
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    tempo_arch: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      tempo_{{ release_tag }}_linux_arm64.tar.gz
+     #      {%- else -%}
+     #      tempo_{{ release_tag }}_linux_amd64.tar.gz
+     #      {%- endif -%}
+     #  when: not tempo_binary.stat.exists
+
+     #- name: Find asset URL from release assets based on architecture
+     #  set_fact:
+     #    asset_url: "{{ (release_info.json.assets | selectattr('name', 'equalto', tempo_arch) | map(attribute='browser_download_url') | first) }}"
+     #  when: not tempo_binary.stat.exists
+
+     #- name: Fail if asset not found for our architecture
+     #  fail:
+     #    msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
+     #  when: asset_url is not defined and not tempo_binary.stat.exists
+
+     #- name: Download the latest tempo release from github
+     #  get_url:
+     #    url: "{{ asset_url }}"
+     #    dest: /home/{{ tempo_system_user }}/tempo.zip
+     #    owner: "{{ tempo_system_user }}"
+     #    group: "{{ tempo_system_user }}"
+     #    mode: 0750
+     #  when: not tempo_binary.stat.exists
+     
+     - name: Set normalized architecture fact
        set_fact:
-         tempo_arch: >-
+         arch_normalized: >-
            {%- if ansible_architecture == "aarch64" -%}
-           tempo_{{ release_tag }}_linux_arm64.tar.gz
+           arm64
            {%- else -%}
-           tempo_{{ release_tag }}_linux_amd64.tar.gz
+           amd64
            {%- endif -%}
-       when: not tempo_binary.stat.exists
 
-     - name: Find asset URL from release assets based on architecture
-       set_fact:
-         asset_url: "{{ (release_info.json.assets | selectattr('name', 'equalto', tempo_arch) | map(attribute='browser_download_url') | first) }}"
-       when: not tempo_binary.stat.exists
+     - name: Get pinned Tempo release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/grafana/tempo/v{{ tempo_version }}/tempo_{{ tempo_version }}_linux_{{ arch_normalized }}.tar.gz"
+         dest: /home/{{ tempo_system_user }}/tempo.tar.gz
+         mode: get
+         overwrite: different
 
-     - name: Fail if asset not found for our architecture
-       fail:
-         msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
-       when: asset_url is not defined and not tempo_binary.stat.exists
-
-     - name: Download the latest tempo release from github
-       get_url:
-         url: "{{ asset_url }}"
-         dest: /home/{{ tempo_system_user }}/tempo.zip
-         owner: "{{ tempo_system_user }}"
-         group: "{{ tempo_system_user }}"
-         mode: 0750
-       when: not tempo_binary.stat.exists
 
      - name: Decompress tempo installation package
        unarchive:
-         src: /home/{{ tempo_system_user }}/tempo.zip
+         src: /home/{{ tempo_system_user }}/tempo.tar.gz
          dest: /home/{{ tempo_system_user }}/bin
          #extra_opts: ['--strip-components=1','--show-stored-names']
          owner: "{{ tempo_system_user }}"
@@ -138,7 +176,7 @@
 
      - name: Remove the tempo installation package
        file:
-         path: /home/{{ tempo_system_user }}/tempo.zip
+         path: /home/{{ tempo_system_user }}/tempo.tar.gz
          state: absent
 
      - name: Create tempo systemd service

@@ -66,27 +66,27 @@
          shell: /usr/sbin/nologin
          system: true
 
-     - name: Get latest Prometheus release info from github
-       uri:
-         url: https://api.github.com/repos/prometheus/prometheus/releases/latest
-         return_content: yes
-       register: prometheus_release_info
+     #- name: Get latest Prometheus release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/prometheus/prometheus/releases/latest
+     #    return_content: yes
+     #  register: prometheus_release_info
 
-     - name: Set release tag fact
-       set_fact:
-         prometheus_release_tag: "{{ prometheus_release_info.json.tag_name }}"
+     #- name: Set release tag fact
+     #  set_fact:
+     #    prometheus_release_tag: "{{ prometheus_release_info.json.tag_name }}"
 
-     - name: Check if a newer prometheus version exists than the pinned version
-       ansible.builtin.debug:
-         msg: |
-           #################################################################
-           # WARNING: New prometheus version available              #
-           #   Pinned: {{ prometheus_version }}                     #
-           #   Latest: {{ prometheus_release_tag }}                            #
-           #################################################################
-       when: prometheus_release_tag[1:] is version(prometheus_version, '>')
-       run_once: true
-       changed_when: false
+     #- name: Check if a newer prometheus version exists than the pinned version
+     #  ansible.builtin.debug:
+     #    msg: |
+     #      #################################################################
+     #      # WARNING: New prometheus version available              #
+     #      #   Pinned: {{ prometheus_version }}                     #
+     #      #   Latest: {{ prometheus_release_tag }}                            #
+     #      #################################################################
+     #  when: prometheus_release_tag[1:] is version(prometheus_version, '>')
+     #  run_once: true
+     #  changed_when: false
 
      #- name: Set filename based on architecture
      #  set_fact:
@@ -97,14 +97,14 @@
      #      linux-amd64.tar.gz
      #      {%- endif -%}
 
-     - name: Set filename based on architecture
-       set_fact:
-         prometheus_asset_url: >-
-           {%- if ansible_architecture == "aarch64" -%}
-           https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-arm64.tar.gz
-           {%- else -%}
-           https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
-           {%- endif -%}
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    prometheus_asset_url: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-arm64.tar.gz
+     #      {%- else -%}
+     #      https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
+     #      {%- endif -%}
 
      #- name: Find {{ ansible_architecture }} asset URL from release assets
      #  set_fact:
@@ -117,10 +117,27 @@
      #    msg: "No {{ ansible_architecture }} asset found github latest release response."
      #  when: prometheus_asset_url is not defined
 
-     - name: Download the pinned Prometheus ({{ prometheus_version }}) linux-amd64 release from github ({{ prometheus_asset_url }})
-       get_url:
-         url: "{{ prometheus_asset_url }}"
-         dest: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+     #- name: Download the pinned Prometheus ({{ prometheus_version }}) linux-amd64 release from github ({{ prometheus_asset_url }})
+     #  get_url:
+     #    url: "{{ prometheus_asset_url }}"
+     #    dest: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+
+     - name: Set normalized architecture name
+       set_fact:
+         arch_normalized: >-
+           {%- if ansible_architecture == "aarch64" -%}
+           arm64
+           {%- else -%}
+           amd64
+           {%- endif -%}
+
+     - name: Get pinned prometheus release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/prometheus/prometheus/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{ arch_normalized }}.tar.gz"
+         dest: /home/{{ prometheus_system_user }}/prometheus.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Create prometheus bin, conf, data, scrapedata directories
        file:
@@ -151,7 +168,7 @@
 
      - name: Decompress prometheus installation package
        unarchive:
-         src: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+         src: /home/{{ prometheus_system_user }}/prometheus.tar.gz
          dest: /home/{{ prometheus_system_user }}/bin
          extra_opts: ['--wildcards', '--strip-components=1','--show-stored-names']
          include: ["*/prometheus", "*/promtool"]
@@ -162,7 +179,7 @@
 
      - name: Remove the prometheus installation package
        file:
-         path: /home/{{ prometheus_system_user }}/prometheus3.tar.gz
+         path: /home/{{ prometheus_system_user }}/prometheus.tar.gz
          state: absent
 
      - name: Modify prometheus main configuration
@@ -265,45 +282,53 @@
         - { name: net.core.wmem_default, value: 26214400 }
         - { name: net.core.netdev_max_backlog, value: 5000 }
 
-     - name: Get latest prometheus blackbox_exporter release info from github
-       uri:
-         url: https://api.github.com/repos/prometheus/blackbox_exporter/releases/latest
-         return_content: yes
-       register: latest_release_info
+     #- name: Get latest prometheus blackbox_exporter release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/prometheus/blackbox_exporter/releases/latest
+     #    return_content: yes
+     #  register: latest_release_info
 
-     - name: Set blackbox_exporter release tag fact
-       set_fact:
-         latest_release_tag: "{{ latest_release_info.json.tag_name }}"
+     #- name: Set blackbox_exporter release tag fact
+     #  set_fact:
+     #    latest_release_tag: "{{ latest_release_info.json.tag_name }}"
 
-     - name: Check if a newer blackbox_exporter version exists than the pinned version
-       ansible.builtin.debug:
-         msg: |
-           #################################################################
-           # WARNING: New blackbox_exporter version available              #
-           #   Pinned: {{ blackbox_exporter_version }}                     #
-           #   Latest: {{ latest_release_tag }}                            #
-           #################################################################
-       when: latest_release_tag[1:] is version(blackbox_exporter_version, '>')
-       run_once: true
-       changed_when: false
+     #- name: Check if a newer blackbox_exporter version exists than the pinned version
+     #  ansible.builtin.debug:
+     #    msg: |
+     #      #################################################################
+     #      # WARNING: New blackbox_exporter version available              #
+     #      #   Pinned: {{ blackbox_exporter_version }}                     #
+     #      #   Latest: {{ latest_release_tag }}                            #
+     #      #################################################################
+     #  when: latest_release_tag[1:] is version(blackbox_exporter_version, '>')
+     #  run_once: true
+     #  changed_when: false
 
-     - name: Set filename based on architecture
-       set_fact:
-         asset_url: >-
-           {%- if ansible_architecture == "aarch64" -%}
-           https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-arm64.tar.gz
-           {%- else -%}
-           https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-amd64.tar.gz
-           {%- endif -%}
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    asset_url: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-arm64.tar.gz
+     #      {%- else -%}
+     #      https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-amd64.tar.gz
+     #      {%- endif -%}
 
-     - name: Download the pinned blackbox_exporter release ({{ blackbox_exporter_version }}) from github ({{ asset_url }})
-       get_url:
-         url: "{{ asset_url }}"
-         dest: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
+     #- name: Download the pinned blackbox_exporter release ({{ blackbox_exporter_version }}) from github ({{ asset_url }})
+     #  get_url:
+     #    url: "{{ asset_url }}"
+     #    dest: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
+
+     - name: Get pinned blackbox_exporter release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/prometheus/blackbox_exporter/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-{{ arch_normalized }}.tar.gz"
+         dest: /home/{{ prometheus_system_user }}/blackbox_exporter.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Decompress blackbox_exporter installation package
        unarchive:
-         src: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
+         src: /home/{{ prometheus_system_user }}/blackbox_exporter.tar.gz
          dest: /home/{{ prometheus_system_user }}/bin
          extra_opts: ['--strip-components=1','--show-stored-names']
          owner: "{{ prometheus_system_user }}"
@@ -313,7 +338,7 @@
 
      - name: Remove the blackbox_exporter installation package
        file:
-         path: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
+         path: /home/{{ prometheus_system_user }}/blackbox_exporter.tar.gz
          state: absent
 
      - name: Modify blackbox_exporter main configuration

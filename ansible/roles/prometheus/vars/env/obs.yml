@@ -18,9 +18,9 @@ prometheus:
       - mimir
       - pyroscope
       - tempo
-    infra:
-      - aws-sd-infra
-      - aws-sd-ebpf
+    node:
+      - node-exporter
+      - ebpf-exporter
 
   rules:
     recording:

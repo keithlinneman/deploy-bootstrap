@@ -1,14 +1,10 @@
 ---
-  company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-  platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
   tempo_cluster_memberlist_port: 7946
   tempo_http_tcp_port: 8443
   tempo_grpc_tcp_port: 9095
   tempo_otlp_grpc_tcp_port: 4317
   tempo_otlp_http_tcp_port: 4318
   tempo_replication_factor: 3
-  tempo_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/tempo/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
   tempo_system_user: tempo
   tempo_systemd_service_name:
     compactor: tempo-compactor
@@ -17,3 +13,4 @@
     metrics-generator: tempo-metrics-generator
     querier: tempo-querier
     query-frontend: tempo-query-frontend
+  tempo_version: 2.9.0

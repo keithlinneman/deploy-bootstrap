@@ -4,7 +4,7 @@
     us-east-2: use2
     us-west-1: usw1
     us-west-2: usw2
-  blackbox_exporter_version: 0.27.0
+  blackbox_exporter_version: 0.28.0
   ebpf_exporter_tcp_port: 9435
   local_tsdb_retention_time: 1d
   prometheus_node_exporter_tcp_port: 9100
@@ -18,4 +18,4 @@
   #prometheus_tenant_name: "{{ company_name }}-{{ platform_env }}"
   prometheus_tenant_name: "{{ company_name }}"
   prometheus_tcp_port: 9090
-  prometheus_version: 3.7.3
+  prometheus_version: 3.8.1

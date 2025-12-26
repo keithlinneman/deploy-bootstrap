@@ -2,9 +2,9 @@ prometheus:
   scrape:
     apps:
       - prometheus
-    infra:
-      - aws-sd-infra
-      - aws-sd-ebpf
+    node:
+      - node-exporter
+      - ebpf-exporter
   rules:
     alerting:
       - apps/prometheus-alerts

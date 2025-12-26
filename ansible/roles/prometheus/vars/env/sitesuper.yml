@@ -4,9 +4,9 @@ prometheus:
     apps:
       - prometheus
       - sitesuper
-    infra:
-      - aws-sd-infra
-      - aws-sd-ebpf
+    node:
+      - node-exporter
+      - ebpf-exporter
 
   rules:
     alerting:
