@@ -127,7 +127,7 @@ processors:
 
       - {key: cloud.region, value: {{ ansible_ec2_instance_identity_document_region }}, action: upsert}
       - {key: cloud.availability_zone, value: {{ ansible_ec2_instance_identity_document_availabilityzone }}, action: upsert}
-      - {key: cloud.account.id, value: {{ ansible_ec2_identity_credentials_ec2_info_accountid }}, action: upsert}
+      - {key: cloud.account.id, value: "{{ ansible_ec2_identity_credentials_ec2_info_accountid }}", action: upsert}
 
   resource/source_journald:
     attributes:

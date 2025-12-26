@@ -5,6 +5,9 @@ logging {
 
 discovery.process "all" {
   // default: discovers all processes
+  discover_config {
+    cgroup_path = true
+  }
 }
 
 // system-wide ebpf profiling
@@ -20,6 +23,11 @@ discovery.relabel "profiling_targets" {
     regex         = ".*/([^/]+)$"
     target_label  = "process_name"
     replacement   = "$1"
+
+    source_labels = ["__meta_cgroup_path"]
+    regex         = "^.*/([^/]+)\\.service(?:.*)$"
+    target_label  = "systemd_service"
+    replacement   = "$1"
   }
 }
 
@@ -31,9 +39,9 @@ pyroscope.write "pyro" {
       "X-Scope-OrgID" = "{{ pyroscope_tenant_name }}",
     }
   }
-  // Labels attached to every profile (like external_labels in Prometheus)
   external_labels = {
     cloud_account_id   = "{{ ansible_ec2_identity_credentials_ec2_info_accountid }}",
+    cloud_region             = "{{ ansible_ec2_instance_identity_document_region }}",
     cloud_availability_zone = "{{ ansible_ec2_instance_identity_document_availabilityzone }}",
     company            = "{{ company_name }}",
     deployment_environment_name = "{{ platform_env }}",
@@ -44,7 +52,6 @@ pyroscope.write "pyro" {
     host_type          = "{{ ansible_ec2_instance_identity_document_instancetype }}",
     node               = "{{ hostname_no_instanceid }}",
     project            = "{{ project }}",
-    region             = "{{ ansible_ec2_instance_identity_document_region }}",
     service_name       = "{{ service_name }}-{{ service_component }}",
     service_namespace  = "{{ namespace }}",
     phxi_service_name  = "{{ service_name }}",
