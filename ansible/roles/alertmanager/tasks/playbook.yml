@@ -16,7 +16,6 @@
          company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-         alertmanager_config_external_url: https://alertmanager.{{ hosted_zone_name }}/
          alertmanager_config_slack_url_page_crit: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/page_crit', region=ansible_ec2_instance_identity_document_region ) }}"
          alertmanager_config_slack_url_alert_prod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_prod', region=ansible_ec2_instance_identity_document_region ) }}"
          alertmanager_config_slack_url_alert_nonprod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_nonprod', region=ansible_ec2_instance_identity_document_region ) }}"
@@ -31,7 +30,8 @@
          service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
          namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
-         pyroscope_tenant_name: "{{ company_name }}"
+         alertmanager_config_external_url: "https://alertmanager.{{ hosted_zone_name }}/"
+
 
      - name: Print all environment vars for debugging
        debug:
