@@ -125,6 +125,18 @@
        notify: restart alloy service
        when: ansible_os_family == 'Debian'
 
+
+     - name: Modify alloy service defaults
+       lineinfile:
+         path: /etc/default/alloy
+         regexp: '^CUSTOM_ARGS=.*'
+         line: 'CUSTOM_ARGS="--disable-reporting"'
+         #backup: true
+         backrefs: true
+         create: true
+       notify: restart alloy service
+       when: ansible_distribution == 'Ubuntu'
+
      - name: Enable alloy systemd service
        systemd:
          name: "{{ alloy_systemd_service_name }}"
