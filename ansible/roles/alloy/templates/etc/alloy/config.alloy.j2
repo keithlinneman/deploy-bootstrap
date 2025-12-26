@@ -20,12 +20,14 @@ discovery.relabel "profiling_targets" {
   targets = discovery.process.all.targets
   rule {
     source_labels = ["__meta_process_exe"]
-    regex         = ".*/([^/]+)$"
+   regex         = ".*/([^/]+)$"
     target_label  = "process_name"
     replacement   = "$1"
-
-    source_labels = ["__meta_cgroup_path"]
-    regex         = "^.*/([^/]+)\\.service(?:.*)$"
+  }
+  # Extract the last .service segment from the cgroup path, even if there are trailing subpaths
+  rule {
+    source_labels = ["__meta_process_cgroup_path"]
+    regex         = ".*?/([^/]+)\\.service(?:/.*)?$"
     target_label  = "systemd_service"
     replacement   = "$1"
   }
