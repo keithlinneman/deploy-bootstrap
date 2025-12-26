@@ -1,4 +1,0 @@
----
-  memcached_systemd_service_name: memcached
-  memcached_exporter_systemd_service_name: memcached_exporter
-  memcached_package_name: memcached

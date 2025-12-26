@@ -6,9 +6,29 @@
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
+       set_fact: 
+         account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set facts from environment variables
+       set_fact:
+         service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+         service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+         project: "{{ ansible_env.PROJECT | default('unknown') }}"
+         namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+
+     - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+       set_fact:
+         hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -17,11 +37,17 @@
 
      - name: Ensure required variables are defined
        fail:
-         msg: "{{ item }} must be defined use -e {{ item }}=value"
-       when: (lookup('vars', item, default=None)) is none
+         msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
+       when: vars[item] is not defined or vars[item] is none
        with_items:
-         - env
+         - platform_env
+         - service_name
+         - service_component
+         - project
+         - namespace
+         - hostname_no_instanceid
 
+   tasks:
      - name: Create memcached user
        user:
          name: "{{ memcached_system_user }}"
@@ -50,40 +76,57 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Get latest memcached_exporter release info from github
-       uri:
-         url: https://api.github.com/repos/prometheus/memcached_exporter/releases/latest
-         return_content: yes
-       register: release_info
+     #- name: Get latest memcached_exporter release info from github
+     #  uri:
+     #    url: https://api.github.com/repos/prometheus/memcached_exporter/releases/latest
+     #    return_content: yes
+     #  register: release_info
 
-     - name: Set release tag fact
-       set_fact:
-         release_tag: "{{ release_info.json.tag_name }}"
+     #- name: Set release tag fact
+     #  set_fact:
+     #    release_tag: "{{ release_info.json.tag_name }}"
 
-     - name: Set filename based on architecture
+     #- name: Set filename based on architecture
+     #  set_fact:
+     #    memcached_exporter_filename: >-
+     #      {%- if ansible_architecture == "aarch64" -%}
+     #      linux-arm64.tar.gz
+     #      {%- else -%}
+     #      linux-amd64.tar.gz
+     #      {%- endif -%}
+
+     #- name: Find {{ ansible_architecture }} asset URL from release assets
+     #  set_fact:
+     #    asset_url: "{{ item.browser_download_url }}"
+     #  loop: "{{ release_info.json.assets }}"
+     #  when: "memcached_exporter_filename in item.name"
+
+     #- name: Fail if architecture asset not found
+     #  fail:
+     #    msg: "No {{ ansible_architecture }} asset found github latest release response."
+     #  when: asset_url is not defined
+
+     #- name: Download the latest memcached_exporter release from github
+     #  get_url:
+     #    url: "{{ asset_url }}"
+     #    dest: /root/memcached_exporter.tar.gz
+
+     - name: Set normalized architecture name
        set_fact:
-         memcached_exporter_filename: >-
+         arch_normalized: >-
            {%- if ansible_architecture == "aarch64" -%}
-           linux-arm64.tar.gz
+           arm64
            {%- else -%}
-           linux-amd64.tar.gz
+           amd64
            {%- endif -%}
 
-     - name: Find {{ ansible_architecture }} asset URL from release assets
-       set_fact:
-         asset_url: "{{ item.browser_download_url }}"
-       loop: "{{ release_info.json.assets }}"
-       when: "memcached_exporter_filename in item.name"
-
-     - name: Fail if architecture asset not found
-       fail:
-         msg: "No {{ ansible_architecture }} asset found github latest release response."
-       when: asset_url is not defined
-
-     - name: Download the latest memcached_exporter release from github
-       get_url:
-         url: "{{ asset_url }}"
+     - name: Get pinned memcached_exporter release from s3 artifacts bucket 
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "thirdparty/prometheus/memcached_exporter/v{{ memcached_exporter_version }}/memcached_exporter-{{ memcached_exporter_version }}.linux-{{ arch_normalized }}.tar.gz"
          dest: /root/memcached_exporter.tar.gz
+         mode: get
+         overwrite: different
 
      - name: Decompress memcached_exporter installation package
        unarchive:
