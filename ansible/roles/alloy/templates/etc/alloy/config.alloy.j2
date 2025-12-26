@@ -24,7 +24,6 @@ discovery.relabel "profiling_targets" {
     target_label  = "process_name"
     replacement   = "$1"
   }
-  # Extract the last .service segment from the cgroup path, even if there are trailing subpaths
   rule {
     source_labels = ["__meta_process_cgroup_path"]
     regex         = ".*?/([^/]+)\\.service(?:/.*)?$"
