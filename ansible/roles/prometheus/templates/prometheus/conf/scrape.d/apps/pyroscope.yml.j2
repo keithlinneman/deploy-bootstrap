@@ -15,6 +15,7 @@ scrape_configs:
           service_name: pyroscope-compactor
           phxi_service_name: pyroscope
           phxi_service_component: compactor
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -39,6 +40,7 @@ scrape_configs:
           service_name: pyroscope-distributor
           phxi_service_name: pyroscope
           phxi_service_component: distributor
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -63,6 +65,7 @@ scrape_configs:
           service_name: pyroscope-ingester
           phxi_service_name: pyroscope
           phxi_service_component: ingester
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -87,6 +90,7 @@ scrape_configs:
           service_name: pyroscope-querier
           phxi_service_name: pyroscope
           phxi_service_component: querier
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -111,6 +115,7 @@ scrape_configs:
           service_name: pyroscope-query-frontend
           phxi_service_name: pyroscope
           phxi_service_component: query-frontend
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -135,6 +140,7 @@ scrape_configs:
           service_name: pyroscope-query-scheduler
           phxi_service_name: pyroscope
           phxi_service_component: query-scheduler
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -159,6 +165,7 @@ scrape_configs:
           service_name: pyroscope-store-gateway
           phxi_service_name: pyroscope
           phxi_service_component: store-gateway
+          namespace: pyroscope
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

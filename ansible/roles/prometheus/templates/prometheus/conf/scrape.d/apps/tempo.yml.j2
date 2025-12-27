@@ -16,6 +16,7 @@ scrape_configs:
           service_name: tempo-compactor
           phxi_service_name: tempo
           phxi_service_component: compactor
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -41,6 +42,7 @@ scrape_configs:
           service_name: tempo-distributor
           phxi_service_name: tempo
           phxi_service_component: distributor
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -66,6 +68,7 @@ scrape_configs:
           service_name: tempo-ingester
           phxi_service_name: tempo
           phxi_service_component: ingester
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -91,6 +94,7 @@ scrape_configs:
           service_name: tempo-metrics-generator
           phxi_service_name: tempo
           phxi_service_component: metrics-generator
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -116,6 +120,7 @@ scrape_configs:
           service_name: tempo-querier
           phxi_service_name: tempo
           phxi_service_component: querier
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -141,6 +146,7 @@ scrape_configs:
           service_name: tempo-query-frontend
           phxi_service_name: tempo
           phxi_service_component: query-frontend
+          namespace: tempo
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

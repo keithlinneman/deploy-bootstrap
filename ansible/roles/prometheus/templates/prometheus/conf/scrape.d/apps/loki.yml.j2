@@ -16,6 +16,7 @@ scrape_configs:
           service_name: loki-compactor
           phxi_service_name: loki
           phxi_service_component: compactor
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -41,6 +42,7 @@ scrape_configs:
           service_name: loki-distributor
           phxi_service_name: loki
           phxi_service_component: distributor
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -66,6 +68,7 @@ scrape_configs:
           service_name: loki-index-gateway
           phxi_service_name: loki
           phxi_service_component: index-gateway
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -91,6 +94,7 @@ scrape_configs:
           service_name: loki-ingester
           phxi_service_name: loki
           phxi_service_component: ingester
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -116,6 +120,7 @@ scrape_configs:
           service_name: loki-querier
           phxi_service_name: loki
           phxi_service_component: querier
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -141,7 +146,7 @@ scrape_configs:
           service_name: loki-query-frontend
           phxi_service_name: loki
           phxi_service_component: query-frontend
-
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -167,6 +172,7 @@ scrape_configs:
           service_name: loki-query-scheduler
           phxi_service_name: loki
           phxi_service_component: query-scheduler
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -192,6 +198,7 @@ scrape_configs:
           service_name: loki-ruler
           phxi_service_name: loki
           phxi_service_component: ruler
+          namespace: loki
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'

@@ -8,8 +8,10 @@
 *Alerts:* {{ len .Alerts.Firing }} firing{{ if gt (len .Alerts.Resolved) 0 }} / {{ len .Alerts.Resolved }} resolved{{ end }}
 
 {{ range .Alerts }}
-• *{{ .Labels.alertname }}* on {{ or .Labels.node }} ({{ .Labels.host_id }})
-  {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No summary.{{ end }}
+• *{{ .Labels.alertname }}* on {{ or .Labels.node .Labels.instance .Labels.pod .Labels.component "unknown" }} ({{ or .Labels.host_id "n/a" }})
+  {{ if .Annotations.summary }}{{ .Annotations.summary }}
+  {{ else if .Annotations.message }}{{ .Annotations.message }}
+  {{ else }}No summary.{{ end }}
 {{ end }}
 
 {{ if .CommonAnnotations.runbook_url }}

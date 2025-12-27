@@ -16,6 +16,7 @@ scrape_configs:
           service_name: mimir-compactor
           phxi_service_name: mimir
           phxi_service_component: compactor
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -41,6 +42,8 @@ scrape_configs:
           service_name: mimir-distributor
           phxi_service_name: mimir
           phxi_service_component: distributor
+          namespace: mimir
+
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -91,6 +94,7 @@ scrape_configs:
           service_name: mimir-querier
           phxi_service_name: mimir
           phxi_service_component: querier
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -116,6 +120,7 @@ scrape_configs:
           service_name: mimir-query-frontend
           phxi_service_name: mimir
           phxi_service_component: query-frontend
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -141,6 +146,7 @@ scrape_configs:
           service_name: mimir-query-scheduler
           phxi_service_name: mimir
           phxi_service_component: query-scheduler
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -166,6 +172,7 @@ scrape_configs:
           service_name: mimir-store-gateway
           phxi_service_name: mimir
           phxi_service_component: store-gateway
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
