@@ -13,7 +13,8 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-    cluster: "{{ company_name }}-{{ platform_env }}-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
+    #cluster: "{{ company_name }}-{{ platform_env }}-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
+    cluster: "{{ company_name }}-{{ account_name }}-{{ platform_env }}-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
     cloud_region: "{{ ansible_ec2_instance_identity_document_region }}"
     deployment_environment_name: "{{ platform_env }}"
     company: "{{ company_name }}"
@@ -21,7 +22,7 @@ global:
     phxi_account_label: "{{ account_name }}-{{ platform_env }}"
     #__replica__: "{{ ansible_ec2_instance_identity_document_availabilityzone }}"
     __replica__: "{{ region_short_name[ansible_ec2_instance_identity_document_region] }}-{{ ansible_ec2_instance_identity_document_availabilityzone.split('-')[-1] }}"
-    monitor: "prometheus-ha-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
+    monitor: "prometheus-ha-{{ account_name }}-{{ platform_env }}-{{ region_short_name[ansible_ec2_instance_identity_document_region] }}"
 
   #scrape_failure_log_file: 
   # The max number of samples that can be returned per scrape or it will be rejected

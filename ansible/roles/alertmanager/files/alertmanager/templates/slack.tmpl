@@ -1,10 +1,10 @@
 {{ define "slack.title" -}}
-[{{ .GroupLabels.env | toUpper }}][{{ .CommonLabels.severity | toUpper }}] {{ .CommonLabels.alertname }} – {{ .GroupLabels.service_name }} / {{ .GroupLabels.service_role }}
+[{{ .GroupLabels.deployment_environment_name | toUpper }}][{{ .CommonLabels.severity | toUpper }}] {{ .CommonLabels.alertname }} – {{ .GroupLabels.phxi_service_name }} / {{ .GroupLabels.phxi_service_component }}
 {{- end }}
 
 {{ define "slack.text" -}}
-*Env:* {{ .GroupLabels.env }} / {{ .CommonLabels.region }}
-*Service:* {{ .GroupLabels.service_name }} / {{ .GroupLabels.service_role }}
+*Env:* {{ .GroupLabels.deployment_environment_name }} / {{ .CommonLabels.cloud_region }}
+*Service:* {{ .GroupLabels.phxi_service_name }} / {{ .GroupLabels.phxi_service_component }}
 *Alerts:* {{ len .Alerts.Firing }} firing{{ if gt (len .Alerts.Resolved) 0 }} / {{ len .Alerts.Resolved }} resolved{{ end }}
 
 {{ range .Alerts }}

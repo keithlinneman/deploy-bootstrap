@@ -3,7 +3,7 @@ global:
 
 route:
   #group_by: ['alertname', 'env', 'service']
-  group_by: ['env', 'region', 'service_name', 'service_role', 'alertname']
+  group_by: ['phxi_account_name','deployment_environment_name', 'cloud_region', 'phxi_service_name', 'phxi_service_component', 'alertname']
   group_wait: 30s
   group_interval: 2m
   repeat_interval: 1h
@@ -20,35 +20,36 @@ route:
     # prod/obs/network slo alerts go to SLO channel
     - matchers:
         - category = "slo"
-        - env =~ "prod|obs|network"
+        - deployment_environment_name =~ "prod"
       receiver: 'slack-alert-slo'
 
     # all cost alerts go to cost channel
     - matchers:
         - category = "cost"
-        #- env = "prod"
+        #- deployment_environment_name = "prod"
       receiver: 'slack-alert-cost'
 
     # change/deploy alerts – separate low-noise channel
     - matchers:
         - category = "changes"
+        - deployment_environment_name =~ "prod"
       receiver: 'slack-alert-changes'
 
     # paging/critical alerts in prod
     - matchers:
-        - env = "prod"
+        - deployment_environment_name = "prod"
         - severity =~ "page|crit"
       receiver: 'slack-page-crit'
 
     # paging/critical alerts in obs/network
-    - matchers:
-        - env =~ "obs|network"
-        - severity =~ "page|crit"
-      receiver: 'slack-page-crit'
+    #- matchers:
+    #    - env =~ "obs|network"
+    #    - severity =~ "page|crit"
+    #  receiver: 'slack-page-crit'
 
     # non-paging alerts in prod (warnings/info)
     - matchers:
-        - env = "prod"
+        - deployment_environment_name = "prod"
       receiver: 'slack-alert-prod'
 
     # everything else falls back to slack-alert-nonprod
