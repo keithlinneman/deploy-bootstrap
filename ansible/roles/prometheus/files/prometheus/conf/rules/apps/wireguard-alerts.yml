@@ -15,16 +15,19 @@ groups:
         for more than 1 minute.
 
   # 2) Interface down
-  - alert: WireguardInterfaceDown
-    expr: node_network_up{device="wg0"} == 0
-    for: 1m
+  - alert: WireguardInterfaceMissing
+    expr: |
+      (up{job="node/node-exporter", phxi_service_name="vpn", phxi_service_component="wireguard"} == 1)
+      unless on(node)
+      (node_network_info{device="wg0"} == 1)
+    for: 2m
     labels:
       severity: critical
       app: wireguard
     annotations:
-      summary: "WireGuard interface wg0 is down on {{ $labels.node }}"
-      description: |
-        node_network_up{device="wg0"} == 0 for more than 1 minute.
+      summary: "wg0 interface missing on {{ $labels.node }}"
+      description: "node_exporter does not report wg0 (node_network_info) for >2m."
+
 
   # 3) No traffic over tunnel
   - alert: WireguardNoTraffic
