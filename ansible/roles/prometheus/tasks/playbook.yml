@@ -157,7 +157,7 @@
          - conf/rules/alerting/apps
          - conf/scrape.d/
          - conf/scrape.d/apps
-         - conf/scrape.d/infra
+         - conf/scrape.d/node
          - conf/scrape.d/blackbox
          - conf/file_sd.d/
          - conf/file_sd.d/blackbox-http
@@ -189,15 +189,15 @@
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
 
-     - name: Create prometheus infra scrape target configurations
+     - name: Create prometheus node scrape target configurations
        template:
-         src: ../templates/prometheus/conf/scrape.d/infra/{{ item }}.yml.j2
-         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/infra/{{ item }}.yml
+         src: ../templates/prometheus/conf/scrape.d/node/{{ item }}.yml.j2
+         dest: /home/{{ prometheus_system_user }}/conf/scrape.d/node/{{ item }}.yml
          mode: 0644
          owner: "{{ prometheus_system_user }}"
          group: "{{ prometheus_system_user }}"
        notify: restart prometheus service
-       loop: "{{ prometheus.scrape.infra | default([]) }}"
+       loop: "{{ prometheus.scrape.node | default([]) }}"
 
      - name: Create prometheus app scrape target configurations
        template:
