@@ -12,7 +12,7 @@ groups:
       summary: "WireGuard service down on {{ $labels.node }}"
       description: |
         systemd unit wg-quick@wg0.service is not active on {{ $labels.node }}
-        for more than 1 minute.
+        for more than 1 minute
 
   # 2) Interface down
   - alert: WireguardInterfaceMissing
@@ -26,18 +26,17 @@ groups:
       app: wireguard
     annotations:
       summary: "wg0 interface missing on {{ $labels.node }}"
-      description: "node_exporter does not report wg0 (node_network_info) for >2m."
+      description: "node_exporter does not report wg0 (node_network_info) for >2m"
 
 
   # 3) No traffic over tunnel
-  - alert: WireguardNoTraffic
-    expr: rate(node_network_receive_bytes_total{device="wg0"}[5m]) < 10
-    for: 15m
-    labels:
-      severity: warning
-      app: wireguard
-    annotations:
-      summary: "Low or no WireGuard traffic on {{ $labels.node }}"
-      description: |
-        wg0 has had < 10 bytes/sec incoming over 15 minutes.
-        This might be normal during quiet periods; tune or silence as needed.
+  #- alert: WireguardNoTraffic
+  #  expr: rate(node_network_receive_bytes_total{device="wg0"}[5m]) < 10
+  #  for: 15m
+  #  labels:
+  #    severity: warning
+  #    app: wireguard
+  #  annotations:
+  #    summary: "Low or no WireGuard traffic on {{ $labels.node }}"
+  #    description: |
+  #      wg0 has had < 10 bytes/sec incoming over 15 minutes.

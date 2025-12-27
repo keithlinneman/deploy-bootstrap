@@ -11,7 +11,6 @@ scrape_configs:
           - mimir-compactor-2b.{{ hosted_zone_name }}:8443
           - mimir-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-compactor
           phxi_service_name: mimir
@@ -37,7 +36,6 @@ scrape_configs:
           - mimir-distributor-2b.{{ hosted_zone_name }}:8443
           - mimir-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-distributor
           phxi_service_name: mimir
@@ -64,7 +62,6 @@ scrape_configs:
           - mimir-ingester-2b.{{ hosted_zone_name }}:8443
           - mimir-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-ingester
           phxi_service_name: mimir
@@ -89,7 +86,6 @@ scrape_configs:
           - mimir-querier-2b.{{ hosted_zone_name }}:8443
           - mimir-querier-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-querier
           phxi_service_name: mimir
@@ -115,7 +111,6 @@ scrape_configs:
           - mimir-query-frontend-2b.{{ hosted_zone_name }}:8443
           - mimir-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-query-frontend
           phxi_service_name: mimir
@@ -141,7 +136,6 @@ scrape_configs:
           - mimir-query-scheduler-2b.{{ hosted_zone_name }}:8443
           - mimir-query-scheduler-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-query-scheduler
           phxi_service_name: mimir
@@ -167,7 +161,6 @@ scrape_configs:
           - mimir-store-gateway-2b.{{ hosted_zone_name }}:8443
           - mimir-store-gateway-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: mimir-store-gateway
           phxi_service_name: mimir

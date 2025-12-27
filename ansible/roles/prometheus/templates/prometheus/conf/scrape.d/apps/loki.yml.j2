@@ -11,7 +11,6 @@ scrape_configs:
           - loki-compactor-2b.{{ hosted_zone_name }}:8443
           - loki-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-compactor
           phxi_service_name: loki
@@ -37,7 +36,6 @@ scrape_configs:
           - loki-distributor-2b.{{ hosted_zone_name }}:8443
           - loki-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-distributor
           phxi_service_name: loki
@@ -63,7 +61,6 @@ scrape_configs:
           - loki-index-gateway-2b.{{ hosted_zone_name }}:8443
           - loki-index-gateway-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-index-gateway
           phxi_service_name: loki
@@ -89,7 +86,6 @@ scrape_configs:
           - loki-ingester-2b.{{ hosted_zone_name }}:8443
           - loki-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-ingester
           phxi_service_name: loki
@@ -115,7 +111,6 @@ scrape_configs:
           - loki-querier-2b.{{ hosted_zone_name }}:8443
           - loki-querier-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-querier
           phxi_service_name: loki
@@ -141,7 +136,6 @@ scrape_configs:
           - loki-query-frontend-2b.{{ hosted_zone_name }}:8443
           - loki-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-query-frontend
           phxi_service_name: loki
@@ -167,7 +161,6 @@ scrape_configs:
           - loki-query-scheduler-2b.{{ hosted_zone_name }}:8443
           - loki-query-scheduler-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-query-scheduler
           phxi_service_name: loki
@@ -193,7 +186,6 @@ scrape_configs:
           - loki-ruler-2b.{{ hosted_zone_name }}:8443
           - loki-ruler-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: loki-ruler
           phxi_service_name: loki

@@ -11,7 +11,6 @@ scrape_configs:
           - grafana-2a.{{ hosted_zone_name }}:8443
           - grafana-2b.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: grafana-server
           phxi_service_name: grafana

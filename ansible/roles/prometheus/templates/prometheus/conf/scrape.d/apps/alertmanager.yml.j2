@@ -13,7 +13,6 @@ scrape_configs:
           - alertmanager-2b.{{ hosted_zone_name }}:9093
           - alertmanager-2c.{{ hosted_zone_name }}:9093
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: alertmanager-server
           phxi_service_name: alertmanager

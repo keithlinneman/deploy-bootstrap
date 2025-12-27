@@ -11,7 +11,6 @@ scrape_configs:
           - tempo-compactor-2b.{{ hosted_zone_name }}:8443
           - tempo-compactor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-compactor
           phxi_service_name: tempo
@@ -37,7 +36,6 @@ scrape_configs:
           - tempo-distributor-2b.{{ hosted_zone_name }}:8443
           - tempo-distributor-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-distributor
           phxi_service_name: tempo
@@ -63,7 +61,6 @@ scrape_configs:
           - tempo-ingester-2b.{{ hosted_zone_name }}:8443
           - tempo-ingester-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-ingester
           phxi_service_name: tempo
@@ -89,7 +86,6 @@ scrape_configs:
           - tempo-metrics-generator-2b.{{ hosted_zone_name }}:8443
           - tempo-metrics-generator-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-metrics-generator
           phxi_service_name: tempo
@@ -115,7 +111,6 @@ scrape_configs:
           - tempo-querier-2b.{{ hosted_zone_name }}:8443
           - tempo-querier-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-querier
           phxi_service_name: tempo
@@ -141,7 +136,6 @@ scrape_configs:
           - tempo-query-frontend-2b.{{ hosted_zone_name }}:8443
           - tempo-query-frontend-2c.{{ hosted_zone_name }}:8443
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: tempo-query-frontend
           phxi_service_name: tempo

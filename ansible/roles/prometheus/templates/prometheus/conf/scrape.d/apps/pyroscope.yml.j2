@@ -10,7 +10,6 @@ scrape_configs:
           - pyroscope-compactor-2b.{{ hosted_zone_name }}:8080
           - pyroscope-compactor-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-compactor
           phxi_service_name: pyroscope
@@ -35,7 +34,6 @@ scrape_configs:
           - pyroscope-distributor-2b.{{ hosted_zone_name }}:8080
           - pyroscope-distributor-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-distributor
           phxi_service_name: pyroscope
@@ -60,7 +58,6 @@ scrape_configs:
           - pyroscope-ingester-2b.{{ hosted_zone_name }}:8080
           - pyroscope-ingester-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-ingester
           phxi_service_name: pyroscope
@@ -85,7 +82,6 @@ scrape_configs:
           - pyroscope-querier-2b.{{ hosted_zone_name }}:8080
           - pyroscope-querier-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-querier
           phxi_service_name: pyroscope
@@ -110,7 +106,6 @@ scrape_configs:
           - pyroscope-query-frontend-2b.{{ hosted_zone_name }}:8080
           - pyroscope-query-frontend-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-query-frontend
           phxi_service_name: pyroscope
@@ -135,7 +130,6 @@ scrape_configs:
           - pyroscope-query-scheduler-2b.{{ hosted_zone_name }}:8080
           - pyroscope-query-scheduler-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-query-scheduler
           phxi_service_name: pyroscope
@@ -160,7 +154,6 @@ scrape_configs:
           - pyroscope-store-gateway-2b.{{ hosted_zone_name }}:8080
           - pyroscope-store-gateway-2c.{{ hosted_zone_name }}:8080
         labels:
-          cluster: "{{ company_name }}-{{ platform_env }}-{{ ansible_ec2_instance_identity_document_region }}"
           service_namespace: observability
           service_name: pyroscope-store-gateway
           phxi_service_name: pyroscope
