@@ -16,8 +16,8 @@ groups:
 
     - alert: NetworkTransitDrops
       expr: |
-        rate(node_network_receive_drop_total[5m]) +
-        rate(node_network_transmit_drop_total[5m]) > 0
+        rate(node_network_receive_drop_total{device!~"wg0|lo"}[5m]) +
+        rate(node_network_transmit_drop_total{device!~"wg0|lo"}[5m]) > 0
       for: 5m
       labels:
         severity: warn

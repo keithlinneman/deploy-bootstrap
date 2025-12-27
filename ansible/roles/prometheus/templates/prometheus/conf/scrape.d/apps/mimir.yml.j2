@@ -41,7 +41,6 @@ scrape_configs:
           phxi_service_name: mimir
           phxi_service_component: distributor
           namespace: mimir
-
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
@@ -66,6 +65,7 @@ scrape_configs:
           service_name: mimir-ingester
           phxi_service_name: mimir
           phxi_service_component: ingester
+          namespace: mimir
     relabel_configs:
       - source_labels: [__address__]
         regex: '([^:]+):.*'
