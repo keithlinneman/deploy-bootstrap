@@ -6,9 +6,30 @@
      - ../vars/default.yml
      - ../vars/{{ ansible_os_family }}.yml
 
-   tasks:
+   pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
+
+     - name: Set environment variables from SSM and Secrets Manager that require ec2 env first
+       set_fact:
+         artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+         database_host:
+           reader: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/reader', region=ansible_ec2_instance_identity_document_region ) }}"
+           writer: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/writer', region=ansible_ec2_instance_identity_document_region ) }}"
+         database_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         database_port: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/port', region=ansible_ec2_instance_identity_document_region ) }}"
+         database_creds_secret_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/db/primary/secret/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         sitesuper_version: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/prod/release/version', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set additional variables based on retrieved env vars
+       set_fact:
+         database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
+         database_user: "{{ database_creds.username }}"
+         database_password: "{{ database_creds.password }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -21,7 +42,19 @@
        when: (lookup('vars', item, default=None)) is none
        loop:
          - env
+         - company_name
+         - platform_env
+         - artifacts_bucket_name
+         - database_host.reader
+         - database_host.writer 
+         - database_name
+         - database_user
+         - database_password
+         - database_port
+         - otlp_profiles_endpoint
+         - sitesuper_version
 
+   tasks:
      - name: Create sitesuper-web user
        user:
          name: "{{ sitesuper_web_system_user }}"
