@@ -188,7 +188,6 @@
          group: "{{ sitesuper_web_system_user }}"
          mode: 0750
 
-         - name: Ensure /etc/sitesuper exists
      - name: Ensure /etc/sitesuper directory exists
        file:
          path: /etc/sitesuper
