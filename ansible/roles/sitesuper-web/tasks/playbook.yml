@@ -27,6 +27,9 @@
      - name: Set additional variables based on retrieved env vars
        set_fact:
          database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set database creds
+       set_fact:
          database_user: "{{ database_creds.username }}"
          database_password: "{{ database_creds.password }}"
 
@@ -36,23 +39,20 @@
          verbosity: 2
 
      - name: Ensure required variables are defined
-       fail:
-         msg: "{{ item }} must be defined use -e {{ item }}=value"
-       when: (lookup('vars', item, default=None)) is none
-       loop:
-         - env
-         - company_name
-         - platform_env
-         - artifacts_bucket_name
-         - database_host.reader
-         - database_host.writer 
-         - database_name
-         - database_user
-         - database_password
-         - database_port
-         - otlp_profiles_endpoint
-         - sitesuper_release_id
-         - cosign_pubkey_path
+       assert:
+         that:
+           - company_name is defined
+           - platform_env is defined
+           - artifacts_bucket_name is defined
+           - database_host.reader is defined
+           - database_host.writer is defined
+           - database_name is defined
+           - database_user is defined
+           - database_password is defined
+           - database_port is defined
+           - otlp_profiles_endpoint is defined
+           - sitesuper_release_id is defined
+           - cosign_pubkey_path is defined
 
    tasks:
      - name: Create sitesuper-web user
@@ -87,7 +87,7 @@
      - name: Get sitesuper-web release index from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/release.json"
+         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/release.json"
          dest: /home/{{ sitesuper_web_system_user }}/release.json
          mode: get
          overwrite: different
@@ -96,7 +96,7 @@
      - name: Get sitesuper-web release index sig from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/release.json.sig"
+         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/release.json.sig"
          dest: /home/{{ sitesuper_web_system_user }}/release.json.sig
          mode: get
          overwrite: different
@@ -107,6 +107,7 @@
          cosign verify-blob
          --key {{ cosign_pubkey_path }}
          --signature /home/{{ sitesuper_web_system_user }}/release.json.sig
+         --insecure-ignore-tlog
          /home/{{ sitesuper_web_system_user }}/release.json
        register: cosign_verify_result
        failed_when: cosign_verify_result.rc != 0
@@ -140,18 +141,18 @@
      - name: Ensure release index contains an artifact for this os/arch
        fail:
          msg: "No artifact found in release.json for web linux/{{ architecture_normalized_name }}"
-         when: sitesuper_web_binary_path | default('') == ''
+       when: sitesuper_web_binary_path | default('') == ''
 
      - name: Ensure release index contains an sha256 sum for this artifact
        fail:
          msg: "No sha256 sum found in release.json for web linux/{{ architecture_normalized_name }}"
-         when: sitesuper_web_binary_sha256 | default('') == ''
+       when: sitesuper_web_binary_sha256 | default('') == ''
 
      # download binary
      - name: Download sitesuper-web binary for our architecture
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/{{ sitesuper_web_binary_path }}"
+         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ sitesuper_web_binary_path }}"
          dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
          mode: get
          overwrite: different
