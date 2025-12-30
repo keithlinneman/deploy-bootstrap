@@ -83,23 +83,17 @@
            amd64
            {%- endif -%}
 
-     # download release index
-     - name: Get sitesuper-web release index from s3
+     # download release index and signature
+     - name: Get sitesuper-web release.json index and release.json.sig from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/release.json"
-         dest: /home/{{ sitesuper_web_system_user }}/release.json
+         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ item }}"
+         dest: /home/{{ sitesuper_web_system_user }}/{{ item }}"
          mode: get
          overwrite: different
-
-     # download release index sig
-     - name: Get sitesuper-web release index sig from s3
-       amazon.aws.s3_object:
-         bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/release.json.sig"
-         dest: /home/{{ sitesuper_web_system_user }}/release.json.sig
-         mode: get
-         overwrite: different
+       loop:
+         - release.json
+         - release.json.sig
 
      # verify signature
      - name: Verify sitesuper-web release index signature
@@ -156,6 +150,7 @@
          dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
          mode: get
          overwrite: different
+       notify: restart sitesuper-web service
 
      - name: Create sha256 sum file for verification
        copy:
