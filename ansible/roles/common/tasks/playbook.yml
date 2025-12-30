@@ -225,20 +225,36 @@
       dest: /etc/motd
       #backup: true
 
-  - name: Configure NTP servers
-    lineinfile:
+  # replacing with aws vpc ntp servers so i can filter egress heavily
+  #- name: Configure NTP servers
+  #  lineinfile:
+  #    path: /etc/chrony/chrony.conf
+  #    regexp: "{{ item.regexp }}"
+  #    line: "{{ item.line }}"
+  #    #backup: true
+  #    backrefs: false
+  #    create: true
+  #  loop:
+  #   - { regexp: '^pool\s*ntp.ubuntu.com*.*', line: 'pool 0.us.pool.ntp.org iburst maxsources 4' }
+  #   - { regexp: '^pool 0.ubuntu.pool.ntp.org.*', line: '#pool 1.us.pool.ntp.org iburst maxsources 4' }
+  #   - { regexp: '^pool 1.ubuntu.pool.ntp.org.*', line: '#pool 2.us.pool.ntp.org iburst maxsources 4' }
+  #   - { regexp: '^pool 2.ubuntu.pool.ntp.org.*', line: '#server time.nist.gov iburst' }
+  #  notify: Restart service chrony
+
+  - name: Configure NTP servers (aws vpc timeserver only)
+    become: true
+    ansible.builtin.lineinfile:
       path: /etc/chrony/chrony.conf
-      regexp: "{{ item.regexp }}"
-      line: "{{ item.line }}"
-      #backup: true
-      backrefs: false
-      create: true
-    loop:
-      - { regexp: '^pool\s*ntp.ubuntu.com*.*', line: 'pool 0.us.pool.ntp.org iburst maxsources 4' }
-      - { regexp: '^pool 0.ubuntu.pool.ntp.org.*', line: 'pool 1.us.pool.ntp.org iburst maxsources 4' }
-      - { regexp: '^pool 1.ubuntu.pool.ntp.org.*', line: 'pool 2.us.pool.ntp.org iburst maxsources 4' }
-      - { regexp: '^pool 2.ubuntu.pool.ntp.org.*', line: 'server time.nist.gov iburst' }
-    notify: Restart service chrony
+      insertafter: BOF
+      line: "server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4"
+      state: present
+
+  - name: Remove other NTP servers (so we can heavily filter egress)
+    become: true
+    ansible.builtin.replace:
+      path: /etc/chrony/chrony.conf
+      regexp: '^(pool|server)\s+(?!169\.254\.169\.123).*'
+      replace: '# \g<0>'
 
   - name: Allocate 2gb swap file for emergencies
     shell:
