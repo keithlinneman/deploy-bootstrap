@@ -115,7 +115,7 @@
      # load release index
      - name: load release index
        set_fact:
-       release_index: "{{ lookup('file', '/home/' + sitesuper_web_system_user + '/release.json') | from_json }}"
+         release_index: "{{ lookup('file', '/home/' + sitesuper_web_system_user + '/release.json') | from_json }}"
 
      # find binary path for our architecture
      - name: Set sitesuper-web binary path from release index
