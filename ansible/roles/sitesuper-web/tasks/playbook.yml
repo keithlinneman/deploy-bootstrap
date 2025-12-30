@@ -23,8 +23,7 @@
          database_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/name', region=ansible_ec2_instance_identity_document_region ) }}"
          database_port: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/port', region=ansible_ec2_instance_identity_document_region ) }}"
          database_creds_secret_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/db/primary/secret/name', region=ansible_ec2_instance_identity_document_region ) }}"
-         sitesuper_version: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/prod/release/version', region=ansible_ec2_instance_identity_document_region ) }}"
-
+         sitesuper_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/deploy/primary/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
      - name: Set additional variables based on retrieved env vars
        set_fact:
          database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
@@ -52,7 +51,8 @@
          - database_password
          - database_port
          - otlp_profiles_endpoint
-         - sitesuper_version
+         - sitesuper_release_id
+         - cosign_pubkey_path
 
    tasks:
      - name: Create sitesuper-web user
@@ -83,14 +83,110 @@
            amd64
            {%- endif -%}
 
-     - name: Get sitesuper-web release from s3
+     # download release index
+     - name: Get sitesuper-web release index from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/sitesuper/web/releases/v{{ sitesuper_version }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
+         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/release.json"
+         dest: /home/{{ sitesuper_web_system_user }}/release.json
+         mode: get
+         overwrite: different
+
+     # download release index sig
+     - name: Get sitesuper-web release index sig from s3
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/release.json.sig"
+         dest: /home/{{ sitesuper_web_system_user }}/release.json.sig
+         mode: get
+         overwrite: different
+
+     # verify signature
+     - name: Verify sitesuper-web release index signature
+       command: >
+         cosign verify-blob
+         --key {{ cosign_pubkey_path }}
+         --signature /home/{{ sitesuper_web_system_user }}/release.json.sig
+         /home/{{ sitesuper_web_system_user }}/release.json
+       register: cosign_verify_result
+       failed_when: cosign_verify_result.rc != 0
+       changed_when: false
+
+     # load release index
+     - name: load release index
+       set_fact:
+       release_index: "{{ lookup('file', '/home/' + sitesuper_web_system_user + '/release.json') | from_json }}"
+
+     # find binary path for our architecture
+     - name: Set sitesuper-web binary path from release index
+       set_fact:
+         sitesuper_web_binary_path: >-
+           {{ release_index.components.web.artifacts
+              | selectattr('os','equalto','linux')
+              | selectattr('arch','equalto',architecture_normalized_name)
+              | map(attribute='binary.path')
+              | first }}
+
+     # find sha256 sum for our architecture
+     - name: Find sha256 sum for sitesuper-web binary
+       set_fact:
+         sitesuper_web_binary_sha256: >-
+           {{ release_index.components.web.artifacts
+              | selectattr('os','equalto','linux')
+              | selectattr('arch','equalto',architecture_normalized_name)
+              | map(attribute='binary.sha256')
+              | first }}
+
+     - name: Ensure release index contains an artifact for this os/arch
+       fail:
+         msg: "No artifact found in release.json for web linux/{{ architecture_normalized_name }}"
+         when: sitesuper_web_binary_path | default('') == ''
+
+     - name: Ensure release index contains an sha256 sum for this artifact
+       fail:
+         msg: "No sha256 sum found in release.json for web linux/{{ architecture_normalized_name }}"
+         when: sitesuper_web_binary_sha256 | default('') == ''
+
+     # download binary
+     - name: Download sitesuper-web binary for our architecture
+       amazon.aws.s3_object:
+         bucket: "{{ artifacts_bucket_name }}"
+         object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/{{ sitesuper_web_binary_path }}"
          dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
          mode: get
          overwrite: different
-       notify: restart sitesuper-web service
+
+     - name: Create sha256 sum file for verification
+       copy:
+         dest: "/home/{{ sitesuper_web_system_user }}/bin/sitesuper-web.sha256.expected"
+         content: "{{ sitesuper_web_binary_sha256 }}  /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web\n"
+         mode: "0644"
+
+     - name: Verify sha256 sum using sha256sum
+       command: "sha256sum -c /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web.sha256.expected"
+       register: sha_check
+       failed_when: sha_check.rc != 0
+       changed_when: false
+
+     # verify sha256 sum of binary
+     #- name: Verify sha256 sum of sitesuper-web binary
+     #  command: >
+     #    sha256sum /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+     #  register: sha256sum_result
+     #  changed_when: false
+     #- name: Exit if sha256 sum verification failed
+     #  fail:
+     #    msg: "SHA256 sum verification of sitesuper-web binary failed!"
+     #  when: sha_check.stdout.split()[0] != sitesuper_web_binary_sha256
+
+     #- name: Get sitesuper-web release from s3
+     #  amazon.aws.s3_object:
+     #    bucket: "{{ artifacts_bucket_name }}"
+     #    object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
+     #    dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+     #    mode: get
+     #    overwrite: different
+     #  notify: restart sitesuper-web service
 
      - name: Ensure sitesuper-web binary is executable
        file:

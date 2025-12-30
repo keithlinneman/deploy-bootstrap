@@ -3,5 +3,6 @@
   sitesuper_web_tcp_port: 8080
   sitesuper_web_system_user: sitesuper
   sitesuper_web_systemd_service_name: sitesuper-web
+  cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
   # 12/28/25 - moved to ssm param so build system can set it
   # sitesuper_version: 1.0.1
