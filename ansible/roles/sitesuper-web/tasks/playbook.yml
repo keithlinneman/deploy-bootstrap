@@ -88,7 +88,7 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ item }}"
-         dest: /home/{{ sitesuper_web_system_user }}/{{ item }}"
+         dest: "/home/{{ sitesuper_web_system_user }}/{{ item }}"
          mode: get
          overwrite: different
        loop:
