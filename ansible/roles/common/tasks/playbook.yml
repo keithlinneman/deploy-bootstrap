@@ -245,7 +245,7 @@
     become: true
     ansible.builtin.lineinfile:
       path: /etc/chrony/chrony.conf
-      insertafter: BOF
+      insertbefore: EOF
       line: "server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4"
       state: present
 
