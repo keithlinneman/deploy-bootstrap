@@ -188,6 +188,34 @@
          group: "{{ sitesuper_web_system_user }}"
          mode: 0750
 
+         - name: Ensure /etc/sitesuper exists
+     - name: Ensure /etc/sitesuper directory exists
+       file:
+         path: /etc/sitesuper
+         state: directory
+         owner: root
+         group: root
+         mode: "0755"
+
+     - name: Write sitesuper-web environment file
+       copy:
+         dest: /etc/sitesuper/sitesuper-web.env
+         owner: root
+         group: root
+         mode: "0600"
+         content: |
+           DB_HOST={{ database_host.writer }}
+           DB_PORT={{ database_port }}
+           DB_NAME={{ database_name }}
+           DB_USER={{ database_user }}
+           DB_PASSWORD={{ database_password }}
+           OTLP_ENDPOINT=127.0.0.1:4317
+           PYRO_SERVER={{ otlp_profiles_endpoint }}
+           PYRO_TENANT={{ company_name }}
+       no_log: true
+       notify:
+         - restart sitesuper-web service
+
      - name: Create sitesuper-web systemd service
        template:
          src: ../templates/etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service.j2
