@@ -65,14 +65,11 @@
 
      - name: Create sitesuper directories
        file:
-         path: /home/{{ sitesuper_web_system_user }}/{{ item }}
-         owner: "{{ sitesuper_web_system_user }}"
-         group: "{{ sitesuper_web_system_user }}"
+         path: /opt/sitesuper/web/bin/
+         owner: "root"
+         group: "{{ sitesuper_web_system_user}}"
          mode: 0750
          state: directory
-       loop:
-         - bin
-         - log
 
      - name: Set architecture format based on normalized naming
        set_fact:
@@ -88,7 +85,7 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ item }}"
-         dest: "/home/{{ sitesuper_web_system_user }}/{{ item }}"
+         dest: "/opt/sitesuper/web/{{ item }}"
          mode: get
          overwrite: different
        loop:
@@ -100,9 +97,9 @@
        command: >
          cosign verify-blob
          --key {{ cosign_pubkey_path }}
-         --signature /home/{{ sitesuper_web_system_user }}/release.json.sig
+         --signature /opt/sitesuper/web/release.json.sig
          --insecure-ignore-tlog
-         /home/{{ sitesuper_web_system_user }}/release.json
+         /opt/sitesuper/web/release.json
        register: cosign_verify_result
        failed_when: cosign_verify_result.rc != 0
        changed_when: false
@@ -110,7 +107,7 @@
      # load release index
      - name: load release index
        set_fact:
-         release_index: "{{ lookup('file', '/home/' + sitesuper_web_system_user + '/release.json') | from_json }}"
+         release_index: "{{ lookup('file', '/opt/sitesuper/web/release.json') | from_json }}"
 
      # find binary path for our architecture
      - name: Set sitesuper-web binary path from release index
@@ -147,19 +144,19 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ sitesuper_web_binary_path }}"
-         dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+         dest: /opt/sitesuper/web/bin/sitesuper-web
          mode: get
          overwrite: different
        notify: restart sitesuper-web service
 
      - name: Create sha256 sum file for verification
        copy:
-         dest: "/home/{{ sitesuper_web_system_user }}/bin/sitesuper-web.sha256.expected"
-         content: "{{ sitesuper_web_binary_sha256 }}  /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web\n"
+         dest: "/opt/sitesuper/web/bin/sitesuper-web.sha256.expected"
+         content: "{{ sitesuper_web_binary_sha256 }}  /opt/sitesuper/web/bin/sitesuper-web\n"
          mode: "0644"
 
      - name: Verify sha256 sum using sha256sum
-       command: "sha256sum -c /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web.sha256.expected"
+       command: "sha256sum -c /opt/sitesuper/web/bin/sitesuper-web.sha256.expected"
        register: sha_check
        failed_when: sha_check.rc != 0
        changed_when: false
@@ -184,10 +181,10 @@
      #    overwrite: different
      #  notify: restart sitesuper-web service
 
-     - name: Ensure sitesuper-web binary is executable
+     - name: Ensure sitesuper-web binary has correct permissions
        file:
-         path: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
-         owner: "{{ sitesuper_web_system_user }}"
+         path: /opt/sitesuper/web/bin/sitesuper-web
+         owner: "root"
          group: "{{ sitesuper_web_system_user }}"
          mode: 0750
 
