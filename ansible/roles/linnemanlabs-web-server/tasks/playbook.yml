@@ -18,6 +18,19 @@
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          linnemanlabs_web_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-web/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
+         security_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/security/account/id', region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set security account signing key arn ssm param path
+       set_fact:
+         signing_key_arn_ssm_parameter: "arn:aws:ssm:{{ ansible_ec2_instance_identity_document_region }}:{{ security_account_id }}:parameter/app/linnemanlabs-web/signing/kms/arn"
+
+     - name: Get application signing key arn from security account
+       set_fact:
+         app_signing_key_arn: "{{ lookup('amazon.aws.aws_ssm', signing_key_arn_ssm_parameter, region=ansible_ec2_instance_identity_document_region ) }}"
+
+     - name: Set cosign key URL
+       set_fact:
+         cosign_key_url: "awskms:///{{ app_signing_key_arn }}"
 
      - name: Print all environment vars for debugging
        debug:
@@ -45,11 +58,15 @@
 
      - name: Create linnemanlabs-web directories
        file:
-         path: /opt/linnemanlabs-web/bin/
+         path: /opt/linnemanlabs-web/{{ item }}
          owner: "root"
          group: "{{ linnemanlabs_web_server_system_user}}"
          mode: 0750
          state: directory
+       with_items:
+         - bin
+         - server
+
 
      - name: Set architecture format based on normalized naming
        set_fact:
@@ -76,7 +93,7 @@
      - name: Verify linnemanlabs-web server release index signature
        command: >
          cosign verify-blob
-         --key {{ cosign_pubkey_path }}
+         --key "{{ cosign_key_url }}"
          --signature /opt/linnemanlabs-web/server/release.json.sig
          --insecure-ignore-tlog
          /opt/linnemanlabs-web/server/release.json
