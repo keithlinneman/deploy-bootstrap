@@ -97,6 +97,8 @@
          --signature /opt/linnemanlabs-web/server/release.json.sig
          --insecure-ignore-tlog
          /opt/linnemanlabs-web/server/release.json
+       environment:
+         AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
        register: cosign_verify_result
        failed_when: cosign_verify_result.rc != 0
        changed_when: false
@@ -110,7 +112,7 @@
      - name: Set linnemanlabs-web server binary path from release index
        set_fact:
          linnemanlabs_web_server_binary_path: >-
-           {{ release_index.components.server.artifacts
+           {{ release_index.artifacts
               | selectattr('os','equalto','linux')
               | selectattr('arch','equalto',architecture_normalized_name)
               | map(attribute='binary.path')
@@ -120,7 +122,7 @@
      - name: Find sha256 sum for linnemanlabs-web server binary
        set_fact:
          linnemanlabs_web_server_binary_sha256: >-
-           {{ release_index.components.server.artifacts
+           {{ release_index.artifacts
               | selectattr('os','equalto','linux')
               | selectattr('arch','equalto',architecture_normalized_name)
               | map(attribute='binary.sha256')
