@@ -1,0 +1,60 @@
+[Unit]
+Description=Provides web frontend for linnemanlabs-web application
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/var/lib/{{ linnemanlabs_web_system_user }}
+#WorkingDirectory=/
+User={{ linnemanlabs_web_system_user }}
+Group={{ linnemanlabs_web_system_user }}
+EnvironmentFile=/etc/linnemanlabs-web/linnemanlabs-web-server.env
+ExecStart=/opt/linnemanlabs-web/server/bin/linnemanlabs-web-server -enable-tracing -otlp-endpoint 127.0.0.1:4317 -enable-pyroscope -pyro-server {{ otlp_profiles_endpoint }} -pyro-tenant {{ company_name }}
+#StandardOutput=append:/var/log/{{ web_server_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ web_server_systemd_service_name }}.log
+StandardOutput=journal
+StandardError=journal
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+LimitNOFILE=100000
+Restart=always
+RestartSec=5s
+
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+ProtectProc=invisible
+ProcSubset=pid
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ web_server_system_user }}
+# covered by ProtectSystem=strict already
+#ReadOnlyPaths=/opt/linnemanlabs-web
+ReadWritePaths=/var/lib/{{ linnemanlabs_web_system_user }} /run
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
