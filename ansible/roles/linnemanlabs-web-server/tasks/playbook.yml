@@ -64,9 +64,8 @@
          mode: 0750
          state: directory
        with_items:
-         - bin
          - server
-
+         - server/bin
 
      - name: Set architecture format based on normalized naming
        set_fact:
@@ -143,7 +142,7 @@
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "apps/linnemanlabs-web/server/releases/{{ linnemanlabs_web_server_release_id }}/{{ linnemanlabs_web_server_binary_path }}"
-         dest: /opt/linnemanlabs-web/server/bin/linnemanlabs-web
+         dest: /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server
          mode: get
          overwrite: different
        notify: restart linnemanlabs-web server service
