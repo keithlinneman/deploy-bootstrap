@@ -5,14 +5,14 @@ After=network-online.target
 StartLimitIntervalSec=0
 
 [Service]
-WorkingDirectory=/var/lib/{{ linnemanlabs_web_system_user }}
+WorkingDirectory=/var/lib/{{ linnemanlabs_web_server_system_user }}
 #WorkingDirectory=/
-User={{ linnemanlabs_web_system_user }}
-Group={{ linnemanlabs_web_system_user }}
+User={{ linnemanlabs_web_server_system_user }}
+Group={{ linnemanlabs_web_server_system_user }}
 EnvironmentFile=/etc/linnemanlabs-web/linnemanlabs-web-server.env
 ExecStart=/opt/linnemanlabs-web/server/bin/linnemanlabs-web-server -enable-tracing -otlp-endpoint 127.0.0.1:4317 -enable-pyroscope -pyro-server {{ otlp_profiles_endpoint }} -pyro-tenant {{ company_name }}
-#StandardOutput=append:/var/log/{{ web_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ web_server_systemd_service_name }}.log
+#StandardOutput=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -43,10 +43,10 @@ SystemCallArchitectures=native
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
-StateDirectory={{ web_server_system_user }}
+StateDirectory={{ linnemanlabs_web_server_system_user }}
 # covered by ProtectSystem=strict already
 #ReadOnlyPaths=/opt/linnemanlabs-web
-ReadWritePaths=/var/lib/{{ linnemanlabs_web_system_user }} /run
+ReadWritePaths=/var/lib/{{ linnemanlabs_web_server_system_user }} /run
 
 # kernel/mem hardening
 ProtectKernelTunables=yes

@@ -149,12 +149,12 @@
 
      - name: Create sha256 sum file for verification
        copy:
-         dest: "/opt/linnemanlabs-web/server/bin/linnemanlabs-web.sha256.expected"
-         content: "{{ linnemanlabs_web_server_binary_sha256 }}  /opt/linnemanlabs-web/server/bin/linnemanlabs-web\n"
+         dest: "/opt/linnemanlabs-web/server/bin/linnemanlabs-web-server.sha256.expected"
+         content: "{{ linnemanlabs_web_server_binary_sha256 }}  /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server\n"
          mode: "0644"
 
      - name: Verify sha256 sum using sha256sum
-       command: "sha256sum -c /opt/linnemanlabs-web/server/bin/linnemanlabs-web.sha256.expected"
+       command: "sha256sum -c /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server.sha256.expected"
        register: sha_check
        failed_when: sha_check.rc != 0
        changed_when: false
