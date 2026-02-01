@@ -182,9 +182,12 @@
          mode: "0600"
          content: |
            AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
-           OTLP_ENDPOINT=127.0.0.1:4317
-           PYRO_SERVER={{ otlp_profiles_endpoint }}
-           PYRO_TENANT={{ company_name }}
+           LMLABS_ENABLE_TRACING=true
+           LMLABS_OTLP_ENDPOINT=127.0.0.1:4317
+           LMLABS_ENABLE_PYROSCOPE=true
+           LMLABS_PYRO_SERVER={{ otlp_profiles_endpoint }}
+           LMLABS_PYRO_TENANT={{ company_name }}
+           LMLABS_ENABLE_CONTENT_UPDATES=true
        no_log: true
        notify:
          - restart linnemanlabs-web server service
