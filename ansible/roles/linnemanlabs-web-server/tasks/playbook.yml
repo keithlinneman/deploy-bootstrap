@@ -181,6 +181,7 @@
          group: root
          mode: "0600"
          content: |
+           AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
            OTLP_ENDPOINT=127.0.0.1:4317
            PYRO_SERVER={{ otlp_profiles_endpoint }}
            PYRO_TENANT={{ company_name }}
