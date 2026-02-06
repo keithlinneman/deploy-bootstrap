@@ -77,7 +77,7 @@
            {%- endif -%}
 
      # download release index and signature
-     - name: Get linnemanlabs-web server release.json index and release.json.sig from s3
+     - name: Get linnemanlabs-web server release.json index and release.json.bundle.sigstore.json from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
          object: "apps/linnemanlabs-web/server/releases/{{ linnemanlabs_web_server_release_id }}/{{ item }}"
@@ -86,14 +86,14 @@
          overwrite: different
        loop:
          - release.json
-         - release.json.sig
+         - release.json.bundle.sigstore.json
 
      # verify signature
      - name: Verify linnemanlabs-web server release index signature
        command: >
          cosign verify-blob
          --key "{{ cosign_key_url }}"
-         --signature /opt/linnemanlabs-web/server/release.json.sig
+         --bundle /opt/linnemanlabs-web/server/release.json.bundle.sigstore.json
          --insecure-ignore-tlog
          /opt/linnemanlabs-web/server/release.json
        environment:
