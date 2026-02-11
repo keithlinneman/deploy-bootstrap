@@ -1,4 +1,4 @@
-# ansible-roles
+# deploy-bootstrap
 
 Ansible roles for infrastructure configuration management, security hardening and app deployment.
 
