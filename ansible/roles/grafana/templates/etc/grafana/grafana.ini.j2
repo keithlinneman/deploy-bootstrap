@@ -277,7 +277,8 @@ check_for_updates = false
 ;admin_password = admin
 
 # default admin email, created on startup
-admin_email = admin@localhost
+# if using sso, this must be set and logged into first, sso doesnt work if theres no local admin user also for some reason, or didnt in mid 2025
+;admin_email = admin@localhost
 
 # used for signing
 secret_key = {{ grafana_config_secret_key }}
