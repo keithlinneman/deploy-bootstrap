@@ -27,7 +27,7 @@ if [ "${ENVIRONMENT}x" == "x" ];then
   echo "Failed to find environment name"
   exit 1
 fi
-validenvs=("prod" "dev" "qa" "staging" "testing" "net" "obs" "redacted-prod" "redacted-testing")
+validenvs=("prod" "dev" "qa" "staging" "testing")
 if [[ ! "${validenvs[@]}" =~ "${ENVIRONMENT}" ]];then
   echo "Environment (${ENVIRONMENT}) is not in the list of valid environments (${validenvs[@]})"
   exit 1
