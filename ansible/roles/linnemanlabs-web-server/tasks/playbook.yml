@@ -18,8 +18,8 @@
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          linnemanlabs_web_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-web/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
-         linnemanlabs_web_server_evidence_key_arn: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-web/signing/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
-         linnemanlabs_web_server_content_key_arn: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-web/signing/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
+         linnemanlabs_web_server_evidence_key_arn: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/linnemanlabs-web/signing/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
+         linnemanlabs_web_server_content_key_arn: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/linnemanlabs-web/signing/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
          security_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/security/account/id', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set security account signing key arn ssm param path
