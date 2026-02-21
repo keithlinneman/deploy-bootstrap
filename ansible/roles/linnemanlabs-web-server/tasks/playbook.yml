@@ -192,6 +192,7 @@
            LMLABS_ENABLE_CONTENT_UPDATES=true
            LMLABS_EVIDENCE_SIGNING_KEY_ARN={{ linnemanlabs_web_server_evidence_key_arn }}
            LMLABS_CONTENT_SIGNING_KEY_ARN={{ linnemanlabs_web_server_content_key_arn }}
+           LMLABS_TRUSTED_PROXY_HOPS={{ linnemanlabs_web_server_trusted_proxy_hops }}
        no_log: true
        notify:
          - restart linnemanlabs-web server service
