@@ -4,5 +4,10 @@
   vigil_server_system_user: vigil
   vigil_server_systemd_service_name: vigil-server
   vigil_server_trusted_proxy_hops: 1
+  vigil_enable_tls: true
+  vigil_tls_cert_path: /etc/phxi/tls/vigil-server.crt
+  vigil_tls_key_path: /etc/phxi/tls/vigil-server.key
+  vigil_tls_self_signed: true
+  vigil_prometheus_endpoint: "https://mimir-query-frontend.use2.obs.prod.phxi.net/prometheus"
   cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
   # tuf_trust_root: /etc/phxi/trust/root_pubkey.pem
