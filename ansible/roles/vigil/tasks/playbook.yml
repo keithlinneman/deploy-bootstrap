@@ -272,9 +272,9 @@
            VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
            VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
            {% if vigil_tls_enabled | default(false) %}
-             VIGIL_ENABLE_TLS=true
-             VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
-             VIGIL_TLS_KEY_FILE={{ vigil_tls_key_path }}
+           VIGIL_ENABLE_TLS=true
+           VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
+           VIGIL_TLS_KEY_FILE={{ vigil_tls_key_path }}
            {% endif %}
 
      - name: Write vigil environment file
