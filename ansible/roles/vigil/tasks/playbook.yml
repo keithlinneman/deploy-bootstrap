@@ -9,16 +9,18 @@
    pre_tasks:
      - name: Get instance metadata
        ec2_metadata_facts:
-       
-     - name: Set facts from ssm here since they require ec2 metadata to lookup region       
+
+     - name: Set facts from ssm here since they require ec2 metadata to lookup region
        set_fact:
          account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
          artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
          company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/db/postgres/credentials', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_config_llm_claude_key: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/llm/claude/key', region=ansible_ec2_instance_identity_document_region ) }}"
+         vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
        set_fact:
@@ -26,15 +28,14 @@
          service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
          project: "{{ ansible_env.PROJECT | default('unknown') }}"
          namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
-         vigil_db_creds: "{{ vigil_config_database_credentials | from_json }}"
 
      - name: Build database connection string
        set_fact:
-         vigil_database_url: "postgres://{{ vigil_db_creds.username }}:{{ vigil_db_creds.password }}@{{ vigil_db_creds.host }}:{{ vigil_db_creds.port }}/vigil?sslmode=require"
+         vigil_database_url: "postgres://{{ vigil_config_database_credentials.username }}:{{ vigil_config_database_credentials.password }}@{{ vigil_config_database_credentials.host }}:{{ vigil_config_database_credentials.port }}/vigil?sslmode=require"
 
      - name: Set base application directory
-        set_fact:
-          vigil_app_dir: "/opt/vigil/server"
+       set_fact:
+         vigil_app_dir: "/opt/vigil/server"
 
      - name: Print all environment vars for debugging
        debug:
@@ -55,6 +56,8 @@
          - project
          - namespace
          - artifacts_bucket_name
+         - vigil_server_release_id
+         - otlp_profiles_endpoint
 
    tasks:
      - name: Create vigil user
