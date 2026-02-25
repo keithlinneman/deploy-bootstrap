@@ -15,7 +15,7 @@ ExecStart=/home/{{ alertmanager_system_user }}/bin/alertmanager --config.file=/h
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-Restart=always
+Restart=on-failure
 RestartSec=5s
 
 [Install]

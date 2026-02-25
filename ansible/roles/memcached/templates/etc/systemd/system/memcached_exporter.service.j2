@@ -14,7 +14,7 @@ ExecStart=/usr/bin/memcached_exporter --memcached.pid-file=/var/run/memcached/me
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-Restart=always
+Restart=on-failure
 RestartSec=5s
 
 [Install]

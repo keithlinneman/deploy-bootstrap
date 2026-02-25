@@ -17,7 +17,7 @@ TimeoutSec=60
 Type=simple
 #Environment=LOG_DIR="/home/{{ mimir_system_user }}/logs/"
 LimitNOFILE=100000
-Restart=always
+Restart=on-failure
 RestartSec=5s
 
 [Install]
