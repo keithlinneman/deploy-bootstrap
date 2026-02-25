@@ -271,6 +271,7 @@
            VIGIL_HTTP_PORT={{ vigil_server_tcp_port }}
            VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
            VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
+           VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
            {% if vigil_tls_enabled | default(false) %}
            VIGIL_ENABLE_TLS=true
            VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
