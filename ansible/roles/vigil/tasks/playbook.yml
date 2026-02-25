@@ -314,7 +314,7 @@
 
      - name: Allow vigil traffic through firewall
        ufw:
-         port: "{{ vigil_tcp_port }}"
+         port: "{{ vigil_server_tcp_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
