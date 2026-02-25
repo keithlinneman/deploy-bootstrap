@@ -214,30 +214,47 @@
      - name: Generate self-signed TLS certificates for vigil server
        when: vigil_enable_tls and vigil_tls_self_signed
        block:
+         - name: Set ssl directory path
+           set_fact:
+             ssl_dir: "{{ vigil_app_dir }}/conf/ssl"
+
+         - name: Set vigil TLS cert and key paths
+           set_fact:
+            vigil_tls_cert_path: "{{ ssl_dir }}/cert.pem"
+            vigil_tls_key_path: "{{ ssl_dir }}/cert.key"
+
+         - name: Create ssl directories
+           file:
+             path: "{{ ssl_dir }}"
+             owner: "root"
+             group: "{{ vigil_server_system_user}}"
+             mode: 0750
+             state: directory
+
          - name: Check if ssl cert already exists
            ansible.builtin.stat:
-             path: /home/{{ vigil_system_user }}/conf/ssl/cert.pem
+             path: "{{ vigil_tls_cert_path }}"
            register: vigil_cert
 
          - name: Generate private key for local self signed ssl cert
            community.crypto.openssl_privatekey:
-             path: /home/{{ vigil_system_user }}/conf/ssl/cert.key
-             owner: "{{ vigil_system_user }}"
+             path: "{{ vigil_tls_key_path }}"
+             owner: "{{ vigil_server_system_user }}"
            when: not vigil_cert.stat.exists
 
          - name: Generate CSR for self-signed certificate for local https listener
            community.crypto.openssl_csr_pipe:
-             privatekey_path: /home/{{ vigil_system_user }}/conf/ssl/cert.key
+             privatekey_path: "{{ vigil_tls_key_path }}"
              common_name: "{{ ansible_nodename }}"
            register: csr
            when: not vigil_cert.stat.exists
 
          - name: Generate self-signed certificate for local https listener
            community.crypto.x509_certificate:
-             path: /home/{{ vigil_system_user }}/conf/ssl/cert.pem
+             path: "{{ vigil_tls_cert_path }}"
              csr_content: "{{ csr.csr }}"
-             privatekey_path: /home/{{ vigil_system_user }}/conf/ssl/cert.key
-             owner: "{{ vigil_system_user }}"
+             privatekey_path: "{{ vigil_tls_key_path }}"
+             owner: "{{ vigil_server_system_user }}"
              provider: selfsigned
            when: not vigil_cert.stat.exists
            notify: restart vigil service
