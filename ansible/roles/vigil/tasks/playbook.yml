@@ -211,34 +211,6 @@
          group: root
          mode: "0755"
 
-     - name: Create vigil systemd service
-       template:
-         src: ../templates/etc/systemd/system/{{ vigil_server_systemd_service_name }}.service.j2
-         dest: /etc/systemd/system/{{ vigil_server_systemd_service_name }}.service
-         mode: 0644
-       notify: restart vigil service
-
-     - name: Enable vigil systemd service
-       systemd:
-         name: "{{ vigil_server_systemd_service_name }}"
-         state: started
-         enabled: true
-         daemon_reload: true
-
-     - name: Allow vigil traffic through firewall
-       ufw:
-         port: "{{ vigil_tcp_port }}"
-         proto: tcp
-         rule: allow
-       when: ansible_distribution == 'Ubuntu'
-
-     - name: Allow vigil admin port traffic through firewall
-       ufw:
-         port: "{{ vigil_admin_tcp_port }}"
-         proto: tcp
-         rule: allow
-       when: ansible_distribution == 'Ubuntu'
-
      - name: Generate self-signed TLS certificates for vigil server
        when: vigil_enable_tls and vigil_tls_self_signed
        block:
@@ -315,6 +287,13 @@
      - name: Allow vigil traffic through firewall
        ufw:
          port: "{{ vigil_server_tcp_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow vigil admin port traffic through firewall
+       ufw:
+         port: "{{ vigil_server_admin_tcp_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
