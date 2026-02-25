@@ -212,7 +212,7 @@
          mode: "0755"
 
      - name: Generate self-signed TLS certificates for vigil server
-       when: vigil_enable_tls and vigil_tls_self_signed
+       when: vigil_tls_enabled and vigil_tls_self_signed
        block:
          - name: Set ssl directory path
            set_fact:
@@ -298,7 +298,6 @@
      - name: Enable vigil systemd service
        service:
          name: "{{ vigil_server_systemd_service_name }}"
-         state: started
          enabled: true
 
      - name: Allow vigil traffic through firewall
