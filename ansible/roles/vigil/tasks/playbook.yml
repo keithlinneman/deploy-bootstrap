@@ -20,6 +20,7 @@
          otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/db/postgres/credentials', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_config_llm_claude_key: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/llm/claude/key', region=ansible_ec2_instance_identity_document_region ) }}"
+         vigil_config_slack_url_vigil_triage: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/slack/webhook/vigil_triage', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
@@ -272,6 +273,7 @@
            VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
            VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
            VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
+           VIGIL_SLACK_URL={{ vigil_config_slack_url_vigil_triage }}
            {% if vigil_tls_enabled | default(false) %}
            VIGIL_ENABLE_TLS=true
            VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
