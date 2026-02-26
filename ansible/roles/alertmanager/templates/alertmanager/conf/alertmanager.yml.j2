@@ -12,6 +12,12 @@ route:
   receiver: 'slack-alert-nonprod'
 
   routes:
+     # vigil sees all alerts, continue ensures they still match other matchers
+    - receiver: 'vigil'
+      continue: true
+      matchers:
+        - alertname =~ ".+"
+
     # security always goes to security channel, regardless of env
     - matchers:
         - category = "security"
