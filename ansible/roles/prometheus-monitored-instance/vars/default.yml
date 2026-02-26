@@ -2,7 +2,7 @@
   ebpf_exporter_tcp_port: 9435
   ebpf_exporter_flags: >
     --config.dir={{ ebpf_exporter_base_directory }}/modules
-    --config.names=biolatency,ext4dist,oomkill,percpu-softirq,softirq-latency,syscalls,tcp-retransmit,tcp-syn-backlog,tcp-window-clamps,udp-drops,unix-socket-backlog
+    --config.names=biolatency,ext4dist,oomkill,percpu-softirq,softirq-latency,syscalls,tcp-retransmit,tcp-syn-backlog,tcp-window-clamps,udp-drops
   ebpf_exporter_version: 2.5.1
   prometheus_node_exporter_tcp_port: 9100
   prometheus_node_exporter_version: 1.10.2
