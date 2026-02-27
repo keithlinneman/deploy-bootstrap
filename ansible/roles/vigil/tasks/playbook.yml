@@ -273,7 +273,7 @@
            VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
            VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
            VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
-           VIGIL_SLACK_URL={{ vigil_config_slack_url_vigil_triage }}
+           VIGIL_SLACK_WEBHOOK_URL={{ vigil_config_slack_url_vigil_triage }}
            {% if vigil_tls_enabled | default(false) %}
            VIGIL_ENABLE_TLS=true
            VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
