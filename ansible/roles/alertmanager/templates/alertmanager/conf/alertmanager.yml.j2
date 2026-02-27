@@ -125,5 +125,10 @@ receivers:
         text: '{{ template "slack.text" . }}'
 {% endraw %}
 
+  - name: 'vigil'
+    webhook_configs:
+      - url: "{{ alertmanager_config_vigil_alert_triage_url }}"
+        send_resolved: false
+
 templates:
   - '/home/alertmanager/templates/*.tmpl'
