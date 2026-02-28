@@ -7,7 +7,7 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - vigil-2b.{{ hosted_zone_name }}:9000
+          - vigil-2c.{{ hosted_zone_name }}:9000
         labels:
           service_namespace: observability
           service_name: vigil-server
