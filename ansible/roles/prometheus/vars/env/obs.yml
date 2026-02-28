@@ -9,6 +9,7 @@ prometheus:
       - prometheus
       - pyroscope
       - tempo
+      - vigil
     blackbox:
       - blackbox-http
     blackbox_http:

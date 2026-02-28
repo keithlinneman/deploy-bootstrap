@@ -1,0 +1,23 @@
+scrape_configs:
+
+  - job_name: 'vigil/server'
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scheme: http
+    static_configs:
+      - targets:
+          - vigil-2b.{{ hosted_zone_name }}:9000
+        labels:
+          service_namespace: observability
+          service_name: vigil-server
+          phxi_service_name: vigil
+          phxi_service_component: server
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: host_fqdn
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: "([^.]*)\\.?.*"
+        target_label: node
