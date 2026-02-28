@@ -97,7 +97,7 @@
          overwrite: different
        loop:
          - release.json
-         - release.json.sig
+         - release.json.bundle.sigstore.json
 
      # verify signature against golden-ami baked in public key
      - name: Verify vigil server release index signature
