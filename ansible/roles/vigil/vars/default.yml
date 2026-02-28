@@ -13,5 +13,5 @@
   vigil_loki_endpoint: https://loki-query-frontend.use2.obs.prod.phxi.net/
   vigil_loki_tenant_id: phxi
 
-  cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
+  # cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
   # tuf_trust_root: /etc/phxi/trust/root_pubkey.pem

@@ -14,6 +14,7 @@
        set_fact:
          account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
          artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+         artifacts_cosign_signing_key: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/vigil/signing/cosign/signer', region=ansible_ec2_instance_identity_document_region ) }}"
          company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
@@ -103,7 +104,7 @@
      - name: Verify vigil server release index signature
        command: >
          cosign verify-blob
-         --key {{ cosign_pubkey_path }}
+         --key {{ artifacts_cosign_signing_key }}
          --signature {{ vigil_app_dir }}/release.json.sig
          --insecure-ignore-tlog
          {{ vigil_app_dir }}/release.json
