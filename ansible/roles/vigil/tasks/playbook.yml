@@ -103,7 +103,7 @@
      # verify signature against golden-ami baked in public key
      - name: Verify vigil server release index signature
        command: >
-         AWS_REGION={{ ansible_ec2_instance_identity_document_region }} cosign verify-blob
+         cosign verify-blob
          --key {{ artifacts_cosign_signing_key }}
          --signature {{ vigil_app_dir }}/release.json.sig
          --insecure-ignore-tlog
@@ -111,6 +111,8 @@
        register: cosign_verify_result
        failed_when: cosign_verify_result.rc != 0
        changed_when: false
+       environment:
+         AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
 
      # load release index
      - name: load release index
