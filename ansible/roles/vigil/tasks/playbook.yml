@@ -91,7 +91,7 @@
      - name: Get vigil release.json index and release.json.sig from s3
        amazon.aws.s3_object:
          bucket: "{{ artifacts_bucket_name }}"
-         object: "apps/vigil/releases/server/{{ vigil_server_release_id }}/{{ item }}"
+         object: "apps/vigil/server/releases/{{ vigil_server_release_id }}/{{ item }}"
          dest: "{{ vigil_app_dir }}/{{ item }}"
          mode: get
          overwrite: different
@@ -170,7 +170,7 @@
          - name: Download vigil binary to staging
            amazon.aws.s3_object:
              bucket: "{{ artifacts_bucket_name }}"
-             object: "apps/vigil/releases/server/{{ vigil_server_release_id }}/{{ vigil_binary_path }}"
+             object: "apps/vigil/server/releases/{{ vigil_server_release_id }}/{{ vigil_binary_path }}"
              dest: "{{ staging_dir }}/vigil-server"
              mode: get
              overwrite: always
