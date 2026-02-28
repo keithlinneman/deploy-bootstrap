@@ -22,6 +22,7 @@
          vigil_config_llm_claude_key: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/llm/claude/key', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_config_slack_url_vigil_triage: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/slack/webhook/vigil_triage', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
+         vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
        set_fact:
@@ -286,6 +287,7 @@
            VIGIL_CLAUDE_API_KEY={{ vigil_config_llm_claude_key }}
            VIGIL_SLACK_WEBHOOK_URL={{ vigil_config_slack_url_vigil_triage }}
            VIGIL_LOG_LEVEL=debug
+           VIGIL_API_TOKEN={{ vigil_api_token }}
 
      - name: Write vigil environment file
        copy:
