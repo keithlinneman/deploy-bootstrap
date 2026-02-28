@@ -123,7 +123,7 @@
      - name: Set vigil binary path from release index
        set_fact:
          vigil_binary_path: >-
-           {{ release_index.components.vigil.artifacts
+           {{ release_index.artifacts
               | selectattr('os','equalto','linux')
               | selectattr('arch','equalto',architecture_normalized_name)
               | map(attribute='binary.path')
@@ -133,7 +133,7 @@
      - name: Find sha256 sum for vigil binary
        set_fact:
          vigil_binary_sha256: >-
-           {{ release_index.components.vigil.artifacts
+           {{ release_index.artifacts
               | selectattr('os','equalto','linux')
               | selectattr('arch','equalto',architecture_normalized_name)
               | map(attribute='binary.sha256')
