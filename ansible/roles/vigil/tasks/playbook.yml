@@ -310,10 +310,12 @@
          mode: 0644
        notify: restart vigil service
 
-     - name: Enable vigil systemd service
-       service:
-         name: "{{ vigil_server_systemd_service_name }}"
-         enabled: true
+     # restart handled will activate and start the service, this prevents starting it here
+     # and restarting at the end, which comes with a 60s shutdown timer
+     # - name: Enable vigil systemd service
+     #   service:
+     #     name: "{{ vigil_server_systemd_service_name }}"
+     #     enabled: true
 
      - name: Allow vigil traffic through firewall
        ufw:
