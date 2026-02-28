@@ -24,7 +24,9 @@
          alertmanager_config_slack_url_alert_security: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_security', region=ansible_ec2_instance_identity_document_region ) }}"
          alertmanager_config_slack_url_alert_cost: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_cost', region=ansible_ec2_instance_identity_document_region ) }}"
          alertmanager_config_slack_url_alert_slo: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_slo', region=ansible_ec2_instance_identity_document_region ) }}"
-
+         alertmanager_config_vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region ) }}"
+       no_log: true
+       
      - name: Set facts from environment variables
        set_fact:
          service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
@@ -54,36 +56,6 @@
          - namespace
 
    tasks:
-     #- name: Get latest Alertmanager release info from github
-     #  uri:
-     #    url: https://api.github.com/repos/prometheus/alertmanager/releases/latest
-     #    return_content: yes
-     #  register: release_info
-
-     #- name: Set release tag fact
-     #  set_fact:
-     #    release_tag: "{{ release_info.json.tag_name }}"
-
-     #- name: Set filename based on architecture
-     #  set_fact:
-     #    alertmanager_filename: >-
-     #      {%- if ansible_architecture == "aarch64" -%}
-     #      linux-arm64.tar.gz
-     #      {%- else -%}
-     #      linux-amd64.tar.gz
-     #      {%- endif -%}
-
-     #- name: Find {{ ansible_architecture }} asset URL from release assets
-     #  set_fact:
-     #    asset_url: "{{ item.browser_download_url }}"
-     #  loop: "{{ release_info.json.assets }}"
-     #  when: "alertmanager_filename in item.name"
-
-     #- name: Fail if architecture asset not found
-     #  fail:
-     #    msg: "No {{ ansible_architecture }} asset found github latest release response."
-     #  when: asset_url is not defined
-
      - name: Create alertmanager user
        user:
          name: "{{ alertmanager_system_user }}"
@@ -105,6 +77,7 @@
          - conf/ssl
          - data
          - templates
+         - secrets
 
      - name: Check if ssl cert already exists
        ansible.builtin.stat:
@@ -132,11 +105,6 @@
          owner: "{{ alertmanager_system_user }}"
          provider: selfsigned
        when: not alertmanager_cert.stat.exists
-
-     #- name: Download the latest Alertmanager ({{ release_tag }}) linux-amd64 release from github
-     #  get_url:
-     #    url: "{{ asset_url }}"
-     #    dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
 
      - name: Set normalized architecture name
        set_fact:
@@ -200,6 +168,15 @@
          owner: "{{ alertmanager_system_user }}"
          group: "{{ alertmanager_system_user }}"
          mode: 0640
+
+     - name: Write alertmanager secrets file for vigilant token
+       copy:
+         content: "{{ alertmanager_config_vigil_api_token }}"
+         dest: /home/{{ alertmanager_system_user }}/secrets/vigil-token
+         owner: "{{ alertmanager_system_user }}"
+         group: "{{ alertmanager_system_user }}"
+         mode: 0600
+       no_log: true
 
      - name: Enable alertmanager systemd service
        service:
