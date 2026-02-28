@@ -263,22 +263,29 @@
      - name: Build vigil env content
        set_fact:
          vigil_env_content: |
-           VIGIL_DATABASE_URL={{ vigil_database_url }}
-           VIGIL_OTLP_ENDPOINT=127.0.0.1:4317
-           VIGIL_PYRO_SERVER={{ otlp_profiles_endpoint }}
-           VIGIL_PYRO_TENANT={{ company_name }}
-           VIGIL_CLAUDE_API_KEY={{ vigil_config_llm_claude_key }}
            VIGIL_ADMIN_PORT={{ vigil_server_admin_tcp_port }}
            VIGIL_HTTP_PORT={{ vigil_server_tcp_port }}
-           VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
-           VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
-           VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
-           VIGIL_SLACK_WEBHOOK_URL={{ vigil_config_slack_url_vigil_triage }}
            {% if vigil_tls_enabled | default(false) %}
            VIGIL_ENABLE_TLS=true
            VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
            VIGIL_TLS_KEY_FILE={{ vigil_tls_key_path }}
            {% endif %}
+           VIGIL_DATABASE_URL={{ vigil_database_url }}
+           VIGIL_ENABLE_TRACING=true
+           VIGIL_TRACE_SAMPLE=1
+           VIGIL_OTLP_ENDPOINT=127.0.0.1:4317
+           VIGIL_OTLP_INSECURE=true
+           VIGIL_ENABLE_PYROSCOPE=true
+           VIGIL_PYRO_SERVER={{ otlp_profiles_endpoint }}
+           VIGIL_PYRO_TENANT={{ company_name }}
+           VIGIL_TRUSTED_PROXY_HOPS={{ vigil_server_trusted_proxy_hops }}
+           VIGIL_PROMETHEUS_ENDPOINT={{ vigil_prometheus_endpoint }}
+           VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
+           VIGIL_LOKI_ENDPOINT={{ vigil_loki_endpoint }}
+           VIGIL_LOKI_TENANT_ID={{ vigil_loki_tenant_id }}
+           VIGIL_CLAUDE_API_KEY={{ vigil_config_llm_claude_key }}
+           VIGIL_SLACK_WEBHOOK_URL={{ vigil_config_slack_url_vigil_triage }}
+           VIGIL_LOG_LEVEL=debug
 
      - name: Write vigil environment file
        copy:
