@@ -8,10 +8,10 @@
   vigil_tls_self_signed: true
   vigil_tls_cert_path: ""
   vigil_tls_key_path: ""
-  vigil_prometheus_endpoint: "https://mimir-query-frontend.use2.obs.prod.phxi.net/prometheus"
-  vigil_prometheus_tenant_id: "phxi"
-  vigil_loki_endpoint: "https://loki-query-frontend.use2.obs.prod.phxi.net/"
-  vigil_loki_tenant_id: "phxi"
+  vigil_prometheus_endpoint: https://mimir-query-frontend.use2.obs.prod.phxi.net/prometheus
+  vigil_prometheus_tenant_id: phxi
+  vigil_loki_endpoint: https://loki-query-frontend.use2.obs.prod.phxi.net/
+  vigil_loki_tenant_id: phxi
 
   cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
   # tuf_trust_root: /etc/phxi/trust/root_pubkey.pem

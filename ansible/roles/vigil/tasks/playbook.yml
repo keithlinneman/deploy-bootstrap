@@ -271,7 +271,7 @@
            VIGIL_TLS_CERT_FILE={{ vigil_tls_cert_path }}
            VIGIL_TLS_KEY_FILE={{ vigil_tls_key_path }}
            {% endif %}
-           VIGIL_DATABASE_URL={{ vigil_database_url }}
+           VIGIL_DATABASE_URL="{{ vigil_database_url }}"
            VIGIL_ENABLE_TRACING=true
            VIGIL_TRACE_SAMPLE=1
            VIGIL_OTLP_ENDPOINT=127.0.0.1:4317
@@ -284,10 +284,10 @@
            VIGIL_PROMETHEUS_TENANT_ID={{ vigil_prometheus_tenant_id }}
            VIGIL_LOKI_ENDPOINT={{ vigil_loki_endpoint }}
            VIGIL_LOKI_TENANT_ID={{ vigil_loki_tenant_id }}
-           VIGIL_CLAUDE_API_KEY={{ vigil_config_llm_claude_key }}
-           VIGIL_SLACK_WEBHOOK_URL={{ vigil_config_slack_url_vigil_triage }}
+           VIGIL_CLAUDE_API_KEY="{{ vigil_config_llm_claude_key }}"
+           VIGIL_SLACK_WEBHOOK_URL="{{ vigil_config_slack_url_vigil_triage }}"
            VIGIL_LOG_LEVEL=debug
-           VIGIL_API_TOKEN={{ vigil_api_token }}
+           VIGIL_API_TOKEN="{{ vigil_api_token }}"
 
      - name: Write vigil environment file
        copy:
