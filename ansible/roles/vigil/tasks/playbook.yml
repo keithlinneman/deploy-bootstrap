@@ -105,7 +105,7 @@
        command: >
          cosign verify-blob
          --key {{ artifacts_cosign_signing_key }}
-         --signature {{ vigil_app_dir }}/release.json.sig
+         --bundle {{ vigil_app_dir }}/release.json.bundle.sigstore.json
          --insecure-ignore-tlog
          {{ vigil_app_dir }}/release.json
        register: cosign_verify_result
