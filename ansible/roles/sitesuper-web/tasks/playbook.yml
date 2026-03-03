@@ -24,19 +24,21 @@
          database_port: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/port', region=ansible_ec2_instance_identity_document_region ) }}"
          database_creds_secret_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/db/primary/secret/name', region=ansible_ec2_instance_identity_document_region ) }}"
          sitesuper_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/deploy/primary/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
-     - name: Set additional variables based on retrieved env vars
-       set_fact:
-         database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
-
-     - name: Set database creds
-       set_fact:
-         database_user: "{{ database_creds.username }}"
-         database_password: "{{ database_creds.password }}"
 
      - name: Print all environment vars for debugging
        debug:
          var: hostvars[inventory_hostname]
          verbosity: 2
+
+     - name: Set additional variables based on retrieved env vars
+       set_fact:
+         database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
+       no_log: true
+
+     - name: Set database creds
+       set_fact:
+         database_user: "{{ database_creds.username }}"
+         database_password: "{{ database_creds.password }}"
 
      - name: Ensure required variables are defined
        assert:
