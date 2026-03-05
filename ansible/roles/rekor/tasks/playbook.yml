@@ -19,7 +19,7 @@
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
          rekor_s3_bucket: "{{ lookup('amazon.aws.aws_ssm', '/platform/rekor/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
          rekor_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/rekor/server/db/mysql/credentials', region=ansible_ec2_instance_identity_document_region ) }}"
-         rekor_config_checkpoint_signer: "{{ lookup('amazon.aws.aws_secret', rekor_kms_signer_param, region=ansible_ec2_instance_identity_document_region ) }}"
+         rekor_config_checkpoint_signer: "{{ lookup('amazon.aws.aws_ssm', rekor_kms_signer_param, region=ansible_ec2_instance_identity_document_region ) }}"
        no_log: true
 
      - name: Set facts from environment variables
@@ -157,13 +157,11 @@
      - name: Build rekor env content
        set_fact:
          rekor_env_content: |
-           REKOR_METRICS_PORT={{ rekor_server_admin_tcp_port }}
            REKOR_HTTP_ADDRESS={{ rekor_server_http_address }}
            REKOR_HTTP_PORT={{ rekor_server_http_port }}
            REKOR_GRPC_ADDRESS={{ rekor_server_grpc_address }}
            REKOR_GRPC_PORT={{ rekor_server_grpc_port }}
            REKOR_METRICS_PORT={{ rekor_server_metrics_port }}
-           REKOR_DATABASE_URL="{{ rekor_database_url }}"
            REKOR_LOG_LEVEL={{ rekor_log_level }}
            REKOR_S3_BUCKET={{ rekor_s3_bucket }}
            REKOR_HOSTNAME={{ rekor_hostname }}
@@ -197,16 +195,16 @@
      #     name: "{{ rekor_server_systemd_service_name }}"
      #     enabled: true
 
-     - name: Allow rekor traffic through firewall
+     - name: Allow rekor http traffic through firewall
        ufw:
-         port: "{{ rekor_server_tcp_port }}"
+         port: "{{ rekor_server_http_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Allow rekor admin port traffic through firewall
+     - name: Allow rekor metrics traffic through firewall
        ufw:
-         port: "{{ rekor_server_admin_tcp_port }}"
+         port: "{{ rekor_server_metrics_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
