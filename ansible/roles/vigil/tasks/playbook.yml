@@ -313,7 +313,7 @@
          mode: 0644
        notify: restart vigil service
 
-     # restart handled will activate and start the service, this prevents starting it here
+     # restart handler will activate and start the service, this prevents starting it here
      # and restarting at the end, which comes with a 60s shutdown timer
      # - name: Enable vigil systemd service
      #   service:
