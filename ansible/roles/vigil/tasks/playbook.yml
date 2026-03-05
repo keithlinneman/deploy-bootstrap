@@ -24,6 +24,7 @@
          vigil_config_slack_url_vigil_triage: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/slack/webhook/vigil_triage', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
          vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region ) }}"
+       no_log: true
 
      - name: Set facts from environment variables
        set_fact:
@@ -35,6 +36,7 @@
      - name: Build database connection string
        set_fact:
          vigil_database_url: "postgres://{{ vigil_config_database_credentials.username }}:{{ vigil_config_database_credentials.password }}@{{ vigil_config_database_credentials.host }}:{{ vigil_config_database_credentials.port }}/vigil?sslmode=require"
+       no_log: true
 
      - name: Set base application directory
        set_fact:
@@ -291,6 +293,7 @@
            VIGIL_SLACK_WEBHOOK_URL="{{ vigil_config_slack_url_vigil_triage }}"
            VIGIL_LOG_LEVEL=debug
            VIGIL_API_TOKEN="{{ vigil_api_token }}"
+       no_log: true
 
      - name: Write vigil environment file
        copy:
