@@ -41,6 +41,7 @@ Everything is designed for ephemeral storage, there are no stateful services in 
 - `alertmanager` - Prometheus Alertmanager with cluster peering
 - `alloy` - Grafana Alloy telemetry collector
 - `otel-collector` - OpenTelemetry Collector with journald, syslog, and OTLP pipelines
+- `vigil` - AI-Powered alert analysis and triage. [Vigil sourcecode on GitHub](https://github.com/linnemanlabs/vigil)
 
 ### Infrastructure
 - `etcd` - etcd key-value store
