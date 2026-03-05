@@ -31,7 +31,7 @@
 
      - name: Build database connection string
        set_fact:
-         rekor_database_dsn: "mysql://{{ rekor_config_database_credentials.username }}:{{ rekor_config_database_credentials.password }}@tcp({{ rekor_config_database_credentials.host }}:{{ rekor_config_database_credentials.port }})/rekor?tls=true"
+         rekor_database_dsn: "{{ rekor_config_database_credentials.username }}:{{ rekor_config_database_credentials.password }}@tcp({{ rekor_config_database_credentials.host }}:{{ rekor_config_database_credentials.port }})/rekor?tls=true"
        no_log: true
 
      - name: Set base application directory
@@ -168,6 +168,7 @@
            REKOR_KMS_KEY_SIGNER={{ rekor_config_checkpoint_signer }}
            REKOR_DATABASE_DSN="{{ rekor_database_dsn }}"
            REKOR_KMS_HASH={{ rekor_kms_hash_algorithm}}
+           AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
        no_log: true
 
      - name: Write rekor environment file
