@@ -20,7 +20,7 @@ If you are on a modern Ubuntu then all required collections are built-in. For RH
 
 These are run locally on the node being configured as part of either golden image creation or initial bootstrapping of a production instance.
 
-They are idempotent, but not designed for repeated runs as part of ongoing updates as the intended use-case (would cache downloads, parameterize more vars, etc).
+They are idempotent, but not designed for repeated runs as part of ongoing updates as the intended use-case (would cache downloads, parameterize more vars, separate playbooks into install/configure, etc).
 
 Everything is designed for ephemeral storage, there are no stateful services in this repo.
 
