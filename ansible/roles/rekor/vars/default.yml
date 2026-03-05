@@ -1,0 +1,16 @@
+---
+rekor_hostname: rekor.trust.linnemanlabs.com
+rekor_server_http_address: 0.0.0.0
+rekor_server_http_port: 3000
+rekor_server_http_tls_enabled: false
+rekor_server_grpc_address: 127.0.0.1
+rekor_server_grpc_port: 3001
+rekor_server_grpc_tls_enabled: false
+rekor_server_metrics_port: 2112
+rekor_server_systemd_service_name: rekor-server
+rekor_server_system_user: rekor
+rekor_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/rekor/signing/checkpoint/key/arn"
+rekor_kms_hash_algorithm: sha256
+rekor_log_level: info
+rekor_version: 2.2.1
+rekor_binary_sha256: b7f7bf59b5841e1bb14a527a2936def6332c43a4dd17f6a34c009a52cf01fe7b
