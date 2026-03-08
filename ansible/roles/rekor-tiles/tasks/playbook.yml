@@ -189,12 +189,22 @@
          mode: 0644
        notify: restart rekor service
 
-     # restart handled will activate and start the service, this prevents starting it here
-     # and restarting at the end, which comes with a 60s shutdown timer
-     # - name: Enable rekor systemd service
-     #   service:
-     #     name: "{{ rekor_server_systemd_service_name }}"
-     #     enabled: true
+     - name: Install RDS CA bundle for mysql tls
+       when: rekor_db_type == "rds"
+       block:
+         - name: Download RDS CA bundle
+           get_url:
+             url: "https://truststore.pki.rds.amazonaws.com/{{ ansible_ec2_instance_identity_document_region }}/{{ ansible_ec2_instance_identity_document_region }}-bundle.pem"
+             dest: /tmp/rds-ca-bundle.pem
+
+         - name: Split RDS CA bundle into individual certs
+           shell:
+             cmd: |
+               awk 'BEGIN {n=0} /-----BEGIN CERTIFICATE-----/ {n++; filename=sprintf("/usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-%d.crt", n)} {print > filename}' /tmp/rds-ca-bundle.pem
+             creates: /usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-1.crt
+
+         - name: Update system CA certificates
+           command: update-ca-certificates
 
      - name: Allow rekor http traffic through firewall
        ufw:
@@ -209,6 +219,16 @@
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
+
+     # flush handlers for service restart, then ensure its started after.
+     # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
+     - name: Flush pending handlers
+       meta: flush_handlers
+
+     - name: Enable rekor systemd service
+       service:
+         name: "{{ rekor_server_systemd_service_name }}"
+         enabled: true
 
    handlers:
      - name: restart rekor service
