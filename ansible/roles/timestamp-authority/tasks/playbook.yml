@@ -140,6 +140,22 @@
              path: "{{ staging_dir }}"
              state: absent
 
+     - name: Copy tsa certificate chain from s3 trust-materials bucket
+       amazon.aws.s3_object:
+         bucket: "{{ trust_materials_bucket_name }}"
+         object: "{{ tsa_trust_materials_cert_chain_path }}"
+         dest: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
+         mode: get
+         overwrite: different
+       notify: restart tsa service
+
+     - name: Ensure certificate chain has correct permissions
+       file:
+         path: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
+         mode: "0644"
+         owner: root
+         group: "{{ tsa_server_system_user }}"  
+
      - name: Ensure /etc/tsa directory exists
        file:
          path: /etc/tsa
@@ -158,6 +174,7 @@
            TSA_KMS_HASH={{ tsa_kms_hash_algorithm}}
            TSA_SIGNER_TYPE={{ tsa_signer_type }}
            TSA_LOG_TYPE={{ tsa_log_type }}
+           TSA_CERT_CHAIN_PATH={{ tsa_app_dir }}/certs/tsa-chain.pem
            AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
 
      - name: Write tsa environment file
@@ -168,23 +185,7 @@
          mode: "0600"
          content: "{{ tsa_env_content }}"
        notify:
-         - restart tsa service
-
-     - name: Copy tsa certificate chain from s3 trust-materials bucket
-       amazon.aws.s3_object:
-         bucket: "{{ trust_materials_bucket_name }}"
-         object: "{{ tsa_trust_materials_cert_chain_path }}"
-         dest: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
-         mode: get
-         overwrite: different
-       notify: restart tsa service
-
-     - name: Ensure certificate chain has correct permissions
-       file:
-         path: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
-         mode: "0644"
-         owner: root
-         group: "{{ tsa_server_system_user }}"    
+         - restart tsa service  
 
      - name: Create tsa systemd service
        template:
