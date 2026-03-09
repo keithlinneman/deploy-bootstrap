@@ -18,6 +18,7 @@
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
          tsa_config_timestamp_signer: "{{ lookup('amazon.aws.aws_ssm', tsa_kms_signer_param, region=ansible_ec2_instance_identity_document_region ) }}"
+         trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', tsa_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region ) }}"
 
      - name: Set facts from environment variables
        set_fact:
@@ -62,11 +63,14 @@
 
      - name: Create tsa directories
        file:
-         path: "{{ tsa_app_dir }}/bin"
+         path: "{{ tsa_app_dir }}/{{ item }}"
          owner: "root"
          group: "{{ tsa_server_system_user}}"
          mode: 0750
          state: directory
+       loop:
+         - bin
+         - certs
 
      - name: Set architecture format based on normalized naming
        set_fact:
@@ -165,6 +169,15 @@
          content: "{{ tsa_env_content }}"
        notify:
          - restart tsa service
+
+     - name: Copy tsa certificate chain from s3 trust-materials bucket
+       amazon.aws.s3_object:
+         bucket: "{{ trust_materials_bucket_name }}"
+         object: "{{ tsa_trust_materials_cert_chain_path }}"
+         dest: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
+         mode: get
+         overwrite: different
+       notify: restart tsa service
 
      - name: Create tsa systemd service
        template:
