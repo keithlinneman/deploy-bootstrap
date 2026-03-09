@@ -197,7 +197,7 @@
            FULCIO_LOG_TYPE="{{ fulcio_log_type }}"
            FULCIO_METRICS_PORT="{{ fulcio_server_metrics_port }}"
            FULCIO_CERT_CHAIN_PATH="{{ fulcio_app_dir }}/certs/fulcio-ca-chain.pem"
-           FULCIO_TESSERACT_CHECKPOINT_PUBKEY_PATH="{{ fulcio_app_dir }}/certs/tesseract-checkpoint-pubkey.pem }}"
+           FULCIO_TESSERACT_CHECKPOINT_PUBKEY_PATH="{{ fulcio_app_dir }}/certs/tesseract-checkpoint-pubkey.pem"
            AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
 
      - name: Write fulcio environment file
