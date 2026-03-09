@@ -10,7 +10,7 @@ WorkingDirectory=/var/lib/{{ fulcio_server_system_user }}
 User={{ fulcio_server_system_user }}
 Group={{ fulcio_server_system_user }}
 EnvironmentFile=/etc/fulcio/fulcio-server.env
-ExecStart=/opt/fulcio/server/bin/fulcio-server \
+ExecStart=/opt/fulcio/server/bin/fulcio-server serve \
  --ca "${FULCIO_CA_TYPE}" \
  --config-path "${FULCIO_CONF_PATH}" \
  --ct-log-public-key-path "${FULCIO_TESSERACT_CHECKPOINT_PUBKEY_PATH}" \
