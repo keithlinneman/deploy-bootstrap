@@ -1,0 +1,12 @@
+---
+tsa_version: 2.0.5
+tsa_binary_sha256: a1e40c122bdd1e736a48ee95289d9496356ea41b6236f6f8b7972dac16acd7e2
+tsa_server_address: 0.0.0.0
+tsa_server_port: 3000
+tsa_server_scheme: http
+tsa_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tsa/signing/timestamp/signer"
+tsa_kms_hash_algorithm: sha384
+tsa_signer_type: kms
+tsa_log_type: prod
+tsa_server_systemd_service_name: tsa-server
+tsa_server_system_user: tsa
