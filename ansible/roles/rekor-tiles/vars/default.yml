@@ -1,6 +1,7 @@
 ---
 rekor_hostname: rekor.trust.linnemanlabs.com
 rekor_db_type: rds
+rekor_db_name: rekor
 rekor_server_http_address: 0.0.0.0
 rekor_server_http_port: 3000
 rekor_server_http_tls_enabled: false
