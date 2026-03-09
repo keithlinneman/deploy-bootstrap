@@ -1,0 +1,77 @@
+[Unit]
+Description=Provides server for fulcio for CA authority for oidc identity based certificate issuance
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/var/lib/{{ fulcio_server_system_user }}
+#WorkingDirectory=/
+User={{ fulcio_server_system_user }}
+Group={{ fulcio_server_system_user }}
+EnvironmentFile=/etc/fulcio/fulcio-server.env
+ExecStart=/opt/fulcio/server/bin/fulcio-server \
+ --ca "${FULCIO_CA_TYPE}" \
+ --config-path "${FULCIO_CONF_PATH}" \
+ --ct-log-public-key-path "${FULCIO_TESSERACT_CHECKPOINT_PUBKEY_PATH}" \
+ --ct-log-url "${FULCIO_CT_LOG_URL}" \
+ --fileca-watch="${FULCIO_FILECA_WATCH}" \
+ --grpc-host "${FULCIO_GRPC_ADDRESS}" \
+ --grpc-port "${FULCIO_GRPC_PORT}" \
+ --host "${FULCIO_HTTP_ADDRESS}" \
+ --kms-cert-chain-path "${FULCIO_CERT_CHAIN_PATH}" \
+ --kms-resource "${FULCIO_KMS_SIGNER}" \
+ --log_type "${FULCIO_LOG_TYPE}" \
+ --metrics-port "${FULCIO_METRICS_PORT}" \
+ --port "${FULCIO_HTTP_PORT}"
+
+#StandardOutput=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
+StandardOutput=journal
+StandardError=journal
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+NotifyAccess=main
+TimeoutStartSec=30
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+ProtectProc=invisible
+ProcSubset=pid
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ fulcio_server_system_user }}
+# covered by ProtectSystem=strict already
+#ReadOnlyPaths=/opt/fulcio
+ReadWritePaths=/var/lib/{{ fulcio_server_system_user }} /run
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
+
