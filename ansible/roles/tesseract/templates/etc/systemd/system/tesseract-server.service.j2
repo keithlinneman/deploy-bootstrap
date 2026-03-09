@@ -1,0 +1,88 @@
+[Unit]
+Description=Provides server for tesseract for certificate transparency
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/var/lib/{{ tesseract_server_system_user }}
+#WorkingDirectory=/
+User={{ tesseract_server_system_user }}
+Group={{ tesseract_server_system_user }}
+EnvironmentFile=/etc/tesseract/tesseract-server.env
+ExecStart=./tesseract \
+ -accept_sha1_signing_algorithms=false \
+ -bucket "${TESSERACT_S3_BUCKET}" \
+ -db_host "${TESSERACT_DB_HOST}" \
+ -db_max_conns ${TESSERACT_DB_MAX_OPEN_CONNS} \
+ -db_max_idle_conns ${TESSERACT_DB_MAX_IDLE_CONNS} \
+ -db_name "${TESSERACT_DB_NAME}" \
+ -db_password "${TESSERACT_DB_PASSWORD}" \
+ -db_port ${TESSERACT_DB_PORT} \
+ -db_user "${TESSERACT_DB_USER}" \
+{% if tesseract_publication_awaiter | default(true) %}
+ -enable_publication_awaiter \
+{% endif %}
+ -http_endpoint "${TESSERACT_SERVER_ADDRESS}:${TESSERACT_SERVER_PORT}" \
+{% if tesseract_log_to_stderr | default(true) %}
+ -logtostderr \
+{% endif %}
+ -origin "${TESSERACT_ORIGIN} \
+{% if tesseract_reject_expired | default(true) %}
+ -reject_expired \
+{% endif %}
+ -roots_pem_file ${TESSERACT_ROOTS_PEM_FILE} \
+ -signer_private_key_secret_name ${TESSERACT_CHECKPOINT_KEY_LOCATION} \
+ -signer_public_key_secret_name ${TESSERACT_CHECKPOINT_PUBKEY_LOCATION}
+ -v ${TESSERACT_LOG_VERBOSITY}
+
+#StandardOutput=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
+StandardOutput=journal
+StandardError=journal
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+NotifyAccess=main
+TimeoutStartSec=30
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+ProtectProc=invisible
+ProcSubset=pid
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ tesseract_server_system_user }}
+# covered by ProtectSystem=strict already
+#ReadOnlyPaths=/opt/tesseract
+ReadWritePaths=/var/lib/{{ tesseract_server_system_user }} /run
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
+
