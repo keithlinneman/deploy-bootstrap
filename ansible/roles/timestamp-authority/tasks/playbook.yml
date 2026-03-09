@@ -188,7 +188,7 @@
 
      - name: Allow tsa http traffic through firewall
        ufw:
-         port: "{{ tsa_server_http_port }}"
+         port: "{{ tsa_server_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
