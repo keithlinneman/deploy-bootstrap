@@ -10,7 +10,7 @@ WorkingDirectory=/var/lib/{{ tesseract_server_system_user }}
 User={{ tesseract_server_system_user }}
 Group={{ tesseract_server_system_user }}
 EnvironmentFile=/etc/tesseract/tesseract-server.env
-ExecStart=./tesseract \
+ExecStart={{ tesseract_app_dir }}/bin/tesseract-server \
  -accept_sha1_signing_algorithms=false \
  -bucket "${TESSERACT_S3_BUCKET}" \
  -db_host "${TESSERACT_DB_HOST}" \
@@ -27,13 +27,13 @@ ExecStart=./tesseract \
 {% if tesseract_log_to_stderr | default(true) %}
  -logtostderr \
 {% endif %}
- -origin "${TESSERACT_ORIGIN} \
+ -origin "${TESSERACT_ORIGIN}" \
 {% if tesseract_reject_expired | default(true) %}
  -reject_expired \
 {% endif %}
- -roots_pem_file ${TESSERACT_ROOTS_PEM_FILE} \
- -signer_private_key_secret_name ${TESSERACT_CHECKPOINT_KEY_LOCATION} \
- -signer_public_key_secret_name ${TESSERACT_CHECKPOINT_PUBKEY_LOCATION}
+ -roots_pem_file "${TESSERACT_ROOTS_PEM_FILE}" \
+ -signer_private_key_secret_name "${TESSERACT_CHECKPOINT_KEY_LOCATION}" \
+ -signer_public_key_secret_name "${TESSERACT_CHECKPOINT_PUBKEY_LOCATION}" \
  -v ${TESSERACT_LOG_VERBOSITY}
 
 #StandardOutput=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
