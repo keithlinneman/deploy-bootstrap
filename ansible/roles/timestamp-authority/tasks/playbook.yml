@@ -179,6 +179,13 @@
          overwrite: different
        notify: restart tsa service
 
+     - name: Ensure certificate chain has correct permissions
+       file:
+         path: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
+         mode: "0644"
+         owner: root
+         group: "{{ tsa_server_system_user }}"    
+
      - name: Create tsa systemd service
        template:
          src: ../templates/etc/systemd/system/{{ tsa_server_systemd_service_name }}.service.j2
