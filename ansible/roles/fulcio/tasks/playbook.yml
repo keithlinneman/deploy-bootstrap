@@ -195,7 +195,7 @@
            FULCIO_GRPC_PORT="{{ fulcio_server_grpc_port }}"
            FULCIO_KMS_SIGNER="{{ fulcio_config_timestamp_signer }}"
            FULCIO_LOG_TYPE="{{ fulcio_log_type }}"
-           FULCIO_METRICS_PORT="{{ fulcio_metrics_port }}"
+           FULCIO_METRICS_PORT="{{ fulcio_server_metrics_port }}"
            FULCIO_CERT_CHAIN_PATH="{{ fulcio_app_dir }}/certs/fulcio-ca-chain.pem"
            FULCIO_TESSERACT_CHECKPOINT_PUBKEY_PATH="{{ fulcio_app_dir }}/certs/tesseract-checkpoint-pubkey.pem }}"
            AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
@@ -219,21 +219,21 @@
 
      - name: Allow fulcio http traffic through firewall
        ufw:
-         port: "{{ fulcio_server_port }}"
+         port: "{{ fulcio_server_http_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
      - name: Allow fulcio grpc traffic through firewall
        ufw:
-         port: "{{ fulcio_grpc_port }}"
+         port: "{{ fulcio_server_grpc_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'       
 
      - name: Allow fulcio metrics traffic through firewall
        ufw:
-         port: "{{ fulcio_metrics_port }}"
+         port: "{{ fulcio_server_metrics_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'

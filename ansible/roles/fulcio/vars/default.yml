@@ -5,13 +5,13 @@ fulcio_binary_sha256: d5e4b689e3f58bd478c19b21d265ac66198c1e123ce7d8ea8c35596085
 fulcio_ca_type: kmsca
 fulcio_ct_log_url: https://tesseract.{{ hosted_zone_name }}/
 fulcio_fileca_watch: false
-fulcio_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/fulcio/signing/timestamp/signer"
+fulcio_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/fulcio/signing/intermediate/signer"
 fulcio_log_type: prod
-fulcio_metrics_port: 2112
 fulcio_server_grpc_address: 0.0.0.0
 fulcio_server_grpc_port: 8081
 fulcio_server_http_address: 0.0.0.0
 fulcio_server_http_port: 8080
+fulcio_server_metrics_port: 2112
 fulcio_server_systemd_service_name: fulcio-server
 fulcio_server_system_user: fulcio
 fulcio_trust_materials_bucket_param: /platform/trustmaterial/s3/bucket/name
