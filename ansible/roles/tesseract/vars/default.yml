@@ -9,7 +9,7 @@ tesseract_db_max_open_conns: 20
 tesseract_db_max_idle_conns: 2
 tesseract_log_to_stderr: true
 tesseract_log_verbosity: 0
-tesseract_origin: tesseract.{{ hosted_zone_name }}
+tesseract_origin: tesseract.{{ trust_zone_name }}
 tesseract_publication_awaiter: true
 tesseract_reject_expired: true
 tesseract_server_address: 0.0.0.0
