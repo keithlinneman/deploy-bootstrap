@@ -10,7 +10,16 @@ WorkingDirectory=/var/lib/{{ tsa_server_system_user }}
 User={{ tsa_server_system_user }}
 Group={{ tsa_server_system_user }}
 EnvironmentFile=/etc/tsa/tsa-server.env
-ExecStart=/opt/tsa/server/bin/tsa-server --certificate-chain-path ${TSA_CERT_CHAIN_PATH} --host ${TSA_HTTP_ADDRESS} --include-chain-in-response --kms-key-resource ${TSA_KMS_KEY_SIGNER} --log-type ${TSA_LOG_TYPE} --port ${TSA_HTTP_PORT} --scheme http --timestamp-signer ${TSA_SIGNER_TYPE} --timestamp-signer-hash ${TSA_KMS_HASH} serve
+ExecStart=/opt/tsa/server/bin/tsa-server \
+ --certificate-chain-path ${TSA_CERT_CHAIN_PATH} \
+ --host ${TSA_HTTP_ADDRESS} \
+ --include-chain-in-response \
+ --kms-key-resource ${TSA_KMS_KEY_SIGNER} \
+ --log-type ${TSA_LOG_TYPE} \
+ --port ${TSA_HTTP_PORT} \
+ --scheme http \
+ --timestamp-signer ${TSA_SIGNER_TYPE} \
+ --timestamp-signer-hash ${TSA_KMS_HASH} serve
 #StandardOutput=append:/var/log/{{ tsa_server_systemd_service_name }}.log
 #StandardError=append:/var/log/{{ tsa_server_systemd_service_name }}.log
 StandardOutput=journal
