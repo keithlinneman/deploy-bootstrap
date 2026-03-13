@@ -168,7 +168,7 @@
 
      - name: Modify spire-server configuration file
        template:
-         src: ../templates/spire/conf/server/server.conf.j2
+         src: ../templates/spire/conf/server.conf.j2
          dest: "{{ spire_app_dir }}/conf/server.conf"
          mode: 0644
        notify: restart spire service
