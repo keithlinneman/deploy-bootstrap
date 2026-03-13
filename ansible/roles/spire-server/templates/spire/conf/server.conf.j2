@@ -15,7 +15,7 @@ server {
     ca_key_type = "{{ spire_ca_key_type}}"
     ca_subject {
       # country = "[{{ spire_ca_subject_country }}]"
-      organization = {{ [spire_ca_subject_organization] | to_json }}
+      organization = {{ spire_ca_subject_organization | to_json }}
       common_name = "{{ spire_ca_subject_common_name }}"
     }
 }
