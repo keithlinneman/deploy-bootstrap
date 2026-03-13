@@ -6,7 +6,7 @@ tsa_server_port: 3000
 tsa_server_scheme: http
 tsa_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tsa/signing/timestamp/signer"
 tsa_kms_hash_algorithm: sha384
-tsa_trust_materials_bucket_param: /platform/trustmaterial/s3/bucket/name
+tsa_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 tsa_trust_materials_cert_chain_path: certs/tsa-chain.pem
 tsa_signer_type: kms
 tsa_log_type: prod

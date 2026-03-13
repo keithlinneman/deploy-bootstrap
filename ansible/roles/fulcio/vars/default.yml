@@ -14,6 +14,6 @@ fulcio_server_http_port: 8080
 fulcio_server_metrics_port: 2112
 fulcio_server_systemd_service_name: fulcio-server
 fulcio_server_system_user: fulcio
-fulcio_trust_materials_bucket_param: /platform/trustmaterial/s3/bucket/name
+fulcio_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 fulcio_trust_materials_cert_chain_path: certs/fulcio-ca.pem
 fulcio_trust_materials_tesseract_checkpoint_pubkey_path: certs/tesseract-checkpoint-pubkey.pem

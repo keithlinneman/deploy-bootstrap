@@ -16,5 +16,5 @@ tesseract_server_address: 0.0.0.0
 tesseract_server_port: 6962
 tesseract_server_systemd_service_name: tesseract-server
 tesseract_server_system_user: tesseract
-tesseract_trust_materials_bucket_param: /platform/trustmaterial/s3/bucket/name
+tesseract_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 tesseract_trust_materials_cert_chain_path: certs/fulcio-ca.pem
