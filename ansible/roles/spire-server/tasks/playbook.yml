@@ -78,6 +78,7 @@
          state: directory
        loop:
          - bin
+         - certs
          - conf
          - data
 
@@ -164,6 +165,14 @@
          mode: "0644"
          owner: root
          group: "{{ spire_server_system_user }}"
+
+     - name: Modify spire-server configuration file
+       template:
+         src: ../templates/spire/conf/server/server.conf.j2
+         dest: "{{ spire_app_dir }}/conf/server.conf"
+         mode: 0644
+       notify: restart spire service
+       when: ansible_os_family == 'Debian'
 
      - name: Create spire systemd service
        template:

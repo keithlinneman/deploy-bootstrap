@@ -24,6 +24,6 @@ spire_server_grpc_port: 8081
 spire_server_systemd_service_name: spire-server
 spire_server_system_user: spire
 #spire_trust_domain:
-#spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
-#spire_trust_materials_cert_chain_path: certs/spire-chain.pem
+spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
+spire_trust_materials_cert_chain_path: certs/spire-ca-chain.pem
 #spire_signer_type: kms
