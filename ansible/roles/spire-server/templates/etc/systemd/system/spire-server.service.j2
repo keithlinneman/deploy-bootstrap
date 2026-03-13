@@ -1,0 +1,63 @@
+[Unit]
+Description=Provides server for SPIRE to issue SPIFFE SVIDs for system to system authentication
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/var/lib/{{ spire_server_system_user }}
+#WorkingDirectory=/
+User={{ spire_server_system_user }}
+Group={{ spire_server_system_user }}
+#EnvironmentFile=/etc/spire/spire-server.env
+ExecStart=/opt/spire/server/bin/spire-server run -config {{ spire_app_dir }}/conf/server.conf
+#StandardOutput=append:/var/log/{{ spire_server_systemd_service_name }}.log
+#StandardError=append:/var/log/{{ spire_server_systemd_service_name }}.log
+StandardOutput=journal
+StandardError=journal
+KillMode=mixed
+TimeoutSec=60
+Type=simple
+NotifyAccess=main
+TimeoutStartSec=30
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+ProtectProc=invisible
+ProcSubset=pid
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ spire_server_system_user }}
+# covered by ProtectSystem=strict already
+#ReadOnlyPaths=/opt/spire
+ReadWritePaths=/var/lib/{{ spire_server_system_user }} /run
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
+
