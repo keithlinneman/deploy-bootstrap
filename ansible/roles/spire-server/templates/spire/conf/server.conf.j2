@@ -26,7 +26,8 @@ plugins {
             database_type "aws_postgres" {
                 region = "{{ ansible_ec2_instance_identity_document_region }}"
         }
-        connection_string = "dbname={{ spire_db_name }} user={{ spire_db_user }} host={{ spire_db_host }} port={{ spire_db_port }} sslmode=verify-full"
+         owner: "{{ spire_server_system_user }}"
+        connection_string = "dbname={{ spire_db_name }} user={{ spire_db_user }} host={{ spire_db_host }} port={{ spire_db_port }} sslkey={{ spire_app_dir }}/conf/ssl/cert.key sslcert={{ spire_app_dir }}/conf/ssl/cert.pem sslmode=verify-full"
       }
     }
 
