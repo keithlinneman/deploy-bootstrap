@@ -1,0 +1,7 @@
+---
+- name: restart spire service
+  systemd:
+    name: "{{ spire_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

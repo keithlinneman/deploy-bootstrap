@@ -1,1 +1,5 @@
 ---
+spire_server_data_dir: /var/lib/spire-server/data
+spire_server_socket_path: /var/lib/spire-server/run/spire-server.sock
+spire_server_systemd_service_name: spire-server
+spire_server_system_user: spire-server
