@@ -1,2 +1,3 @@
 ---
   etcd_systemd_service_name: etcd
+  etcd_system_user: etcd

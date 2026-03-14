@@ -1,0 +1,5 @@
+---
+etcd_cluster_tcp_port: 2380
+etcd_cluster_initial_peers: monitoring-us-east-2a=http://monitoring-etcd-2a.{{ hosted_zone_name }}:{{ etcd_cluster_tcp_port }},monitoring-us-east-2b=http://monitoring-etcd-2b.{{ hosted_zone_name }}:{{ etcd_cluster_tcp_port }},monitoring-us-east-2c=http://monitoring-etcd-2c.{{ hosted_zone_name }}:{{ etcd_cluster_tcp_port }}
+etcd_tcp_port: 2379
+hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
