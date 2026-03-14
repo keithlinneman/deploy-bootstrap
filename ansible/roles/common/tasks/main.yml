@@ -1,0 +1,315 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: print all variables for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Set timezone to EST
+  shell:
+    cmd: /usr/bin/timedatectl set-timezone America/New_York
+
+- name: (Debian) Update apt repos
+  apt:
+    update_cache: yes
+    cache_valid_time: 300
+  when: ansible_os_family == 'Debian'
+
+- name: (Debian) Upgrade apt packages
+  apt:
+    upgrade: dist
+    cache_valid_time: 300
+  when: ansible_os_family == 'Debian'
+
+# snaps already automatically update but manually refresh them with shell command here
+- name: (Debian) Upgrade snap packages
+  shell:
+    cmd: /usr/bin/snap refresh
+  changed_when: false
+  when: ansible_os_family == 'Debian'
+
+- name: Remove unwanted packages
+  package:
+    name: "{{ remove_package_names }}"
+    state: absent
+
+- name: Stop and disable unwanted services
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ disable_service_names }}"
+  ignore_errors: true
+
+- name: (Debian) Disable multicast name resolution (listens on all addresses publicly)
+  ini_file:
+    path: /etc/systemd/resolved.conf
+    section: Resolve
+    option: LLMNR
+    value: 'no'
+  when: ansible_os_family == 'Debian'
+  notify: Restart service systemd-resolved
+
+- name: (RedHat) Upgrade dnf packages
+  dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  when: ansible_os_family == 'RedHat'
+
+- name: Install desired packages
+  package:
+    name: "{{ install_package_names }}"
+    state: present
+
+- name: (RedHat) Install python3-pip for awscli dependency
+  dnf:
+    name: python3-pip
+    state: latest
+  when: ansible_os_family == 'RedHat'
+
+- name: (RedHat) install requests via pip
+  pip:
+    name: requests
+    extra_args: --upgrade
+  when: ansible_os_family == 'RedHat'
+
+- name: (RedHat) install awscli via pip
+  pip:
+    name: awscli
+    extra_args: --upgrade
+  when: ansible_os_family == 'RedHat'
+
+- name: (RedHat) Install nano for rhel8
+  dnf:
+    name: nano
+    state: latest
+  when: ansible_os_family == 'RedHat'
+
+- name: (Ubuntu) Install awscli via snap for Ubuntu24
+  snap:
+    name: aws-cli
+    classic: yes
+    state: present
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '24'
+
+- name: (Debian) Install awscli via apt for debian based systems
+  apt:
+    name: awscli
+    state: present
+  when: (ansible_distribution == 'Debian') or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version != '24')
+
+- name: (Debian) Configure apt daily update timing (unused)
+  copy:
+    src: ../files/etc/cron.daily/apt-compat
+    dest: /etc/cron.daily/apt-compat
+  when: ansible_os_family == 'Debian'
+
+- name: (Debian) Configure apt auto upgrade settings
+  template:
+    src: ../templates/etc/apt/apt.conf.d/20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+  when: ansible_os_family == 'Debian'
+
+- name: (Debian) Configure apt unattended upgrade
+  copy:
+    src: ../files/etc/apt/apt.conf.d/50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+  when: ansible_os_family == 'Debian'
+
+- name: (Debian) Configure apt update timing
+  template:
+    src: ../templates/etc/systemd/system/timers.target.wants/apt-daily.timer.j2
+    dest: /lib/systemd/system/apt-daily.timer
+  when: ansible_os_family == 'Debian'
+  notify: Reload systemd configurations
+
+- name: (Debian) Configure apt auto upgrade timing
+  template:
+    src: ../templates/etc/systemd/system/timers.target.wants/apt-daily-upgrade.timer.j2
+    dest: /lib/systemd/system/apt-daily-upgrade.timer
+  when: ansible_os_family == 'Debian'
+  notify: Reload systemd configurations
+
+- name: (Debian) Configure snap update timing/frequency
+  shell:
+    cmd: /usr/bin/snap set system refresh.timer={{ snap_auto_update_schedule }}
+  changed_when: false
+  when: ansible_os_family == 'Debian'
+
+- name: (Debian) Disable 99update-notifier, as it causes apt conflicts
+  command:
+    cmd: mv /etc/apt/apt.conf.d/99update-notifier /etc/apt/apt.conf.d/99update-notifier.disabled
+    creates: /etc/apt/apt.conf.d/99update-notifier.disabled
+  ignore_errors: true
+
+- name: Download Amazon SSM agent package file
+  get_url:
+    url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ amazon_ssm_agent_package_path[ansible_architecture] }}/{{ amazon_ssm_agent_package_filename }}"
+    dest: /root/{{ amazon_ssm_agent_package_filename }}
+
+- name: (Debian) Install Amazon SSM agent
+  apt:
+    deb: /root/{{ amazon_ssm_agent_package_filename }}
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: (RedHat) Install Amazon SSM agent
+  dnf:
+    file: /root/{{ amazon_ssm_agent_package_filename }}
+    state: present
+  when: ansible_distribution == 'RedHat'
+
+- name: Set cosign arch
+  set_fact:
+    cosign_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+- name: Download cosign (pinned) and verify checksum
+  ansible.builtin.get_url:
+    url: "https://github.com/sigstore/cosign/releases/download/v{{ cosign_version[cosign_arch] }}/cosign-linux-{{ cosign_arch }}"
+    dest: /usr/local/bin/cosign
+    mode: "0755"
+    owner: root
+    group: root
+    checksum: "sha256:{{ cosign_sha256[cosign_arch] }}"
+
+- name: Smoke test cosign
+  command: /usr/local/bin/cosign version
+  changed_when: false
+
+## Run AWS SSM patches
+
+- name: Remove extra stuff from login banners
+  copy:
+    src: ../files/etc/update-motd.d/10-help-text
+    dest: /etc/update-motd.d/10-help-text
+    #backup: true
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Remove ESM info from login banners
+  file:
+    path: /var/lib/update-notifier/hide-esm-in-motd
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+    owner: root
+    group: root
+    mode: 0600
+  notify: Reload-motd-updates
+
+- name: Disable motd-news
+  lineinfile:
+    path: /etc/default/motd-news
+    regexp: '^.*ENABLED=.*'
+    line: 'ENABLED=0'
+    #backup: true
+    backrefs: false
+    create: true
+
+- name: Setup our motd
+  copy:
+    src: ../files/etc/motd
+    dest: /etc/motd
+    #backup: true
+
+# replacing with aws vpc ntp servers so i can filter egress heavily
+#- name: Configure NTP servers
+#  lineinfile:
+#    path: /etc/chrony/chrony.conf
+#    regexp: "{{ item.regexp }}"
+#    line: "{{ item.line }}"
+#    #backup: true
+#    backrefs: false
+#    create: true
+#  loop:
+#   - { regexp: '^pool\s*ntp.ubuntu.com*.*', line: 'pool 0.us.pool.ntp.org iburst maxsources 4' }
+#   - { regexp: '^pool 0.ubuntu.pool.ntp.org.*', line: '#pool 1.us.pool.ntp.org iburst maxsources 4' }
+#   - { regexp: '^pool 1.ubuntu.pool.ntp.org.*', line: '#pool 2.us.pool.ntp.org iburst maxsources 4' }
+#   - { regexp: '^pool 2.ubuntu.pool.ntp.org.*', line: '#server time.nist.gov iburst' }
+#  notify: Restart service chrony
+
+- name: Configure NTP servers (aws vpc timeserver only)
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/chrony/chrony.conf
+    insertbefore: EOF
+    line: "server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4"
+    state: present
+
+- name: Remove other NTP servers (so we can heavily filter egress)
+  become: true
+  ansible.builtin.replace:
+    path: /etc/chrony/chrony.conf
+    regexp: '^(pool|server)\s+(?!169\.254\.169\.123).*'
+    replace: '# \g<0>'
+
+- name: Allocate 2gb swap file for emergencies
+  shell:
+    cmd: fallocate -l 2G /swapfile
+
+- name: Set swap file permissions
+  shell:
+    cmd: chmod 600 /swapfile
+
+- name: Initialize swap file
+  shell:
+    cmd: mkswap /swapfile
+
+- name: Add swap to /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "/swapfile none swap sw 0 0"
+    #backup: true
+    create: true
+
+- name: Add sysctl swap configuration
+  copy:
+    src: ../files/etc/sysctl.d/99-swap.conf
+    dest: /etc/sysctl.d/99-swap.conf
+  when: ansible_os_family == 'Debian'
+
+# too many deploy failures from apt related tasks, doing this in common for golden amis from now on since all nodes use alloy
+- name: Install dependency packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - software-properties-common
+
+- name: Install the grafana gpg key
+  shell:
+    cmd: curl -s https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
+    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+
+- name: Ensure grafana gpg key is 644 not 640 or apt breaks
+  file:
+    path: /usr/share/keyrings/grafana-archive-keyring.gpg
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Add the grafana apt repository
+  apt_repository:
+    repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
+    state: present
+    filename: grafana
+    # causing apt locks somehow
+    update_cache: true
+    #update_cache: false
+
+- name: Install the alloy package
+  package:
+    name: alloy
+    state: present
+
+- name: Ensure alloy isnt running (default config now, nodes will configure and enable it)
+  systemd:
+    name: alloy
+    enabled: false
+    state: stopped

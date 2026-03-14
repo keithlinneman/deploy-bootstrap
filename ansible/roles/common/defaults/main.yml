@@ -1,5 +1,6 @@
 ---
 cosign_version:
  arm64: "3.0.3"
+ 
 cosign_sha256:
  arm64: "81398231362031e3c7afd6a7508c57049460cd7e02736f1ebe89a452102253e5"

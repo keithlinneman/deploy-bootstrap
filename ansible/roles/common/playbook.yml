@@ -1,5 +1,4 @@
-- name: alloy playbook
-  hosts: all
+- hosts: all
   become: true
   roles:
     - role: "{{ playbook_dir }}"
