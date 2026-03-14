@@ -8,7 +8,7 @@ spire_agent_system_user: spire
 spire_agent_sync_interval: 5s
 spire_agent_log_level: INFO
 spire_agent_log_format: json
-spire_server_address: spire-lb.{{ hosted_zone_name }}
+spire_server_address: spire.{{ region_short }}.trust.prod.phxi.net
 spire_server_grpc_port: 8082
 
 trust_bundle_path: /etc/phxi/trust/linnemanlabs-root-ca.pem

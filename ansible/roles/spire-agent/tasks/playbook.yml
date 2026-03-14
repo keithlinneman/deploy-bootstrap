@@ -23,8 +23,9 @@
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
          spiffe_trust_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/trust_domain', region=ansible_ec2_instance_identity_document_region ) }}"
-         spiffe_server_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/server/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-
+         spiffe_server_address: "{{ lookup('amazon.aws.aws_ssm', spire_server_address_parameter, region=ansible_ec2_instance_identity_document_region ) }}"
+         trust_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/account_id', region=ansible_ec2_instance_identity_document_region ) }}"
+         region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
        no_log: true
 
      - name: Set facts from environment variables
