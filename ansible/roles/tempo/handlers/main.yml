@@ -1,0 +1,7 @@
+---
+- name: restart tempo service
+  systemd:
+    name: "{{ tempo_systemd_service_name[tempo_role] }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

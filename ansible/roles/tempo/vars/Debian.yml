@@ -1,1 +1,9 @@
 ---
+tempo_system_user: tempo
+tempo_systemd_service_name:
+  compactor: tempo-compactor
+  distributor: tempo-distributor
+  ingester: tempo-ingester
+  metrics-generator: tempo-metrics-generator
+  querier: tempo-querier
+  query-frontend: tempo-query-frontend
