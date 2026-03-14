@@ -248,6 +248,16 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
+     # add spiffe server address to hosts file as localhost on spire-server
+     # we are using nlb with preserve_client_ip.enabled which rewrites dst ip to our ip, so we end up seeing an incoming connection
+     # to spire with our ip as the dstip instead of the nlb, just routing those connections to our local spire server instead
+     - name: Add spire server hosts entry
+       lineinfile:
+         path: /etc/hosts
+         line: "127.0.0.1 {{ spiffe_server_address }}"
+         regexp: "{{ spiffe_server_address | regex_escape }}"
+         state: present
+
      # flush handlers for service restart, then ensure its started after.
      # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
      - name: Flush pending handlers
