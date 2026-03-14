@@ -1,0 +1,136 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Ensure required variables are defined
+  fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value"
+  when: (lookup('vars', item, default=None)) is none
+  with_items:
+    - env
+
+- name: Stop ssm to prevent apt conflicts on fresh box patching
+  command:
+    cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
+
+- name: Install dependency packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - software-properties-common
+    - wget
+
+- name: Install the grafana gpg key
+  shell:
+    cmd: wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
+    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+
+- name: Ensure grafana gpg key is 644 not 640 or apt breaks
+  file:
+    path: /usr/share/keyrings/grafana-archive-keyring.gpg
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Add the grafana apt repository
+  apt_repository:
+    repo: 'deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://apt.grafana.com stable main'
+    state: present
+    filename: grafana
+    # causing apt locks somehow
+    #update_cache: true
+    update_cache: false
+
+- name: Update apt cache after adding repo
+  apt:
+    update_cache: yes
+  register: apt_update
+  until: apt_update is succeeded
+  retries: 10
+  delay: 6
+
+- name: Install grafana package
+  package:
+    name: grafana
+    state: present
+
+- name: Start ssm service
+  command:
+    cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
+
+- name: Create grafana ssl directory
+  file:
+    path: /etc/grafana/ssl
+    owner: root
+    group: "{{ grafana_system_user }}"
+    mode: 0750
+    state: directory
+
+- name: Generate private key for local self signed ssl cert
+  community.crypto.openssl_privatekey:
+    path: /etc/grafana/ssl/cert.key
+    owner: root
+    group: "{{ grafana_system_user }}"
+    mode: 0640
+
+- name: Generate CSR for self-signed certificate for local https listener
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /etc/grafana/ssl/cert.key
+    common_name: "{{ ansible_nodename }}"
+  register: csr
+
+- name: Generate self-signed certificate for local https listener
+  community.crypto.x509_certificate:
+    path: /etc/grafana/ssl/cert.pem
+    csr_content: "{{ csr.csr }}"
+    mode: 0644
+    owner: root
+    group: "{{ grafana_system_user }}"
+    privatekey_path: /etc/grafana/ssl/cert.key
+    provider: selfsigned
+
+- name: Modify grafana main configuration
+  template:
+    src: ../templates/etc/grafana/grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    mode: 0644
+    owner: root
+    group: grafana
+  notify: restart grafana service
+  when: ansible_os_family == 'Debian'
+
+#- name: Configure grafana for prometheus data source
+#  template:
+#    src: ../templates/etc/grafana/provisioning/datasources/prometheus.yaml.j2
+#    dest: /etc/grafana/provisioning/datasources/prometheus.yaml
+#    mode: 0644
+#    owner: root
+#    group: grafana
+#  notify: restart grafana service
+#  when: ansible_os_family == 'Debian'
+
+- name: Enable grafana systemd service
+  service:
+    name: "{{ grafana_systemd_service_name }}"
+    state: started
+    enabled: true
+
+- name: Allow grafana http traffic through firewall
+  ufw:
+    port: "{{ grafana_http_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
