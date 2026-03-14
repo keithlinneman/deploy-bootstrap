@@ -101,11 +101,11 @@
 
     - name: Get pinned tsa release from s3 artifacts bucket 
       amazon.aws.s3_object:
-      bucket: "{{ artifacts_bucket_name }}"
-      object: "thirdparty/sigstore/timestamp-authority/v{{ tsa_version }}/timestamp-server-linux-{{ architecture_normalized_name }}"
-      dest: "{{ staging_dir }}/tsa-server"
-      mode: get
-      overwrite: always
+        bucket: "{{ artifacts_bucket_name }}"
+        object: "thirdparty/sigstore/timestamp-authority/v{{ tsa_version }}/timestamp-server-linux-{{ architecture_normalized_name }}"
+        dest: "{{ staging_dir }}/tsa-server"
+        mode: get
+        overwrite: always
 
     - name: Compute sha256 of downloaded binary
       stat:

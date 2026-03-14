@@ -105,11 +105,11 @@
 
     - name: Get pinned tesseract release from s3 artifacts bucket 
       amazon.aws.s3_object:
-      bucket: "{{ artifacts_bucket_name }}"
-      object: "thirdparty/transparency-dev/tesseract/v{{ tesseract_version }}/tesseract-server-linux-{{ architecture_normalized_name }}"
-      dest: "{{ staging_dir }}/tesseract-server"
-      mode: get
-      overwrite: always
+        bucket: "{{ artifacts_bucket_name }}"
+        object: "thirdparty/transparency-dev/tesseract/v{{ tesseract_version }}/tesseract-server-linux-{{ architecture_normalized_name }}"
+        dest: "{{ staging_dir }}/tesseract-server"
+        mode: get
+        overwrite: always
 
     - name: Compute sha256 of downloaded binary
       stat:

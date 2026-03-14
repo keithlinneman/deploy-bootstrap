@@ -103,11 +103,11 @@
 
     - name: Get pinned fulcio release from s3 artifacts bucket 
       amazon.aws.s3_object:
-      bucket: "{{ artifacts_bucket_name }}"
-      object: "thirdparty/sigstore/fulcio/v{{ fulcio_version }}/fulcio-linux-{{ architecture_normalized_name }}"
-      dest: "{{ staging_dir }}/fulcio-server"
-      mode: get
-      overwrite: always
+        bucket: "{{ artifacts_bucket_name }}"
+        object: "thirdparty/sigstore/fulcio/v{{ fulcio_version }}/fulcio-linux-{{ architecture_normalized_name }}"
+        dest: "{{ staging_dir }}/fulcio-server"
+        mode: get
+        overwrite: always
 
     - name: Compute sha256 of downloaded binary
       stat:
