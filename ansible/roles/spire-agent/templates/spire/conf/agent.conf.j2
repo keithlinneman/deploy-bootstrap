@@ -5,6 +5,8 @@ agent {
     trust_domain = "{{ spiffe_trust_domain }}"
     server_address = "{{ spiffe_server_address }}"
     server_port = "{{ spiffe_server_grpc_port }}"
+    socket_path = "{{ spire_agent_socket_path }}"
+
 
     allow_unauthenticated_verifiers = false
     allowed_foreign_jwt_claims = []

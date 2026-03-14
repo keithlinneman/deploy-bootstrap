@@ -7,6 +7,8 @@ server {
     log_format = "{{ spire_log_format }}"
     ca_ttl = "{{ spire_ca_ttl }}"
     default_x509_svid_ttl = "{{ spire_default_svid_ttl }}"
+    socket_path = "{{ spire_server_socket_path }}"
+
 
     agent_ttl = "{{ spire_agent_svid_ttl }}"
     audit_log_enabled = {{ spire_log_audit_enabled | string | lower }}

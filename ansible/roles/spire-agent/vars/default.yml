@@ -8,6 +8,7 @@ spire_agent_log_level: INFO
 spire_agent_log_format: json
 spire_agent_metrics_port: 8089
 spire_agent_rebootstrap_mode: auto
+spire_agent_socket_path: /var/lib/spire-agent/run/spire-agent.sock
 spire_agent_sync_interval: 5s
 spire_agent_systemd_service_name: spire-agent
 spire_agent_system_user: spire-agent
