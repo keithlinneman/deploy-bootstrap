@@ -1,0 +1,7 @@
+---
+- name: restart alertmanager service
+  systemd:
+    name: "{{ alertmanager_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

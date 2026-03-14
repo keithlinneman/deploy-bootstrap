@@ -9,7 +9,6 @@
     us-east-2c:
       - alertmanager-2a.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
       - alertmanager-2b.{{ hosted_zone_name }}:{{ alertmanager_cluster_tcp_port }}
-  alertmanager_system_user: alertmanager
   alertmanager_tcp_port: 9093
   alertmanager_cluster_tcp_port: 9094
   alertmanager_version: 0.30.0

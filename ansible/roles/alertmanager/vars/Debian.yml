@@ -1,2 +1,3 @@
 ---
-  alertmanager_systemd_service_name: alertmanager
+alertmanager_systemd_service_name: alertmanager
+alertmanager_system_user: alertmanager

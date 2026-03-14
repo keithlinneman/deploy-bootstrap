@@ -1,0 +1,196 @@
+---
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+  
+- name: Set facts from ssm here since they require ec2 metadata to lookup region       
+  set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_page_crit: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/page_crit', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_prod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_prod', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_nonprod: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_nonprod', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_changes: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_changes', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_security: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_security', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_cost: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_cost', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_slack_url_alert_slo: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/slack/webhook/alert_slo', region=ansible_ec2_instance_identity_document_region ) }}"
+    alertmanager_config_vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region ) }}"
+  no_log: true
+  
+- name: Set facts from environment variables
+  set_fact:
+    service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+    service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+    project: "{{ ansible_env.PROJECT | default('unknown') }}"
+    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    alertmanager_config_external_url: "https://alertmanager.{{ hosted_zone_name }}/"
+
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Ensure required variables are defined
+  fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value"
+  when: (lookup('vars', item, default=None)) is none
+  with_items:
+    - account_name
+    - company_name
+    - hosted_zone_name
+    - platform_env
+    - service_name
+    - service_component
+    - project
+    - namespace
+
+- name: Create alertmanager user
+  user:
+    name: "{{ alertmanager_system_user }}"
+    password: '*'
+    umask: 0027
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Create alertmanager bin, conf, data directories
+  file:
+    path: /home/{{ alertmanager_system_user }}/{{ item }}
+    owner: "{{ alertmanager_system_user }}"
+    group: "{{ alertmanager_system_user }}"
+    mode: 0750
+    state: directory
+  loop:
+    - bin
+    - conf
+    - conf/ssl
+    - data
+    - templates
+    - secrets
+
+- name: Check if ssl cert already exists
+  ansible.builtin.stat:
+    path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
+  register: alertmanager_cert
+
+- name: Generate private key for local self signed ssl cert
+  community.crypto.openssl_privatekey:
+    path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+    owner: "{{ alertmanager_system_user }}"
+  when: not alertmanager_cert.stat.exists
+
+- name: Generate CSR for self-signed certificate for local https listener
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+    common_name: "{{ ansible_nodename }}"
+  register: csr
+  when: not alertmanager_cert.stat.exists
+
+- name: Generate self-signed certificate for local https listener
+  community.crypto.x509_certificate:
+    path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.pem
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: /home/{{ alertmanager_system_user }}/conf/ssl/cert.key
+    owner: "{{ alertmanager_system_user }}"
+    provider: selfsigned
+  when: not alertmanager_cert.stat.exists
+
+- name: Set normalized architecture name
+  set_fact:
+    arch_normalized: >-
+      {%- if ansible_architecture == "aarch64" -%}
+      arm64
+      {%- else -%}
+      amd64
+      {%- endif -%}
+
+- name: Get pinned alertmanager release from s3 artifacts bucket 
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "thirdparty/prometheus/alertmanager/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-{{ arch_normalized }}.tar.gz"
+    dest: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+    mode: get
+    overwrite: different
+
+- name: Decompress alertmanager installation package
+  unarchive:
+    src: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+    dest: /home/{{ alertmanager_system_user }}/bin
+    extra_opts: ['--strip-components=1','--show-stored-names']
+    owner: "{{ alertmanager_system_user }}"
+    group: "{{ alertmanager_system_user }}"
+    mode: 0750
+    creates: /home/{{ alertmanager_system_user }}/bin/alertmanager
+
+- name: Remove the alertmanager installation package
+  file:
+    path: /home/{{ alertmanager_system_user }}/alertmanager.tar.gz
+    state: absent
+
+- name: Create alertmanager systemd service
+  template:
+    src: ../templates/etc/systemd/system/{{ alertmanager_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ alertmanager_systemd_service_name }}.service
+    mode: 0644
+  notify: restart alertmanager service
+
+- name: Modify alertmanager main configuration
+  template:
+    src: ../templates/alertmanager/conf/alertmanager.yml.j2
+    dest: /home/{{ alertmanager_system_user }}/conf/alertmanager.yml
+    mode: 0644
+  notify: restart alertmanager service
+  when: ansible_os_family == 'Debian'
+
+- name: Modify alertmanager web configuration
+  template:
+    src: ../templates/alertmanager/conf/web-config.yml.j2
+    dest: /home/{{ alertmanager_system_user }}/conf/web-config.yml
+    mode: 0644
+  notify: restart alertmanager service
+  when: ansible_os_family == 'Debian'
+
+- name: Copy over alertmanager notification templates
+  copy:
+    src: ../files/alertmanager/templates/
+    dest: /home/{{ alertmanager_system_user }}/templates/
+    owner: "{{ alertmanager_system_user }}"
+    group: "{{ alertmanager_system_user }}"
+    mode: 0640
+
+- name: Write alertmanager secrets file for vigilant token
+  copy:
+    content: "{{ alertmanager_config_vigil_api_token }}"
+    dest: /home/{{ alertmanager_system_user }}/secrets/vigil-token
+    owner: "{{ alertmanager_system_user }}"
+    group: "{{ alertmanager_system_user }}"
+    mode: 0600
+  no_log: true
+
+- name: Enable alertmanager systemd service
+  service:
+    name: "{{ alertmanager_systemd_service_name }}"
+    state: started
+    enabled: true
+
+- name: Allow Alertmanager traffic through firewall
+  ufw:
+    port: "{{ alertmanager_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow Alertmanager cluster traffic through firewall on tcp and udp
+  ufw:
+    port: "{{ alertmanager_cluster_tcp_port }}"
+    proto: "{{ item.proto }}"
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+  loop:
+    - { proto: tcp }
+    - { proto: udp }
