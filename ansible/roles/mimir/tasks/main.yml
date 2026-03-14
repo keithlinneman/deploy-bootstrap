@@ -1,0 +1,215 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+
+- name: Set variables from ssm vars that require ec2 metadata
+  set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    mimir_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/mimir/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    mimir_role: "{{ lookup('env', 'MIMIRROLE') }}"
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Exit with failure if no mimir role is defined
+  fail:
+    msg: No ansible roles found in ENV var MIMIRROLE (expected one of 'distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'store-gateway', 'compactor')
+  when: mimir_role not in ['distributor', 'ingester', 'query-frontend', 'querier', 'query-scheduler', 'store-gateway', 'compactor']
+
+- name: Ensure required variables are defined
+  fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value"
+  when: (lookup('vars', item, default=None)) is none
+  with_items:
+    - env
+    - mimir_role
+
+- name: Create mimir user
+  user:
+    name: "{{ mimir_system_user }}"
+    password: '*'
+    umask: 0027
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Create mimir bin, conf, data directories
+  file:
+    path: /home/{{ mimir_system_user }}/{{ item }}
+    owner: "{{ mimir_system_user }}"
+    group: "{{ mimir_system_user }}"
+    mode: 0750
+    state: directory
+  loop:
+    - bin
+    - conf
+    - conf/ssl
+    - data
+
+- name: Generate private key for local self signed ssl cert
+  community.crypto.openssl_privatekey:
+    path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+    owner: "{{ mimir_system_user }}"
+
+- name: Generate CSR for self-signed certificate for local https listener
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+    common_name: "{{ ansible_nodename }}"
+  register: csr
+
+- name: Generate self-signed certificate for local https listener
+  community.crypto.x509_certificate:
+    path: /home/{{ mimir_system_user }}/conf/ssl/cert.pem
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: /home/{{ mimir_system_user }}/conf/ssl/cert.key
+    owner: "{{ mimir_system_user }}"
+    provider: selfsigned
+
+- name: Check if mimir is already installed
+  stat:
+    path: /home/{{ mimir_system_user }}/bin/mimir
+  register: mimir_binary
+
+#- name: Get latest mimir release info from github
+#  uri:
+#    url: https://api.github.com/repos/grafana/mimir/releases/latest
+#    return_content: yes
+#  register: release_info
+#  when: not mimir_binary.stat.exists
+
+#- name: Set release tag fact
+#  set_fact:
+#    mimir_release_tag: "{{ release_info.json.tag_name }}"
+#  when: not mimir_binary.stat.exists
+
+##- name: Check if a newer mimir version exists than the pinned version
+##  ansible.builtin.debug:
+##    msg: |
+##      #################################################################
+##      # WARNING: New mimir version available              #
+##      #   Pinned: {{ mimir_version }}                     #
+##      #   Latest: {{ mimir_release_tag }}                            #
+##      #################################################################
+##  when: mimir_release_tag[1:] is version(mimir_version, '>')
+##  run_once: true
+##  changed_when: false
+
+# - name: Set filename based on architecture
+#   set_fact:
+#     mimir_arch: >-
+#       {%- if ansible_architecture == "aarch64" -%}
+#       mimir-linux-arm64
+#       {%- else -%}
+#       mimir-linux-amd64
+#       {%- endif -%}
+#   when: not mimir_binary.stat.exists
+
+# - name: Find asset URL from release assets based on architecture
+#   set_fact:
+#     asset_url: "{{ (release_info.json.assets | selectattr('name', 'equalto', mimir_arch) | map(attribute='browser_download_url') | first) }}"
+#   when: not mimir_binary.stat.exists
+
+# - name: Fail if asset not found for our architecture
+#   fail:
+#     msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
+#   when: asset_url is not defined and not mimir_binary.stat.exists
+
+#- name: Set filename based on architecture
+#  set_fact:
+#    mimir_asset_url: >-
+#      {%- if ansible_architecture == "aarch64" -%}
+#      https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-arm64
+#      {%- else -%}
+#      https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-amd64
+#      {%- endif -%}
+
+#- name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
+#  get_url:
+#    url: "{{ mimir_asset_url }}"
+#    dest: /home/{{ mimir_system_user }}/bin/mimir
+#    owner: "{{ mimir_system_user }}"
+#    group: "{{ mimir_system_user }}"
+#    mode: 0750
+#  when: not mimir_binary.stat.exists
+
+- name: Set filename based on architecture
+  set_fact:
+    arch_normalized: >-
+      {%- if ansible_architecture == "aarch64" -%}
+      arm64
+      {%- else -%}
+      amd64
+      {%- endif -%}
+
+- name: Get pinned Mimir release from s3 artifacts bucket 
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "thirdparty/grafana/mimir/mimir-{{ mimir_version }}/mimir-linux-{{ arch_normalized }}"
+    dest: /home/{{ mimir_system_user }}/bin/mimir
+    mode: get
+    overwrite: different
+
+- name: Ensure mimir binary is executable
+  file:
+    path: /home/{{ mimir_system_user }}/bin/mimir
+    owner: "{{ mimir_system_user }}"
+    group: "{{ mimir_system_user }}"
+    mode: 0750
+
+- name: Create mimir systemd service
+  template:
+    src: ../templates/etc/systemd/system/mimir.service.j2
+    dest: /etc/systemd/system/{{ mimir_systemd_service_name[mimir_role] }}.service
+    mode: 0644
+
+- name: Modify mimir main configuration
+  template:
+    #src: ../templates/mimir/conf/{{ mimir_role }}.yml.j2
+    src: ../templates/mimir/conf/mimir.yml.j2
+    dest: /home/{{ mimir_system_user }}/conf/mimir.yml
+    mode: 0640
+    owner: "{{ mimir_system_user }}"
+    group: "{{ mimir_system_user }}"
+  notify: restart mimir service
+  when: ansible_os_family == 'Debian'
+
+- name: Allow mimir http traffic through firewall
+  ufw:
+    port: "{{ mimir_http_tcp_port }}"
+    proto: tcp
+    rule: allow
+  # this is used both for service traffic in case of distributors and query-frontend, and for prometheus metrics scraping on all services
+  #when: ansible_distribution == 'Ubuntu' and (mimir_role == 'distributor' or mimir_role == 'query-frontend')
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow mimir grpc traffic through firewall
+  ufw:
+    port: "{{ mimir_grpc_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow mimir cluster memberlist tcp traffic through firewall
+  ufw:
+    port: "{{ mimir_cluster_memberlist_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow mimir cluster memberlist udp traffic through firewall
+  ufw:
+    port: "{{ mimir_cluster_memberlist_port }}"
+    proto: udp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
