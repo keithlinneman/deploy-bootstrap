@@ -1,2 +1,3 @@
 ---
   alloy_systemd_service_name: alloy
+  alloy_system_user: alloy
