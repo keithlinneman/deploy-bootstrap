@@ -23,6 +23,7 @@ spire_log_format: json
 spire_log_audit_enabled: true
 spire_server_address: 0.0.0.0
 spire_server_grpc_port: 8081
+spire_server_metrics_port: 8088
 spire_server_systemd_service_name: spire-server
 spire_server_system_user: spire
 #spire_trust_domain:
