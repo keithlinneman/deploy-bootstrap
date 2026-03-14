@@ -1,6 +1,7 @@
 ---
-- name: Include OS variables
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "../vars/{{ ansible_distribution }}.yml"
-    - "../vars/{{ ansible_os_family }}.yml"
+- name: restart rekor service
+  systemd:
+    name: "{{ rekor_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
