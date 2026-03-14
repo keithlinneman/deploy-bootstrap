@@ -9,8 +9,6 @@ rekor_server_grpc_address: 127.0.0.1
 rekor_server_grpc_port: 3001
 rekor_server_grpc_tls_enabled: false
 rekor_server_metrics_port: 2112
-rekor_server_systemd_service_name: rekor-server
-rekor_server_system_user: rekor
 rekor_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/rekor/signing/checkpoint/signer"
 rekor_kms_hash_algorithm: sha256
 rekor_log_level: info

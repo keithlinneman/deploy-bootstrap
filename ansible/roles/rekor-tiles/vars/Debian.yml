@@ -1,1 +1,3 @@
 ---
+rekor_server_systemd_service_name: rekor-server
+rekor_server_system_user: rekor
