@@ -1,4 +1,4 @@
-- name: alloy playbook
+- name: networking-nat playbook
   hosts: all
   become: true
   roles:
