@@ -2,3 +2,4 @@
   prometheus_node_exporter_systemd_service_name: node_exporter
   ebpf_exporter_systemd_service_name: ebpf_exporter
   ebpf_exporter_base_directory: /opt/ebpf_exporter
+  prometheus_system_user: prometheus
