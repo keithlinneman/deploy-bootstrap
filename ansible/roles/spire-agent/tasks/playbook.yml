@@ -23,10 +23,7 @@
          hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
          spiffe_trust_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/trust_domain', region=ansible_ec2_instance_identity_document_region ) }}"
-         spiffe_server_address: "{{ lookup('amazon.aws.aws_ssm', spire_server_address_parameter, region=ansible_ec2_instance_identity_document_region ) }}"
-         trust_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/account_id', region=ansible_ec2_instance_identity_document_region ) }}"
          region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
-       no_log: true
 
      - name: Set facts from environment variables
        set_fact:
@@ -37,7 +34,7 @@
 
      - name: Set base application directory
        set_fact:
-         spire_app_dir: "/opt/spire/agent"
+         spire_app_dir: "/opt/spire-agent"
 
      - name: Ensure required variables are defined
        fail:
@@ -53,8 +50,6 @@
          - service_component
          - project
          - namespace
-         - server_address
-         - server_grpc_port
          - spiffe_trust_domain
 
    tasks:
@@ -66,7 +61,7 @@
          shell: /usr/sbin/nologin
          system: true
 
-     - name: Create spire directories
+     - name: Create read-only spire directories
        file:
          path: "{{ spire_app_dir }}/{{ item }}"
          owner: "root"
@@ -76,6 +71,15 @@
        loop:
          - bin
          - conf
+
+     - name: Create read-write spire directories
+       file:
+         path: "{{ spire_app_dir }}/{{ item }}"
+         owner: "root"
+         group: "{{ spire_agent_system_user}}"
+         mode: 0770
+         state: directory
+       loop:
          - data
 
      - name: Set architecture format based on normalized naming
@@ -145,6 +149,14 @@
            file:
              path: "{{ staging_dir }}"
              state: absent
+
+     - name: Modify spire-agent configuration file
+       template:
+         src: ../templates/spire/conf/agent.conf.j2
+         dest: "{{ spire_app_dir }}/conf/agent.conf"
+         mode: 0644
+       notify: restart spire-agent service
+       when: ansible_os_family == 'Debian'
 
      - name: Create spire-agent systemd service
        template:

@@ -22,7 +22,7 @@ agent {
     workload_x509_svid_key_type = "ec-p384"
 
     experimental {
-        sync_interval = {{ spire_agent_sync_interval }}
+        sync_interval = "{{ spire_agent_sync_interval }}"
         use_sync_authorized_entries = true
     }
 
