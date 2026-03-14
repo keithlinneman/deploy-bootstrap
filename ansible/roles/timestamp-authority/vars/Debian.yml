@@ -1,1 +1,3 @@
 ---
+tsa_server_systemd_service_name: tsa-server
+tsa_server_system_user: tsa

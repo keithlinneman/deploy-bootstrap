@@ -1,0 +1,7 @@
+---
+- name: restart tsa service
+  systemd:
+    name: "{{ tsa_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
