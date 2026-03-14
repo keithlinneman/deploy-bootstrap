@@ -158,6 +158,13 @@
        notify: restart spire-agent service
        when: ansible_os_family == 'Debian'
 
+     - name: Allow spire-agent metrics traffic through firewall
+       ufw:
+         port: "{{ spire_agent_metrics_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
      - name: Create spire-agent systemd service
        template:
          src: ../templates/etc/systemd/system/{{ spire_agent_systemd_service_name }}.service.j2
