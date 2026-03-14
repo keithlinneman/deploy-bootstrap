@@ -1,1 +1,3 @@
 ---
+fulcio_server_systemd_service_name: fulcio-server
+fulcio_server_system_user: fulcio

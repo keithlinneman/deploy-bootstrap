@@ -1,0 +1,7 @@
+---
+- name: restart fulcio service
+  systemd:
+    name: "{{ fulcio_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
