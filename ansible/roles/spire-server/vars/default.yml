@@ -22,10 +22,11 @@ spire_log_level: INFO
 spire_log_format: json
 spire_log_audit_enabled: true
 spire_server_address: 0.0.0.0
+spire_server_data_dir: /var/lib/spire-server/data
 spire_server_grpc_port: 8081
 spire_server_metrics_port: 8088
 spire_server_systemd_service_name: spire-server
-spire_server_system_user: spire
+spire_server_system_user: spire-server
 #spire_trust_domain:
 spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 spire_trust_materials_cert_chain_path: certs/spire-ca-chain.pem

@@ -2,7 +2,7 @@ server {
     bind_address = "{{ spire_server_address}}"
     bind_port = "{{ spire_server_grpc_port }}"
     trust_domain = "{{ spiffe_trust_domain }}"
-    data_dir = "{{ spire_app_dir }}/data"
+    data_dir = "{{ spire_server_data_dir }}"
     log_level = "{{ spire_log_level }}"
     log_format = "{{ spire_log_format }}"
     ca_ttl = "{{ spire_ca_ttl }}"
