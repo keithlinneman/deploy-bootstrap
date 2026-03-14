@@ -203,7 +203,6 @@
        notify: restart spire service
        when: ansible_os_family == 'Debian'
 
-
      - name: Install RDS CA bundle for postgres tls
        when: spire_db_type == "rds"
        block:
