@@ -2,6 +2,7 @@
 spire_version: 1.14.2
 spire_binary_sha256: ce3ef08470ac914f2cc834a3c90e94b7a49e7be166f33a868bd171bee4bb10d1
 
+spiffe_server_address: spire.{{ region_short }}.trust.prod.phxi.net
 spire_ca_ttl: 72h
 spire_ca_key_type: ec-p384
 spire_ca_subject_country: US
@@ -29,7 +30,5 @@ spire_server_metrics_port: 8088
 spire_server_socket_path: /var/lib/spire-server/run/spire-server.sock
 spire_server_systemd_service_name: spire-server
 spire_server_system_user: spire-server
-#spire_trust_domain:
 spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 spire_trust_materials_cert_chain_path: certs/spire-ca-chain.pem
-#spire_signer_type: kms
