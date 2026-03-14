@@ -203,6 +203,24 @@
        notify: restart spire service
        when: ansible_os_family == 'Debian'
 
+
+     - name: Install RDS CA bundle for postgres tls
+       when: spire_db_type == "rds"
+       block:
+         - name: Download RDS CA bundle
+           get_url:
+             url: "https://truststore.pki.rds.amazonaws.com/{{ ansible_ec2_instance_identity_document_region }}/{{ ansible_ec2_instance_identity_document_region }}-bundle.pem"
+             dest: /root/rds-ca-bundle.pem
+
+         - name: Split RDS CA bundle into individual certs
+           shell:
+             cmd: |
+               awk 'BEGIN {n=0} /-----BEGIN CERTIFICATE-----/ {n++; filename=sprintf("/usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-%d.crt", n)} {print > filename}' /root/rds-ca-bundle.pem
+             creates: /usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-1.crt
+
+         - name: Update system CA certificates
+           command: update-ca-certificates
+
      - name: Create spire systemd service
        template:
          src: ../templates/etc/systemd/system/{{ spire_server_systemd_service_name }}.service.j2

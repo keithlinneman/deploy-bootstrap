@@ -12,6 +12,7 @@ spire_db_host: spire-rds.chog2qu22cu2.us-east-2.rds.amazonaws.com
 spire_db_port: 5432
 spire_db_name: spire
 spire_db_user: spire_server
+spire_db_type: rds
 spire_agent_svid_ttl: 1h
 spire_default_svid_ttl: 1h
 spire_intermediate_cert_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/cert-wbHUYE
