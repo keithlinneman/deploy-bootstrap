@@ -95,14 +95,14 @@
          owner: "{{ spire_server_system_user }}"
        when: not spire_cert.stat.exists
 
-     - name: Generate CSR for self-signed certificate for local https listener
+     - name: Generate CSR for self-signed certificate for postgres library
        community.crypto.openssl_csr_pipe:
          privatekey_path: "{{ spire_app_dir }}/conf/ssl/cert.key"
          common_name: "{{ ansible_nodename }}"
        register: csr
        when: not spire_cert.stat.exists
 
-     - name: Generate self-signed certificate for local https listener
+     - name: Generate self-signed certificate for postgres library
        community.crypto.x509_certificate:
          path: "{{ spire_app_dir }}/conf/ssl/cert.pem"
          csr_content: "{{ csr.csr }}"
