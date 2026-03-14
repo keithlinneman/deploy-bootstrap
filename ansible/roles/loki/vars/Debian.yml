@@ -2,3 +2,13 @@
   loki_system_filename:
     aarch64: loki-linux-arm64
     x86_64: loki-linux-amd64
+  loki_system_user: loki
+  loki_systemd_service_name:
+    compactor: loki-compactor
+    distributor: loki-distributor
+    ingester: loki-ingester
+    query-frontend: loki-query-frontend
+    querier: loki-querier
+    query-scheduler: loki-query-scheduler
+    ruler: loki-ruler
+    index-gateway: loki-index-gateway

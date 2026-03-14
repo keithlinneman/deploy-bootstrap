@@ -1,0 +1,7 @@
+---
+- name: restart loki service
+  systemd:
+    name: "{{ loki_systemd_service_name[loki_role] }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
