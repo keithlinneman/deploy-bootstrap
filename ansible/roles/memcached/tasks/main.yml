@@ -1,0 +1,169 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+
+- name: Set facts from ssm here since they require ec2 metadata to lookup region
+  set_fact: 
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+
+- name: Set facts from environment variables
+  set_fact:
+    service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+    service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+    project: "{{ ansible_env.PROJECT | default('unknown') }}"
+    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+
+- name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
+  set_fact:
+    hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Ensure required variables are defined
+  fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
+  when: vars[item] is not defined or vars[item] is none
+  with_items:
+    - platform_env
+    - service_name
+    - service_component
+    - project
+    - namespace
+    - hostname_no_instanceid
+
+- name: Create memcached user
+  user:
+    name: "{{ memcached_system_user }}"
+    password: '*'
+    umask: 0027
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Ensure memcached package is installed
+  package:
+    name: "{{ memcached_package_name }}"
+    state: present
+
+- name: Modify memcached configuration
+  template:
+    src: ../templates/etc/memcached.conf.j2
+    dest: /etc/memcached.conf
+    mode: 0644
+  when: ansible_os_family == 'Debian'
+  notify: restart memcached service
+
+- name: Allow memcached traffic through firewall
+  ufw:
+    port: "{{ memcached_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+#- name: Get latest memcached_exporter release info from github
+#  uri:
+#    url: https://api.github.com/repos/prometheus/memcached_exporter/releases/latest
+#    return_content: yes
+#  register: release_info
+
+#- name: Set release tag fact
+#  set_fact:
+#    release_tag: "{{ release_info.json.tag_name }}"
+
+#- name: Set filename based on architecture
+#  set_fact:
+#    memcached_exporter_filename: >-
+#      {%- if ansible_architecture == "aarch64" -%}
+#      linux-arm64.tar.gz
+#      {%- else -%}
+#      linux-amd64.tar.gz
+#      {%- endif -%}
+
+#- name: Find {{ ansible_architecture }} asset URL from release assets
+#  set_fact:
+#    asset_url: "{{ item.browser_download_url }}"
+#  loop: "{{ release_info.json.assets }}"
+#  when: "memcached_exporter_filename in item.name"
+
+#- name: Fail if architecture asset not found
+#  fail:
+#    msg: "No {{ ansible_architecture }} asset found github latest release response."
+#  when: asset_url is not defined
+
+#- name: Download the latest memcached_exporter release from github
+#  get_url:
+#    url: "{{ asset_url }}"
+#    dest: /root/memcached_exporter.tar.gz
+
+- name: Set normalized architecture name
+  set_fact:
+    arch_normalized: >-
+      {%- if ansible_architecture == "aarch64" -%}
+      arm64
+      {%- else -%}
+      amd64
+      {%- endif -%}
+
+- name: Get pinned memcached_exporter release from s3 artifacts bucket 
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "thirdparty/prometheus/memcached_exporter/v{{ memcached_exporter_version }}/memcached_exporter-{{ memcached_exporter_version }}.linux-{{ arch_normalized }}.tar.gz"
+    dest: /root/memcached_exporter.tar.gz
+    mode: get
+    overwrite: different
+
+- name: Decompress memcached_exporter installation package
+  unarchive:
+    src: /root/memcached_exporter.tar.gz
+    dest: /usr/bin/
+    extra_opts: ['--wildcards','--strip-components=1','--show-stored-names']
+    owner: root
+    group: root
+    include: "*/memcached_exporter"
+    mode: 0755
+    creates: /usr/bin/memcached_exporter
+
+- name: Remove the memcached_exporter installation package
+  file:
+    path: /root/memcached_exporter.tar.gz
+    state: absent
+
+- name: Create memcached_exporter systemd service
+  template:
+    src: ../templates/etc/systemd/system/{{ memcached_exporter_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ memcached_exporter_systemd_service_name }}.service
+    mode: 0644
+  notify: restart memcached_exporter service
+
+- name: Allow memcached-exporter traffic through firewall
+  ufw:
+    port: "{{ memcached_exporter_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+# let the restart handlers enable the service, otherwise will get daemon_reload warnings first run
+#- name: Enable memcached systemd service
+#  service:
+#    name: "{{ memcached_systemd_service_name }}"
+#    state: started
+#    enabled: true
+
+#- name: Enable memcached_exporter systemd service
+#  service:
+#    name: "{{ memcached_exporter_systemd_service_name }}"
+#    state: started
+#    enabled: true

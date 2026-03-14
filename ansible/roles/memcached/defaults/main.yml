@@ -16,6 +16,5 @@
     r8g.xlarge: 28672
     m8g.2xlarge: 28672
     c8g.4xlarge: 28672
-  memcached_system_user: memcached
   memcached_tcp_port: 11211
   memcached_exporter_version: 0.15.4
