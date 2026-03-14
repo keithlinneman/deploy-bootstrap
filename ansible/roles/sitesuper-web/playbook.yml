@@ -1,0 +1,5 @@
+- name: sitesuper-web playbook
+  hosts: all
+  become: true
+  roles:
+    - role: "{{ playbook_dir }}"

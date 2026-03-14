@@ -1,0 +1,243 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+
+- name: Set environment variables from SSM and Secrets Manager that require ec2 env first
+  set_fact:
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+    database_host:
+      reader: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/reader', region=ansible_ec2_instance_identity_document_region ) }}"
+      writer: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/writer', region=ansible_ec2_instance_identity_document_region ) }}"
+    database_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    database_port: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/db/primary/endpoint/port', region=ansible_ec2_instance_identity_document_region ) }}"
+    database_creds_secret_name: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/web/db/primary/secret/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    sitesuper_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/sitesuper/_shared/deploy/primary/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Set additional variables based on retrieved env vars
+  set_fact:
+    database_creds: "{{ lookup('amazon.aws.aws_secret', database_creds_secret_name, region=ansible_ec2_instance_identity_document_region ) }}"
+  no_log: true
+
+- name: Set database creds
+  set_fact:
+    database_user: "{{ database_creds.username }}"
+    database_password: "{{ database_creds.password }}"
+
+- name: Ensure required variables are defined
+  assert:
+    that:
+      - company_name is defined
+      - platform_env is defined
+      - artifacts_bucket_name is defined
+      - database_host.reader is defined
+      - database_host.writer is defined
+      - database_name is defined
+      - database_user is defined
+      - database_password is defined
+      - database_port is defined
+      - otlp_profiles_endpoint is defined
+      - sitesuper_release_id is defined
+      - cosign_pubkey_path is defined
+
+- name: Create sitesuper-web user
+  user:
+    name: "{{ sitesuper_web_system_user }}"
+    password: '*'
+    umask: 0027
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Create sitesuper directories
+  file:
+    path: /opt/sitesuper/web/bin/
+    owner: "root"
+    group: "{{ sitesuper_web_system_user}}"
+    mode: 0750
+    state: directory
+
+- name: Set architecture format based on normalized naming
+  set_fact:
+    architecture_normalized_name: >-
+      {%- if ansible_architecture == "aarch64" -%}
+      arm64
+      {%- else -%}
+      amd64
+      {%- endif -%}
+
+# download release index and signature
+- name: Get sitesuper-web release.json index and release.json.sig from s3
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ item }}"
+    dest: "/opt/sitesuper/web/{{ item }}"
+    mode: get
+    overwrite: different
+  loop:
+    - release.json
+    - release.json.sig
+
+# verify signature
+- name: Verify sitesuper-web release index signature
+  command: >
+    cosign verify-blob
+    --key {{ cosign_pubkey_path }}
+    --signature /opt/sitesuper/web/release.json.sig
+    --insecure-ignore-tlog
+    /opt/sitesuper/web/release.json
+  register: cosign_verify_result
+  failed_when: cosign_verify_result.rc != 0
+  changed_when: false
+
+# load release index
+- name: load release index
+  set_fact:
+    release_index: "{{ lookup('file', '/opt/sitesuper/web/release.json') | from_json }}"
+
+# find binary path for our architecture
+- name: Set sitesuper-web binary path from release index
+  set_fact:
+    sitesuper_web_binary_path: >-
+      {{ release_index.components.web.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.path')
+        | first }}
+
+# find sha256 sum for our architecture
+- name: Find sha256 sum for sitesuper-web binary
+  set_fact:
+    sitesuper_web_binary_sha256: >-
+      {{ release_index.components.web.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.sha256')
+        | first }}
+
+- name: Ensure release index contains an artifact for this os/arch
+  fail:
+    msg: "No artifact found in release.json for web linux/{{ architecture_normalized_name }}"
+  when: sitesuper_web_binary_path | default('') == ''
+
+- name: Ensure release index contains an sha256 sum for this artifact
+  fail:
+    msg: "No sha256 sum found in release.json for web linux/{{ architecture_normalized_name }}"
+  when: sitesuper_web_binary_sha256 | default('') == ''
+
+# download binary
+- name: Download sitesuper-web binary for our architecture
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/sitesuper/releases/{{ sitesuper_release_id }}/{{ sitesuper_web_binary_path }}"
+    dest: /opt/sitesuper/web/bin/sitesuper-web
+    mode: get
+    overwrite: different
+  notify: restart sitesuper-web service
+
+- name: Create sha256 sum file for verification
+  copy:
+    dest: "/opt/sitesuper/web/bin/sitesuper-web.sha256.expected"
+    content: "{{ sitesuper_web_binary_sha256 }}  /opt/sitesuper/web/bin/sitesuper-web\n"
+    mode: "0644"
+
+- name: Verify sha256 sum using sha256sum
+  command: "sha256sum -c /opt/sitesuper/web/bin/sitesuper-web.sha256.expected"
+  register: sha_check
+  failed_when: sha_check.rc != 0
+  changed_when: false
+
+# verify sha256 sum of binary
+#- name: Verify sha256 sum of sitesuper-web binary
+#  command: >
+#    sha256sum /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+#  register: sha256sum_result
+#  changed_when: false
+#- name: Exit if sha256 sum verification failed
+#  fail:
+#    msg: "SHA256 sum verification of sitesuper-web binary failed!"
+#  when: sha_check.stdout.split()[0] != sitesuper_web_binary_sha256
+
+#- name: Get sitesuper-web release from s3
+#  amazon.aws.s3_object:
+#    bucket: "{{ artifacts_bucket_name }}"
+#    object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
+#    dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
+#    mode: get
+#    overwrite: different
+#  notify: restart sitesuper-web service
+
+- name: Ensure sitesuper-web binary has correct permissions
+  file:
+    path: /opt/sitesuper/web/bin/sitesuper-web
+    owner: "root"
+    group: "{{ sitesuper_web_system_user }}"
+    mode: 0750
+
+- name: Ensure /etc/sitesuper directory exists
+  file:
+    path: /etc/sitesuper
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write sitesuper-web environment file
+  copy:
+    dest: /etc/sitesuper/sitesuper-web.env
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      DB_HOST={{ database_host.writer }}
+      DB_PORT={{ database_port }}
+      DB_NAME={{ database_name }}
+      DB_USER={{ database_user }}
+      DB_PASSWORD={{ database_password }}
+      OTLP_ENDPOINT=127.0.0.1:4317
+      PYRO_SERVER={{ otlp_profiles_endpoint }}
+      PYRO_TENANT={{ company_name }}
+  no_log: true
+  notify:
+    - restart sitesuper-web service
+
+- name: Create sitesuper-web systemd service
+  template:
+    src: ../templates/etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service
+    mode: 0644
+  notify: restart sitesuper-web service
+
+- name: Enable sitesuper-web systemd service
+  systemd:
+    name: "{{ sitesuper_web_systemd_service_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Allow sitesuper-web traffic through firewall
+  ufw:
+    port: "{{ sitesuper_web_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow sitesuper-web admin port traffic through firewall
+  ufw:
+    port: "{{ sitesuper_web_admin_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'

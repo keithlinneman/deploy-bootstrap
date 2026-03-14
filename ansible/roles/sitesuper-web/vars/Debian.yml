@@ -1,1 +1,3 @@
 ---
+sitesuper_web_system_user: sitesuper
+sitesuper_web_systemd_service_name: sitesuper-web
