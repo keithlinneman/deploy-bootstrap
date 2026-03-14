@@ -1,10 +1,10 @@
 agent {
-    data_dir = "{{ spire_app_dir }}/data"
+    data_dir = "{{ spire_agent_data_dir }}"
     log_level = "{{ spire_agent_log_level }}"
     log_format = "{{ spire_agent_log_format }}"
     trust_domain = "{{ spiffe_trust_domain }}"
     server_address = "{{ spiffe_server_address }}"
-    server_port = "{{ spire_server_grpc_port }}"
+    server_port = "{{ spiffe_server_grpc_port }}"
 
     allow_unauthenticated_verifiers = false
     allowed_foreign_jwt_claims = []
@@ -33,6 +33,13 @@ agent {
     # x509_svid_cache_max_size = 1000
     # jwt_svid_cache_max_size = 1000
     # require_pq_kem = false
+}
+
+telemetry {
+   Prometheus {
+      host = "0.0.0.0"
+      port = {{ spire_agent_metrics_port }}
+   }
 }
 
 plugins {

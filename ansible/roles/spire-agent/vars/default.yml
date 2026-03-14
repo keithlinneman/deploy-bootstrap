@@ -2,14 +2,14 @@
 spire_version: 1.14.2
 spire_binary_sha256: 5e8057a099fbf4d6439ee7821e3504e4dd0ec29997e7b7f911771234ebd5c501
 
-spire_agent_data_dir: /var/lib/spire-agent
-spire_agent_rebootstrap_mode: auto
-spire_agent_systemd_service_name: spire-agent
-spire_agent_system_user: spire-agent
-spire_agent_sync_interval: 5s
+spire_agent_data_dir: /var/lib/spire-agent/data
 spire_agent_log_level: INFO
 spire_agent_log_format: json
+spire_agent_metrics_port: 8089
+spire_agent_rebootstrap_mode: auto
+spire_agent_sync_interval: 5s
+spire_agent_systemd_service_name: spire-agent
+spire_agent_system_user: spire-agent
 spiffe_server_address: spire.{{ region_short }}.trust.prod.phxi.net
-spire_server_grpc_port: 8082
-
-trust_bundle_path: /etc/phxi/trust/linnemanlabs-root-ca.pem
+spiffe_server_grpc_port: 8082
+trust_bundle_path: /etc/phxi/trust/root-ca.pem
