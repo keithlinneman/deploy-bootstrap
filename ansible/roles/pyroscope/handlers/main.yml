@@ -1,0 +1,2 @@
+---
+pyroscope_role: "{{ lookup('env', 'PYROSCOPEROLE') }}"

@@ -6,14 +6,5 @@
   pyroscope_http_tcp_port: 8080
   pyroscope_grpc_tcp_port: 9095
   pyroscope_replication_factor: 3
-  pyroscope_system_user: pyroscope
-  pyroscope_systemd_service_name:
-    distributor: pyroscope-distributor
-    ingester: pyroscope-ingester
-    query-frontend: pyroscope-query-frontend
-    querier: pyroscope-querier
-    query-scheduler: pyroscope-query-scheduler
-    store-gateway: pyroscope-store-gateway
-    compactor: pyroscope-compactor
   pyroscope_version: "1.17.0"
 
