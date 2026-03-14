@@ -1,0 +1,223 @@
+---
+- name: Include OS variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  ec2_metadata_facts:
+
+- name: Set environment variables from SSM and Secrets Manager that require ec2 env first
+  set_fact:
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
+    otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+    linnemanlabs_web_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-web/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
+    linnemanlabs_web_server_evidence_key_arn: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/linnemanlabs-web/signing/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
+    linnemanlabs_web_server_content_key_arn: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/linnemanlabs-web/signing/content/kms/arn', region=ansible_ec2_instance_identity_document_region ) }}"
+    security_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/security/account/id', region=ansible_ec2_instance_identity_document_region ) }}"
+
+- name: Set security account signing key arn ssm param path
+  set_fact:
+    signing_key_arn_ssm_parameter: "arn:aws:ssm:{{ ansible_ec2_instance_identity_document_region }}:{{ security_account_id }}:parameter/app/linnemanlabs-web/signing/kms/arn"
+
+- name: Get application signing key arn from security account
+  set_fact:
+    app_signing_key_arn: "{{ lookup('amazon.aws.aws_ssm', signing_key_arn_ssm_parameter, region=ansible_ec2_instance_identity_document_region ) }}"
+
+- name: Set cosign key URL
+  set_fact:
+    cosign_key_url: "awskms:///{{ app_signing_key_arn }}"
+
+- name: Print all environment vars for debugging
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Ensure required variables are defined
+  assert:
+    that:
+      - company_name is defined
+      - platform_env is defined
+      - artifacts_bucket_name is defined
+      - otlp_profiles_endpoint is defined
+      - linnemanlabs_web_server_release_id is defined
+      - cosign_pubkey_path is defined
+
+- name: Create linnemanlabs-web user
+  user:
+    name: "{{ linnemanlabs_web_server_system_user }}"
+    password: '*'
+    umask: 0027
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Create linnemanlabs-web directories
+  file:
+    path: /opt/linnemanlabs-web/{{ item }}
+    owner: "root"
+    group: "{{ linnemanlabs_web_server_system_user}}"
+    mode: 0750
+    state: directory
+  with_items:
+    - server
+    - server/bin
+
+- name: Set architecture format based on normalized naming
+  set_fact:
+    architecture_normalized_name: >-
+      {%- if ansible_architecture == "aarch64" -%}
+      arm64
+      {%- else -%}
+      amd64
+      {%- endif -%}
+
+# download release index and signature
+- name: Get linnemanlabs-web server release.json index and release.json.bundle.sigstore.json from s3
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/linnemanlabs-web/server/releases/{{ linnemanlabs_web_server_release_id }}/{{ item }}"
+    dest: "/opt/linnemanlabs-web/server/{{ item }}"
+    mode: get
+    overwrite: different
+  loop:
+    - release.json
+    - release.json.bundle.sigstore.json
+
+# verify signature
+- name: Verify linnemanlabs-web server release index signature
+  command: >
+    cosign verify-blob
+    --key "{{ cosign_key_url }}"
+    --bundle /opt/linnemanlabs-web/server/release.json.bundle.sigstore.json
+    --insecure-ignore-tlog
+    /opt/linnemanlabs-web/server/release.json
+  environment:
+    AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
+  register: cosign_verify_result
+  failed_when: cosign_verify_result.rc != 0
+  changed_when: false
+
+# load release index
+- name: load release index
+  set_fact:
+    release_index: "{{ lookup('file', '/opt/linnemanlabs-web/server/release.json') | from_json }}"
+
+# find binary path for our architecture
+- name: Set linnemanlabs-web server binary path from release index
+  set_fact:
+    linnemanlabs_web_server_binary_path: >-
+      {{ release_index.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.path')
+        | first }}
+
+# find sha256 sum for our architecture
+- name: Find sha256 sum for linnemanlabs-web server binary
+  set_fact:
+    linnemanlabs_web_server_binary_sha256: >-
+      {{ release_index.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.sha256')
+        | first }}
+
+- name: Ensure release index contains an artifact for this os/arch
+  fail:
+    msg: "No artifact found in release.json for server linux/{{ architecture_normalized_name }}"
+  when: linnemanlabs_web_server_binary_path | default('') == ''
+
+- name: Ensure release index contains an sha256 sum for this artifact
+  fail:
+    msg: "No sha256 sum found in release.json for server linux/{{ architecture_normalized_name }}"
+  when: linnemanlabs_web_server_binary_sha256 | default('') == ''
+
+# download binary
+- name: Download linnemanlabs-web server binary for our architecture
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/linnemanlabs-web/server/releases/{{ linnemanlabs_web_server_release_id }}/{{ linnemanlabs_web_server_binary_path }}"
+    dest: /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server
+    mode: get
+    overwrite: different
+  notify: restart linnemanlabs-web server service
+
+- name: Create sha256 sum file for verification
+  copy:
+    dest: "/opt/linnemanlabs-web/server/bin/linnemanlabs-web-server.sha256.expected"
+    content: "{{ linnemanlabs_web_server_binary_sha256 }}  /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server\n"
+    mode: "0644"
+
+- name: Verify sha256 sum using sha256sum
+  command: "sha256sum -c /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server.sha256.expected"
+  register: sha_check
+  failed_when: sha_check.rc != 0
+  changed_when: false
+
+- name: Ensure linnemanlabs-web server binary has correct permissions
+  file:
+    path: /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server
+    owner: "root"
+    group: "{{ linnemanlabs_web_server_system_user }}"
+    mode: 0750
+
+- name: Ensure /etc/linnemanlabs-web directory exists
+  file:
+    path: /etc/linnemanlabs-web
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write linnemanlabs-web server environment file
+  copy:
+    dest: /etc/linnemanlabs-web/linnemanlabs-web-server.env
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
+      LMLABS_ENABLE_TRACING=true
+      LMLABS_OTLP_ENDPOINT=127.0.0.1:4317
+      LMLABS_ENABLE_PYROSCOPE=true
+      LMLABS_PYRO_SERVER={{ otlp_profiles_endpoint }}
+      LMLABS_PYRO_TENANT={{ company_name }}
+      LMLABS_ENABLE_CONTENT_UPDATES=true
+      LMLABS_EVIDENCE_SIGNING_KEY_ARN={{ linnemanlabs_web_server_evidence_key_arn }}
+      LMLABS_CONTENT_SIGNING_KEY_ARN={{ linnemanlabs_web_server_content_key_arn }}
+      LMLABS_TRUSTED_PROXY_HOPS={{ linnemanlabs_web_server_trusted_proxy_hops }}
+  no_log: true
+  notify:
+    - restart linnemanlabs-web server service
+
+- name: Create linnemanlabs-web server systemd service
+  template:
+    src: ../templates/etc/systemd/system/{{ linnemanlabs_web_server_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ linnemanlabs_web_server_systemd_service_name }}.service
+    mode: 0644
+  notify: restart linnemanlabs-web server service
+
+- name: Enable linnemanlabs-web server systemd service
+  systemd:
+    name: "{{ linnemanlabs_web_server_systemd_service_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Allow linnemanlabs-web server traffic through firewall
+  ufw:
+    port: "{{ linnemanlabs_web_server_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow linnemanlabs-web server admin port traffic through firewall
+  ufw:
+    port: "{{ linnemanlabs_web_server_admin_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'

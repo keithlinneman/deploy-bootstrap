@@ -1,0 +1,6 @@
+---
+linnemanlabs_web_server_admin_tcp_port: 9000
+linnemanlabs_web_server_tcp_port: 8080
+linnemanlabs_web_server_trusted_proxy_hops: 1
+cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
+# tuf_trust_root: /etc/phxi/trust/root_pubkey.pem

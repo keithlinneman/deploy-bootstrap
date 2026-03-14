@@ -1,1 +1,7 @@
 ---
+- name: restart linnemanlabs-web server service
+  systemd:
+    name: "{{ linnemanlabs_web_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

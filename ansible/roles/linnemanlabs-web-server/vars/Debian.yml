@@ -1,1 +1,3 @@
 ---
+linnemanlabs_web_server_system_user: linnemanlabs-web
+linnemanlabs_web_server_systemd_service_name: linnemanlabs-web-server
