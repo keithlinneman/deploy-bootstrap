@@ -1,0 +1,7 @@
+---
+- name: restart tesseract service
+  systemd:
+    name: "{{ tesseract_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
