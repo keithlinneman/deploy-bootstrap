@@ -234,6 +234,13 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
+     - name: Allow spire metrics traffic through firewall
+       ufw:
+         port: "{{ spire_server_metrics_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
      # flush handlers for service restart, then ensure its started after.
      # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
      - name: Flush pending handlers
