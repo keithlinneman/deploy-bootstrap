@@ -73,14 +73,43 @@
        file:
          path: "{{ spire_app_dir }}/{{ item }}"
          owner: "root"
-         group: "{{ spire_server_system_user}}"
+         group: "{{ spire_server_system_user }}"
          mode: 0750
          state: directory
        loop:
          - bin
          - certs
          - conf
+         - conf/ssl
          - data
+
+     # 3/13/26 - Generate privatekey and certificate for postgres client, because otherwise spires choice to use gorm+pg driver will refuse to proceed unless it can confirm a .crt doesnt exist in home directory.......
+     - name: Check if ssl cert already exists
+       ansible.builtin.stat:
+         path: /home/{{ spire_server_system_user }}/conf/ssl/cert.pem
+       register: spire_cert
+
+     - name: Generate private key for local self signed ssl cert
+       community.crypto.openssl_privatekey:
+         path: /home/{{ spire_server_system_user }}/conf/ssl/cert.key
+         owner: "{{ spire_server_system_user }}"
+       when: not spire_cert.stat.exists
+
+     - name: Generate CSR for self-signed certificate for local https listener
+       community.crypto.openssl_csr_pipe:
+         privatekey_path: /home/{{ spire_server_system_user }}/conf/ssl/cert.key
+         common_name: "{{ ansible_nodename }}"
+       register: csr
+       when: not spire_cert.stat.exists
+
+     - name: Generate self-signed certificate for local https listener
+       community.crypto.x509_certificate:
+         path: /home/{{ spire_server_system_user }}/conf/ssl/cert.pem
+         csr_content: "{{ csr.csr }}"
+         privatekey_path: /home/{{ spire_server_system_user }}/conf/ssl/cert.key
+         owner: "{{ spire_server_system_user }}"
+         provider: selfsigned
+       when: not spire_cert.stat.exists         
 
      - name: Set architecture format based on normalized naming
        set_fact:
