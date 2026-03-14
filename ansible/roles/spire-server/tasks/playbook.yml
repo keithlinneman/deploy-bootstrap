@@ -227,16 +227,23 @@
          mode: 0644
        notify: restart spire service
 
-     - name: Allow spire grpc traffic through firewall
+     - name: Allow spire-server grpc traffic through firewall
        ufw:
          port: "{{ spire_server_grpc_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
-     - name: Allow spire metrics traffic through firewall
+     - name: Allow spire-server metrics traffic through firewall
        ufw:
          port: "{{ spire_server_metrics_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
+     - name: Allow spire-server health traffic through firewall
+       ufw:
+         port: "{{ spire_server_health_port }}"
          proto: tcp
          rule: allow
        when: ansible_distribution == 'Ubuntu'

@@ -68,3 +68,11 @@ telemetry {
       port = {{ spire_server_metrics_port }}
    }
 }
+
+health_checks {
+        listener_enabled = true
+        bind_address = "0.0.0.0"
+        bind_port = "{{ spire_server_health_port }}"
+        live_path = "/live"
+        ready_path = "/ready"
+}

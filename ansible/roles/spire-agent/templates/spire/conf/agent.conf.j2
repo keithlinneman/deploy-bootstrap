@@ -35,13 +35,6 @@ agent {
     # require_pq_kem = false
 }
 
-telemetry {
-   Prometheus {
-      host = "0.0.0.0"
-      port = {{ spire_agent_metrics_port }}
-   }
-}
-
 plugins {
    KeyManager "memory" {
         plugin_data {}
@@ -56,4 +49,19 @@ plugins {
     WorkloadAttestor "unix" {
         plugin_data {}
     }
+}
+
+telemetry {
+   Prometheus {
+      host = "0.0.0.0"
+      port = {{ spire_agent_metrics_port }}
+   }
+}
+
+health_checks {
+        listener_enabled = true
+        bind_address = "localhost"
+        bind_port = "{{ spire_agent_health_port }}"
+        live_path = "/live"
+        ready_path = "/ready"
 }

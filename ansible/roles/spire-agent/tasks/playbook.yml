@@ -165,6 +165,13 @@
          rule: allow
        when: ansible_distribution == 'Ubuntu'
 
+     - name: Allow spire-agent health traffic through firewall
+       ufw:
+         port: "{{ spire_agent_health_port }}"
+         proto: tcp
+         rule: allow
+       when: ansible_distribution == 'Ubuntu'
+
      - name: Create spire-agent systemd service
        template:
          src: ../templates/etc/systemd/system/{{ spire_agent_systemd_service_name }}.service.j2
