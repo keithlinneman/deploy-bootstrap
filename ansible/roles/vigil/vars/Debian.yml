@@ -1,0 +1,3 @@
+---
+vigil_server_system_user: vigil
+vigil_server_systemd_service_name: vigil-server

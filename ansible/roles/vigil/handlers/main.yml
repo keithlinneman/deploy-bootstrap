@@ -1,0 +1,7 @@
+---
+- name: restart vigil service
+  systemd:
+    name: "{{ vigil_server_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
