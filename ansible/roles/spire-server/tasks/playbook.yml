@@ -24,7 +24,7 @@
          platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
          trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', spire_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region ) }}"
          spiffe_trust_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/trust_domain', region=ansible_ec2_instance_identity_document_region ) }}"
-       no_log: true
+         region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
 
      - name: Set facts from environment variables
        set_fact:
