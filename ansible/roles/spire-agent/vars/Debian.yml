@@ -1,1 +1,5 @@
 ---
+spire_agent_data_dir: /var/lib/spire-agent/data
+spire_agent_socket_path: /var/lib/spire-agent/run/spire-agent.sock
+spire_agent_systemd_service_name: spire-agent
+spire_agent_system_user: spire-agent

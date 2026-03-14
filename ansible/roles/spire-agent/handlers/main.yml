@@ -1,0 +1,7 @@
+---
+- name: restart spire-agent service
+  systemd:
+    name: "{{ spire_agent_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
