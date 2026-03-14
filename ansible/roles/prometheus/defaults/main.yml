@@ -14,7 +14,6 @@
     us-east-2c: 2c
   prometheus_scrape_interval: 15s
   prometheus_scrape_timeout: 10s
-  prometheus_system_user: prometheus
   #prometheus_tenant_name: "{{ company_name }}-{{ platform_env }}"
   prometheus_tenant_name: "{{ company_name }}"
   prometheus_tcp_port: 9090
