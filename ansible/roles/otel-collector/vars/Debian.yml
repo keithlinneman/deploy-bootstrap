@@ -1,2 +1,3 @@
 ---
   otel_collector_systemd_service_name: otel_collector
+  otel_system_user: otel

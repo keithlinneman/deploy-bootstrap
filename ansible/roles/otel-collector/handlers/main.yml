@@ -1,0 +1,7 @@
+---
+- name: restart otel_collector service
+  systemd:
+    name: "{{ otel_collector_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
