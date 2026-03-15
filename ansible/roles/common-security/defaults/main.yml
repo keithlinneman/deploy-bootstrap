@@ -1,5 +1,5 @@
 ---
-password_age_max_days: 365
+password_age_max_days: 90
 password_age_min_days: 1
 password_expiration_warn_days: 7
 password_history_remember: 24
