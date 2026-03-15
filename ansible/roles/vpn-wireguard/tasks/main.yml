@@ -11,7 +11,7 @@
 - name: Print all variables for debugging
   debug:
     var: hostvars[inventory_hostname]
-    verbosity: 1
+    verbosity: 2
 
 - name: Configure sysctl settings to allow forwarding
   template:
