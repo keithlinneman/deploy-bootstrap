@@ -1,3 +1,13 @@
+#!/usr/bin/env bash
+##
+## Pyroscope gets a custom script since it needs to set up a CNAME record for the query-scheduler
+## role, which has a hostname that exceeds route53 limits if used directly as the record name
+##
+set -Eeuo pipefail
+shopt -s inherit_errexit 2>/dev/null || true
+export PS4='+ [sub=${BASH_SUBSHELL:-?}] SOURCE:${BASH_SOURCE:-?} LINENO:${LINENO:-?} FUNC:${FUNCNAME[0]:-MAIN}: '
+trap 'RC=$?; echo "ERROR(rc=$RC) at ${BASH_SOURCE[0]:-?}:${LINENO:-?} in ${FUNCNAME[0]:-MAIN}: ${BASH_COMMAND:-?}" >&2; exit $RC' ERR
+
 localname="$( hostname )"
 localip="$( ip addr show primary scope global | awk '/inet/ { print $2 }' | cut -d "/" -f 1 )"
 
@@ -28,8 +38,13 @@ if [ "${ENVIRONMENT}x" == "x" ];then
   exit 1
 fi
 validenvs=("prod" "dev" "qa" "staging" "testing")
-if [[ ! "${validenvs[@]}" =~ "${ENVIRONMENT}" ]];then
-  echo "Environment (${ENVIRONMENT}) is not in the list of valid environments (${validenvs[@]})"
+valid=false
+for env in "${validenvs[@]}"; do
+  [[ "${env}" == "${ENVIRONMENT}" ]] && valid=true
+done
+
+if [[ "${valid}" != "true" ]]; then
+  echo "Environment (${ENVIRONMENT}) is not in the list of valid environments (${validenvs[*]})"
   exit 1
 fi
 
@@ -41,7 +56,7 @@ if [[ ! "${localname}" =~ ${validhost} ]];then
 fi
 
 # get local hostname without instanceid for CNAME alias
-localcname="$( echo "${localname}" | sed "s/-${localinstanceid:0:6}//" )"
+localcname="${localname/-${localinstanceid:0:6}/}"
 if [ "${localcname}x" == "x" ];then
   echo "Failed to generate localcname from ${localname}"
   exit 1
@@ -74,23 +89,35 @@ if [ "${hostedzoneid}x" == "x" ];then
   exit 1
 fi
 
-echo "Upserting route53 role CNAME ${localcname} to ${localmodename}"
-changeset='{
- "Changes": [
-  {
-   "Action": "UPSERT",
-   "ResourceRecordSet": {
-    "Name": "'${localcname}'",
-    "Type": "CNAME",
-    "TTL": 60,
-    "ResourceRecords": [{ "Value": "'${localname}'" }]
-   }
-  }
- ]
-}'
+echo "Upserting route53 role CNAME ${localcname} to ${localname}"
+changeset="$( jq -n \
+ --arg cname "${localcname}" \
+ --arg localname "${localname}" \
+ --arg action "UPSERT" \
+ --argjson ttl 60 \
+ --arg type "CNAME" \
+ '{
+   Changes: [
+     {
+       Action: $action,
+       ResourceRecordSet: {
+         Name: $cname,
+         Type: $type,
+         TTL: $ttl,
+         ResourceRecords: [
+           {
+             Value: $localname
+           }
+         ]
+       }
+     }
+   ]
+ }'
+)"
+
 #echo "changeset: ${changeset}"
 #echo "AWS route53 call: aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch ${changeset}"
-awsout="$( aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch "${changeset}" )"
+awsout="$( aws route53 change-resource-record-sets --hosted-zone-id "${hostedzoneid}" --change-batch "${changeset}" )"
 if [[ ! "${awsout}" =~ \"PENDING\" ]];then
   echo "Failed to create CNAME record! changeset was ${changeset}"
   echo "aws response: ${awsout}"
@@ -98,7 +125,7 @@ if [[ ! "${awsout}" =~ \"PENDING\" ]];then
 fi
 echo "Success creating cname record for ${localcname} to ${localname}"
 
-# Set ec2 instance Name tag
-aws ec2 create-tags --resources i-${localinstanceid} --tags Key=Name,Value="${localcname}"
+# Set ec2 instance Name tag to hostname
+aws ec2 create-tags --resources "i-${localinstanceid}" --tags Key=Name,Value="${localcname}"
 
 exit 0
