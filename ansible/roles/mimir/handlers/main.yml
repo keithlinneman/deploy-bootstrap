@@ -1,2 +1,7 @@
 ---
-mimir_role: "{{ lookup('env', 'MIMIRROLE') }}"
+- name: restart pyroscope service
+  systemd:
+    name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
