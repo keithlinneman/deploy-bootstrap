@@ -27,7 +27,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
-  with_items:
+  loop:
     - platform_env
     - artifacts_bucket_name
     
@@ -46,7 +46,7 @@
     group: "{{ prometheus_system_user }}"
     mode: 0750
     state: directory
-  with_items:
+  loop:
   - bin
   - scrapedata
 
@@ -157,7 +157,7 @@
     group: root
     mode: 0750
     state: directory
-  with_items:
+  loop:
     - "{{ ebpf_exporter_base_directory }}"
     - "{{ ebpf_exporter_base_directory }}/bin"
     - "{{ ebpf_exporter_base_directory }}/modules"

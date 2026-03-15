@@ -32,7 +32,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
-  with_items:
+  loop:
     - env
     - mimir_role
 

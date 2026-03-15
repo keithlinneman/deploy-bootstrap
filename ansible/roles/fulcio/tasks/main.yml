@@ -38,7 +38,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
-  with_items:
+  loop:
     - account_name
     - artifacts_bucket_name
     - company_name

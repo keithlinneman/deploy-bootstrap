@@ -44,7 +44,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
   when: vars[item] is not defined or vars[item] is none
-  with_items:
+  loop:
     - artifacts_bucket_name
     - company_name
     - hosted_zone_name
@@ -70,7 +70,7 @@
     group: "{{ otel_system_user }}"
     mode: 0750
     state: directory
-  with_items:
+  loop:
     - bin
     - conf
     - conf.d

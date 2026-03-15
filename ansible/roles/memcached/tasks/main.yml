@@ -37,7 +37,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
   when: vars[item] is not defined or vars[item] is none
-  with_items:
+  loop:
     - platform_env
     - service_name
     - service_component

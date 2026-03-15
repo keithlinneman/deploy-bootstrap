@@ -17,7 +17,7 @@
   fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
-  with_items:
+  loop:
     - env
 
 - name: Stop ssm to prevent apt conflicts on fresh box patching
@@ -28,7 +28,7 @@
   package:
     name: "{{ item }}"
     state: present
-  with_items:
+  loop:
     - apt-transport-https
     - software-properties-common
     - wget

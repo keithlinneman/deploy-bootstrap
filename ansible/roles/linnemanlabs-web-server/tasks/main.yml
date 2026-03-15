@@ -62,7 +62,7 @@
     group: "{{ linnemanlabs_web_server_system_user}}"
     mode: 0750
     state: directory
-  with_items:
+  loop:
     - server
     - server/bin
 

@@ -280,7 +280,7 @@
   package:
     name: "{{ item }}"
     state: present
-  with_items:
+  loop:
     - apt-transport-https
     - software-properties-common
 
