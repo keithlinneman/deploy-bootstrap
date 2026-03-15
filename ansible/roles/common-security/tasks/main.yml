@@ -5,11 +5,6 @@
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
-- name: print all variables for debugging
-  debug:
-    var: hostvars[inventory_hostname]
-    verbosity: 1
-
 # CIS 1 Initial Setup
 # CIS 1.1 Filesystem
 - name: 1.1.1.1 | Ensure cramfs kernel module is not available | blacklist
