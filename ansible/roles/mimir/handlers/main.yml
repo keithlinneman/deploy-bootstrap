@@ -1,7 +1,7 @@
 ---
-- name: restart pyroscope service
+- name: restart mimir service
   systemd:
-    name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
+    name: "{{ mimir_systemd_service_name[mimir_role] }}"
     state: restarted
     enabled: true
     daemon_reload: true
