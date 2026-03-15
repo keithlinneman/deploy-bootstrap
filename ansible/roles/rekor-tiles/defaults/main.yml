@@ -1,4 +1,7 @@
 ---
+rekor_version: 2.2.1
+rekor_binary_sha256: b7f7bf59b5841e1bb14a527a2936def6332c43a4dd17f6a34c009a52cf01fe7b
+
 rekor_hostname: rekor.trust.linnemanlabs.com
 rekor_db_type: rds
 rekor_db_name: rekor
@@ -12,5 +15,3 @@ rekor_server_metrics_port: 2112
 rekor_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/rekor/signing/checkpoint/signer"
 rekor_kms_hash_algorithm: sha256
 rekor_log_level: info
-rekor_version: 2.2.1
-rekor_binary_sha256: b7f7bf59b5841e1bb14a527a2936def6332c43a4dd17f6a34c009a52cf01fe7b
