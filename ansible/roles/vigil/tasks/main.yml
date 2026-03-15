@@ -224,8 +224,8 @@
 
     - name: Set vigil TLS cert and key paths
       set_fact:
-      vigil_tls_cert_path: "{{ ssl_dir }}/cert.pem"
-      vigil_tls_key_path: "{{ ssl_dir }}/cert.key"
+        vigil_tls_cert_path: "{{ ssl_dir }}/cert.pem"
+        vigil_tls_key_path: "{{ ssl_dir }}/cert.key"
 
     - name: Create ssl directories
       file:
