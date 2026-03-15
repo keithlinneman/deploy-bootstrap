@@ -145,14 +145,14 @@
   amazon.aws.s3_object:
     bucket: "{{ trust_materials_bucket_name }}"
     object: "{{ tesseract_trust_materials_cert_chain_path }}"
-    dest: "{{ tesseract_app_dir }}/certs/ca.pem"
+    dest: "{{ tesseract_app_dir }}/certs/root-ca.crt"
     mode: get
     overwrite: different
   notify: restart tesseract service
 
 - name: Ensure certificate chain has correct permissions
   file:
-    path: "{{ tesseract_app_dir }}/certs/ca.pem"
+    path: "{{ tesseract_app_dir }}/certs/root-ca.crt"
     mode: "0644"
     owner: root
     group: "{{ tesseract_server_system_user }}"  
@@ -182,7 +182,7 @@
       TESSERACT_ORIGIN="{{ tesseract_origin }}"
       TESSERACT_PUBLICATION_AWAITER="{{ tesseract_publication_awaiter }}"
       TESSERACT_REJECT_EXPIRED="{{ tesseract_reject_expired }}"
-      TESSERACT_ROOTS_PEM_FILE="{{ tesseract_app_dir }}/certs/ca.pem"
+      TESSERACT_ROOTS_PEM_FILE="{{ tesseract_app_dir }}/certs/root-ca.crt"
       TESSERACT_S3_BUCKET="{{ tesseract_s3_bucket }}"
       TESSERACT_SERVER_ADDRESS="{{ tesseract_server_address }}"
       TESSERACT_SERVER_PORT="{{ tesseract_server_port }}"

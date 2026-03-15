@@ -10,4 +10,4 @@ spire_agent_rebootstrap_mode: auto
 spire_agent_sync_interval: 5s
 spiffe_server_address: spire.{{ region_short }}.trust.prod.phxi.net
 spiffe_server_grpc_port: 8081
-trust_bundle_path: /etc/phxi/trust/root-ca.pem
+trust_bundle_path: /etc/phxi/trust/root-ca.crt
