@@ -85,7 +85,7 @@ changeset="$( jq -n \
  --arg cname "${localcname}" \
  --arg localname "${localname}" \
  --arg action "UPSERT" \
- --arg ttl 60 \
+ --argjson ttl 60 \
  --arg type "CNAME" \
  '{
    Changes: [
