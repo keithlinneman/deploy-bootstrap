@@ -287,6 +287,7 @@
       VIGIL_LOKI_ENDPOINT={{ vigil_loki_endpoint }}
       VIGIL_LOKI_TENANT_ID={{ vigil_loki_tenant_id }}
       VIGIL_CLAUDE_API_KEY="{{ vigil_config_llm_claude_key }}"
+      VIGIL_CLAUDE_MODEL="{{ vigil_config_llm_claude_model }}"
       VIGIL_SLACK_WEBHOOK_URL="{{ vigil_config_slack_url_vigil_triage }}"
       VIGIL_LOG_LEVEL=debug
       VIGIL_API_TOKEN="{{ vigil_api_token }}"
