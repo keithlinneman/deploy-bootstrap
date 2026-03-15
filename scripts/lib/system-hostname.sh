@@ -81,19 +81,31 @@ if [ "${hostedzoneid}x" == "x" ];then
 fi
 
 echo "Upserting route53 role CNAME ${localcname} to ${localname}"
-changeset='{
- "Changes": [
-  {
-   "Action": "UPSERT",
-   "ResourceRecordSet": {
-    "Name": "'${localcname}'",
-    "Type": "CNAME",
-    "TTL": 60,
-    "ResourceRecords": [{ "Value": "'${localname}'" }]
-   }
-  }
- ]
-}'
+changeset="$( jq -n \
+ --arg cname "${localcname}" \
+ --arg localname "${localname}" \
+ --arg action "UPSERT" \
+ --arg ttl 60 \
+ --arg type "CNAME" \
+ '{
+   Changes: [
+     {
+       Action: $action,
+       ResourceRecordSet: {
+         Name: $cname,
+         Type: $type,
+         TTL: $ttl,
+         ResourceRecords: [
+           {
+             Value: $localname
+           }
+         ]
+       }
+     }
+   ]
+ }'
+)"
+
 #echo "changeset: ${changeset}"
 #echo "AWS route53 call: aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch ${changeset}"
 awsout="$( aws route53 change-resource-record-sets --hosted-zone-id "${hostedzoneid}" --change-batch "${changeset}" )"
@@ -104,7 +116,7 @@ if [[ ! "${awsout}" =~ \"PENDING\" ]];then
 fi
 echo "Success creating cname record for ${localcname} to ${localname}"
 
-# Set ec2 instance Name tag
-aws ec2 create-tags --resources "i-${localinstanceid}": --tags Key=Name,Value="${localcname}"
+# Set ec2 instance Name tag to hostname
+aws ec2 create-tags --resources "i-${localinstanceid}" --tags Key=Name,Value="${localcname}"
 
 exit 0
