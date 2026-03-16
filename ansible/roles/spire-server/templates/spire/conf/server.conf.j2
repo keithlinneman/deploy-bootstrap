@@ -45,7 +45,7 @@ plugins {
         plugin_data {
             region = "{{ ansible_ec2_instance_identity_document_region }}"
             key_identifier_value = "v2-{{ ansible_ec2_instance_identity_document_availabilityzone }}"
-            key_policy_file = "/opt/spire-server/conf/iam-kms.json"
+            key_policy_file = "/opt/spire-server/conf/kms-key-policy.json"
             key_tags {
                 "Service" = "spire"
                 "Component" = "server"
