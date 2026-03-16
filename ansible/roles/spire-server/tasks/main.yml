@@ -208,11 +208,10 @@
         dest: /root/rds-ca-bundle.pem
         mode: "0644"
 
-
     - name: Split RDS CA bundle into individual certs
       ansible.builtin.shell:
-        cmd: |
-          awk 'BEGIN {n=0} /-----BEGIN CERTIFICATE-----/ {n++; filename=sprintf("/usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-%d.crt", n)} {print > filename}' /root/rds-ca-bundle.pem
+        # yamllint disable-line rule:line-length
+        cmd: awk 'BEGIN {n=0} /-----BEGIN CERTIFICATE-----/ {n++; filename=sprintf("/usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-%d.crt", n)} {print > filename}' /root/rds-ca-bundle.pem
         creates: /usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-1.crt
 
     - name: Update system CA certificates

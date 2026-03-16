@@ -129,7 +129,8 @@ groups:
           message: "{{ $labels.job }}/{{ $labels.node }} has a number of mmap-ed areas close to the limit."
           runbook_url: https://grafana.com/docs/mimir/latest/operators-guide/mimir-runbooks/#mimirmemorymapareastoohigh
         expr: |
-          process_memory_map_areas{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} / process_memory_map_areas_limit{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} > 0.8
+          process_memory_map_areas{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} /
+          process_memory_map_areas_limit{job=~".*/(ingester.*|cortex|mimir|store-gateway.*|cortex|mimir)"} > 0.8
         for: 5m
         labels:
           severity: crit
@@ -547,7 +548,9 @@ groups:
         expr: |
           max by (cluster, namespace) (memberlist_client_cluster_members_count)
           >
-          (sum by (cluster, namespace) (up{job=~".*/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}) + 10)
+          (sum by (cluster, namespace) (
+            up{job=~".*/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}
+          ) + 10)
         for: 20m
         labels:
           severity: warn
@@ -558,7 +561,9 @@ groups:
         expr: |
           min by (cluster, namespace) (memberlist_client_cluster_members_count)
           <
-          (sum by (cluster, namespace) (up{job=~".+/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}) * 0.5)
+          (sum by (cluster, namespace) (
+            up{job=~".+/(admin-api|alertmanager|compactor.*|distributor.*|ingester.*|query-frontend.*|querier.*|ruler|ruler-zone-.*|ruler-querier.*|store-gateway.*|cortex|mimir)"}
+          ) * 0.5)
         for: 20m
         labels:
           severity: warn
@@ -1227,7 +1232,8 @@ groups:
           message: Mimir ingesters in {{ $labels.cluster }}/{{ $labels.namespace }} have fewer ingesters consuming than active partitions.
           runbook_url: https://grafana.com/docs/mimir/latest/operators-guide/mimir-runbooks/#mimirfeweringestersconsumingthanactivepartitions
         expr: |
-          max(cortex_partition_ring_partitions{name="ingester-partitions", state="Active"}) by (cluster, namespace) > count(count(cortex_ingest_storage_reader_last_consumed_offset{}) by (cluster, namespace, partition)) by (cluster, namespace)
+          max(cortex_partition_ring_partitions{name="ingester-partitions", state="Active"})
+          by (cluster, namespace) > count(count(cortex_ingest_storage_reader_last_consumed_offset{}) by (cluster, namespace, partition)) by (cluster, namespace)
         for: 15m
         labels:
           severity: crit
