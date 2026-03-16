@@ -26,7 +26,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
 - name: Build database connection string
   ansible.builtin.set_fact:
@@ -58,7 +58,7 @@
     - service_name
     - service_component
     - project
-    - namespace
+    - service_namespace
     - rekor_database_dsn
 
 - name: Create rekor user

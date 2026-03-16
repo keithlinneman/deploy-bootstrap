@@ -1,5 +1,5 @@
 ---
-remove_package_names:
+common_remove_package_names:
   #  - snapd
   - fwupd
   - fwupd-signed
@@ -10,7 +10,7 @@ remove_package_names:
   - landscape-client
   - landscape-common
 
-install_package_names:
+common_install_package_names:
   #  - python3-pip
   #  - awscli
   - lsof
@@ -21,25 +21,25 @@ install_package_names:
   - unzip
   - binutils
 
-disable_service_names:
+common_disable_service_names:
   - accounts-daemon
   - avahi-daemon
 
-amazon_ssm_agent_package_filename: amazon-ssm-agent.deb
+common_amazon_ssm_agent_package_filename: amazon-ssm-agent.deb
 
-amazon_ssm_agent_package_path:
+common_amazon_ssm_agent_package_path:
   aarch64: debian_arm64
   x86_64: debian_amd64
 
 # disabling auto updates by default. can override at playbook runtime
 # update frequncy in days. 0 to disable
-apt_auto_update_interval: 1
+common_apt_auto_update_interval: 1
 
 # download (but dont apply) updates to the package lists daily at 7:15pm MST - uses systemd timer format
-apt_update_schedule: "*-*-* 19:15:00 MST"
+common_apt_update_schedule: "*-*-* 19:15:00 MST"
 
 # install apt security upgrades weekly on Tuesday at 7:15pm MST - uses systemd timer format
-apt_upgrade_schedule: "Tue *-*-* 19:15:00 MST"
+common_apt_upgrade_schedule: "Tue *-*-* 19:15:00 MST"
 
 # cant disable snap auto updates conveniently - setting auto updates of snaps to Tues 7:05pm MST (Wed 2am UTC) by default. can override at playbook runtime
-snap_auto_update_schedule: "wed,02:05"
+common_snap_auto_update_schedule: "wed,02:05"

@@ -36,7 +36,7 @@ protocol = https
 http_port = {{ grafana_http_port }}
 
 # The public facing domain name used to access grafana from a browser
-domain = grafana.{{ hosted_zone_name }}
+domain = grafana.{{ grafana_hosted_zone_name }}
 
 # Redirect to correct domain if host header does not match domain
 # Prevents DNS rebinding attacks
@@ -114,7 +114,7 @@ grafanaNodeId = ${HOSTNAME}
 # as separate properties or as on string using the url properties.
 
 type = postgres
-host = monitoring-core-dbw.{{ hosted_zone_name }}:5432
+host = monitoring-core-dbw.{{ grafana_hosted_zone_name }}:5432
 name = grafana
 user = grafana
 password = """{{ lookup('amazon.aws.aws_secret', 'app/grafana/db/postgres/grafana/password', region=ansible_ec2_instance_identity_document_region) }}"""
@@ -734,12 +734,12 @@ name = Okta (phxi)
 enabled = true
 allow_sign_up = false
 auto_login = false
-client_id = {{ okta_client_id }}
-client_secret = {{ okta_client_secret }}
+client_id = {{ grafana_okta_client_id }}
+client_secret = {{ grafana_okta_client_secret }}
 scopes = openid profile email groups
-auth_url = https://{{ okta_oidc_issuer_domain }}/oauth2/v1/authorize
-token_url = https://{{ okta_oidc_issuer_domain }}/oauth2/v1/token
-api_url = https://{{ okta_oidc_issuer_domain }}/oauth2/v1/userinfo
+auth_url = https://{{ grafana_okta_oidc_issuer_domain }}/oauth2/v1/authorize
+token_url = https://{{ grafana_okta_oidc_issuer_domain }}/oauth2/v1/token
+api_url = https://{{ grafana_okta_oidc_issuer_domain }}/oauth2/v1/userinfo
 ;signout_redirect_url =
 ;allowed_domains =
 ;allowed_groups =

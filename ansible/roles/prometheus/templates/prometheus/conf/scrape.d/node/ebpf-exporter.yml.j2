@@ -64,7 +64,7 @@ scrape_configs:
 
       - source_labels: [__meta_ec2_private_ip]
         target_label: __address__
-        replacement: "$1:{{ ebpf_exporter_tcp_port }}"
+        replacement: "$1:{{ prometheus_ebpf_exporter_tcp_port }}"
 
       - source_labels: [__meta_ec2_private_ip]
         target_label: host_ip

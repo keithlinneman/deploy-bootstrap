@@ -5,7 +5,7 @@ After=apt-daily.timer
 [Timer]
 # OnCalendar=*-*-* 6:00
 # Weekly on Tuesday at 7:15pm MST
-OnCalendar={{ apt_upgrade_schedule }}
+OnCalendar={{ common_apt_upgrade_schedule }}
 # RandomizedDelaySec=60m
 # setting this will prevent catch-up executions. These can interfere with deployment tasks which may error out due to apt locks being held
 # can alternatively leave catch-up executions enabled and use OnBootSec to prevent the deployment conflict. Deciding against that - updates should only ever be applied during anticipated windows and we can decide for ourselves in deployment logic whether we want to apply system updates to our golden amis at boot time or not

@@ -21,8 +21,9 @@
     - env
 
 - name: Stop ssm to prevent apt conflicts on fresh box patching
-  ansible.builtin.command:
-    cmd: systemctl stop snap.amazon-ssm-agent.amazon-ssm-agent
+  ansible.builtin.systemd:
+    name: snap.amazon-ssm-agent.amazon-ssm-agent
+    state: stopped
 
 - name: Install dependency packages
   ansible.builtin.package:
@@ -34,13 +35,9 @@
     - wget
 
 - name: Install the grafana gpg key
-  ansible.builtin.shell:
-    cmd: wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
-    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
-
-- name: Ensure grafana gpg key is 644 not 640 or apt breaks
-  ansible.builtin.file:
-    path: /usr/share/keyrings/grafana-archive-keyring.gpg
+  ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg.key
+    dest: /usr/share/keyrings/grafana-archive-keyring.gpg
     mode: "0644"
     owner: root
     group: root
@@ -68,8 +65,9 @@
     state: present
 
 - name: Start ssm service
-  ansible.builtin.command:
-    cmd: systemctl start snap.amazon-ssm-agent.amazon-ssm-agent
+  ansible.builtin.systemd:
+    name: snap.amazon-ssm-agent.amazon-ssm-agent
+    state: started
 
 - name: Create grafana ssl directory
   ansible.builtin.file:

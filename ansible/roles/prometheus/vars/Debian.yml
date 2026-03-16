@@ -1,4 +1,4 @@
 ---
-blackbox_exporter_systemd_service_name: blackbox_exporter
+prometheus_blackbox_exporter_systemd_service_name: blackbox_exporter
 prometheus_systemd_service_name: prometheus
 prometheus_system_user: prometheus

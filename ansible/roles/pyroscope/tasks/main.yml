@@ -26,7 +26,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
     pyroscope_role: "{{ lookup('env', 'PYROSCOPEROLE') }}"
 
 - name: Print all environment vars for debugging
@@ -176,7 +176,7 @@
 
 - name: Run handlers immediately to refresh systemd daemon configuration
   ansible.builtin.meta: flush_handlers
-- name: Enable {{ pyroscope_systemd_service_name[pyroscope_role] }} systemd service
+- name: Enable systemd service {{ pyroscope_systemd_service_name[pyroscope_role] }}
   ansible.builtin.service:
     name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
     state: started

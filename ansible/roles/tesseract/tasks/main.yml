@@ -31,7 +31,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
 - name: Set base application directory
   ansible.builtin.set_fact:
@@ -50,7 +50,7 @@
     - service_name
     - service_component
     - project
-    - namespace
+    - service_namespace
     - trust_materials_bucket_name
     - tesseract_config_checkpoint_key_location
     - tesseract_config_checkpoint_pubkey_location

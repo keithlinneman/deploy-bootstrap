@@ -1,4 +1,4 @@
 ---
 alloy_http_port: 8443
 alloy_release_tag: v1.11.3
-log_level: info
+alloy_log_level: info

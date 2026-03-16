@@ -1,13 +1,13 @@
 ---
-remove_package_names:
+common_remove_package_names:
 # commented because this removes shim package on rhel9 which causes system to be unable to boot
 #  - fwupd
 #  - dbxtool
 #  - efivar
 
-install_package_names:
+common_install_package_names:
   - lsof
   - jq
 
-disable_service_names:
-amazon_ssm_agent_package_filename: amazon-ssm-agent.rpm
+common_disable_service_names:
+common_amazon_ssm_agent_package_filename: amazon-ssm-agent.rpm

@@ -1,5 +1,5 @@
 logging {
-  level = "{{ log_level }}"
+  level = "{{ alloy_log_level }}"
   format = "json"
 }
 
@@ -54,7 +54,7 @@ pyroscope.write "pyro" {
     node               = "{{ hostname_no_instanceid }}",
     project            = "{{ project }}",
     service_name       = "{{ service_name }}-{{ service_component }}",
-    service_namespace  = "{{ namespace }}",
+    service_namespace  = "{{ alloy_namespace }}",
     phxi_service_name  = "{{ service_name }}",
     phxi_service_component  = "{{ service_component }}",
     phxi_account_name  = "{{ account_name }}",

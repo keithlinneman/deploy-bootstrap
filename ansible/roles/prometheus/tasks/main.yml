@@ -28,7 +28,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
 - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
   ansible.builtin.set_fact:
@@ -48,7 +48,7 @@
     - service_name
     - service_component
     - project
-    - namespace
+    - service_namespace
     - hostname_no_instanceid
 
 - name: Create prometheus user
@@ -188,7 +188,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
   notify: Restart prometheus service
-  loop: "{{ prometheus.scrape.node | default([]) }}"
+  loop: "{{ prometheus_config.scrape.node | default([]) }}"
 
 - name: Create prometheus app scrape target configurations
   ansible.builtin.template:
@@ -198,7 +198,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
   notify: Restart prometheus service
-  loop: "{{ prometheus.scrape.apps | default([]) }}"
+  loop: "{{ prometheus_config.scrape.apps | default([]) }}"
 
 - name: Create blackbox_exporter scrape job configurations
   ansible.builtin.template:
@@ -208,7 +208,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
   notify: Restart prometheus service
-  loop: "{{ prometheus.scrape.blackbox | default([]) }}"
+  loop: "{{ prometheus_config.scrape.blackbox | default([]) }}"
 
 - name: Create blackbox_exporter file_sd target configurations
   ansible.builtin.template:
@@ -218,7 +218,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
   notify: Restart prometheus service
-  loop: "{{ prometheus.scrape.blackbox_http | default([]) }}"
+  loop: "{{ prometheus_config.scrape.blackbox_http | default([]) }}"
 
 - name: Copy recording rules
   ansible.builtin.copy:
@@ -228,7 +228,7 @@
     group: "{{ prometheus_system_user }}"
     mode: "0640"
   notify: Restart prometheus service
-  loop: "{{ prometheus.rules.recording | default([]) }}"
+  loop: "{{ prometheus_config.rules.recording | default([]) }}"
 
 - name: Copy alerting rules
   ansible.builtin.copy:
@@ -238,7 +238,7 @@
     group: "{{ prometheus_system_user }}"
     mode: "0640"
   notify: Restart prometheus service
-  loop: "{{ prometheus.rules.alerting | default([]) }}"
+  loop: "{{ prometheus_config.rules.alerting | default([]) }}"
 
 - name: Create prometheus systemd service
   ansible.builtin.template:
@@ -286,10 +286,10 @@
 #     msg: |
 #       #################################################################
 #       # WARNING: New blackbox_exporter version available              #
-#       #   Pinned: {{ blackbox_exporter_version }}                     #
+#       #   Pinned: {{ prometheus_blackbox_exporter_version }}                     #
 #       #   Latest: {{ latest_release_tag }}                            #
 #       #################################################################
-#   when: latest_release_tag[1:] is version(blackbox_exporter_version, '>')
+#   when: latest_release_tag[1:] is version(prometheus_blackbox_exporter_version, '>')
 #   run_once: true
 #   changed_when: false
 
@@ -297,12 +297,12 @@
 #   set_fact:
 #     asset_url: >-
 #       {%- if ansible_architecture == "aarch64" -%}
-#       https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-arm64.tar.gz
+#       https://github.com/prometheus/blackbox_exporter/releases/download/v{{ prometheus_blackbox_exporter_version }}/blackbox_exporter-{{ prometheus_blackbox_exporter_version }}.linux-arm64.tar.gz
 #       {%- else -%}
-#       https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-amd64.tar.gz
+#       https://github.com/prometheus/blackbox_exporter/releases/download/v{{ prometheus_blackbox_exporter_version }}/blackbox_exporter-{{ prometheus_blackbox_exporter_version }}.linux-amd64.tar.gz
 #       {%- endif -%}
 
-# - name: Download the pinned blackbox_exporter release ({{ blackbox_exporter_version }}) from github ({{ asset_url }})
+# - name: Download the pinned blackbox_exporter release ({{ prometheus_blackbox_exporter_version }}) from github ({{ asset_url }})
 #   get_url:
 #     url: "{{ asset_url }}"
 #     dest: /home/{{ prometheus_system_user }}/blackbox_exporter.zip
@@ -310,7 +310,7 @@
 - name: Get pinned blackbox_exporter release from s3 artifacts bucket
   amazon.aws.s3_object:
     bucket: "{{ artifacts_bucket_name }}"
-    object: "thirdparty/prometheus/blackbox_exporter/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-{{ arch_normalized }}.tar.gz"
+    object: "thirdparty/prometheus/blackbox_exporter/v{{ prometheus_blackbox_exporter_version }}/blackbox_exporter-{{ prometheus_blackbox_exporter_version }}.linux-{{ arch_normalized }}.tar.gz"
     dest: /home/{{ prometheus_system_user }}/blackbox_exporter.tar.gz
     mode: get
     overwrite: different
@@ -341,7 +341,7 @@
 
 - name: Create blackbox_exporter systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ blackbox_exporter_systemd_service_name }}.service.j2
-    dest: /etc/systemd/system/{{ blackbox_exporter_systemd_service_name }}.service
+    src: /etc/systemd/system/{{ prometheus_blackbox_exporter_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ prometheus_blackbox_exporter_systemd_service_name }}.service
     mode: "0644"
   notify: Restart blackbox_exporter service

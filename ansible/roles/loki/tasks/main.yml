@@ -25,7 +25,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
     loki_role: "{{ lookup('env', 'LOKIROLE') }}"
 
 - name: Print all environment vars for debugging
@@ -163,7 +163,7 @@
   when: ansible_os_family == 'Debian'
   notify: Restart loki service
 
-- name: Enable {{ loki_systemd_service_name[loki_role] }} systemd service
+- name: Enable systemd service {{ loki_systemd_service_name[loki_role] }}
   ansible.builtin.service:
     name: "{{ loki_systemd_service_name[loki_role] }}"
     state: started

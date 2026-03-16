@@ -19,7 +19,7 @@
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
-    namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
     pyroscope_tenant_name: "{{ company_name }}"
 
 - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc as node
@@ -40,7 +40,7 @@
     - service_name
     - service_component
     - project
-    - namespace
+    - service_namespace
     - hostname_no_instanceid
 
 - name: Modify alloy main configuration

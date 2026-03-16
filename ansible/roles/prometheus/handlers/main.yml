@@ -8,7 +8,7 @@
 
 - name: Restart blackbox_exporter service
   ansible.builtin.systemd:
-    name: "{{ blackbox_exporter_systemd_service_name }}"
+    name: "{{ prometheus_blackbox_exporter_systemd_service_name }}"
     state: restarted
     enabled: true
     daemon_reload: true

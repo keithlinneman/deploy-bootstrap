@@ -9,8 +9,8 @@ WorkingDirectory=/home/{{ prometheus_system_user }}
 User={{ prometheus_system_user }}
 Group={{ prometheus_system_user }}
 ExecStart=/home/{{ prometheus_system_user }}/bin/blackbox_exporter --config.file=/home/{{ prometheus_system_user }}/conf/blackbox.yml
-# StandardOutput=append:/var/log/{{ blackbox_exporter_systemd_service_name }}.log
-# StandardError=append:/var/log/{{ blackbox_exporter_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ prometheus_blackbox_exporter_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ prometheus_blackbox_exporter_systemd_service_name }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple

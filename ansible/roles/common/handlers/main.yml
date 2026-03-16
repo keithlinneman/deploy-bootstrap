@@ -8,6 +8,7 @@
     daemon_reload: "true"
 - name: Reload-motd-updates
   ansible.builtin.command: /usr/lib/update-notifier/update-motd-updates-available --force
+
 - name: Restart service chrony
   ansible.builtin.service:
     name: chrony

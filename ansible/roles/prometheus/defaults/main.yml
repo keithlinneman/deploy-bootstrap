@@ -1,12 +1,12 @@
 ---
-region_short_name:
+prometheus_region_short_name:
   us-east-1: use1
   us-east-2: use2
   us-west-1: usw1
   us-west-2: usw2
-blackbox_exporter_version: 0.28.0
-ebpf_exporter_tcp_port: 9435
-local_tsdb_retention_time: 1d
+prometheus_blackbox_exporter_version: 0.28.0
+prometheus_ebpf_exporter_tcp_port: 9435
+prometheus_local_tsdb_retention_time: 1d
 prometheus_node_exporter_tcp_port: 9100
 prometheus_node_ids:
   us-east-2a: 2a

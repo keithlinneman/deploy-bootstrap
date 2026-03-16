@@ -5,7 +5,7 @@ APT::Periodic::Verbose "1";
 APT::Periodic::Update-Package-Lists "1";
 
 # Run unattended-upgrade every x days (0 is disabled)
-APT::Periodic::Unattended-Upgrade "{{ apt_auto_update_interval }}";
+APT::Periodic::Unattended-Upgrade "{{ common_apt_auto_update_interval }}";
 
 # do not automatically reboot after upgrades
 Unattended-Upgrade::Automatic-Reboot "false";

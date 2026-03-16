@@ -12,7 +12,7 @@
 
 - name: Set timezone to EST
   ansible.builtin.command:
-    cmd: /usr/bin/timedatectl set-timezone {{ timezone }}
+    cmd: /usr/bin/timedatectl set-timezone {{ common_timezone }}
 
 - name: (Debian) Update apt repos
   ansible.builtin.apt:
@@ -35,7 +35,7 @@
 
 - name: Remove unwanted packages
   ansible.builtin.package:
-    name: "{{ remove_package_names }}"
+    name: "{{ common_remove_package_names }}"
     state: absent
 
 - name: Stop and disable unwanted services
@@ -43,7 +43,7 @@
     name: "{{ item }}"
     state: stopped
     enabled: false
-  loop: "{{ disable_service_names }}"
+  loop: "{{ common_disable_service_names }}"
   register: service_result
   failed_when:
     - service_result is failed
@@ -68,7 +68,7 @@
 
 - name: Install desired packages
   ansible.builtin.package:
-    name: "{{ install_package_names }}"
+    name: "{{ common_install_package_names }}"
     state: present
 
 - name: (RedHat) Install python3-pip for awscli dependency
@@ -147,7 +147,7 @@
 
 - name: (Debian) Configure snap update timing/frequency
   ansible.builtin.command:
-    cmd: /usr/bin/snap set system refresh.timer={{ snap_auto_update_schedule }}
+    cmd: /usr/bin/snap set system refresh.timer={{ common_snap_auto_update_schedule }}
   changed_when: false
   when: ansible_os_family == 'Debian'
 
@@ -160,34 +160,34 @@
 
 - name: Download Amazon SSM agent package file
   ansible.builtin.get_url:
-    url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ amazon_ssm_agent_package_path[ansible_architecture] }}/{{ amazon_ssm_agent_package_filename }}"
-    dest: /root/{{ amazon_ssm_agent_package_filename }}
+    url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ common_amazon_ssm_agent_package_path[ansible_architecture] }}/{{ common_amazon_ssm_agent_package_filename }}"
+    dest: /root/{{ common_amazon_ssm_agent_package_filename }}
     mode: "0644"
 
 - name: (Debian) Install Amazon SSM agent
   ansible.builtin.apt:
-    deb: /root/{{ amazon_ssm_agent_package_filename }}
+    deb: /root/{{ common_amazon_ssm_agent_package_filename }}
     state: present
   when: ansible_distribution == 'Debian'
 
 - name: (RedHat) Install Amazon SSM agent
   ansible.builtin.dnf:
-    file: /root/{{ amazon_ssm_agent_package_filename }}
+    file: /root/{{ common_amazon_ssm_agent_package_filename }}
     state: present
   when: ansible_distribution == 'RedHat'
 
 - name: Set cosign arch
   ansible.builtin.set_fact:
-    cosign_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+    common_cosign_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 
 - name: Download cosign (pinned) and verify checksum
   ansible.builtin.get_url:
-    url: "https://github.com/sigstore/cosign/releases/download/v{{ cosign_version[cosign_arch] }}/cosign-linux-{{ cosign_arch }}"
+    url: "https://github.com/sigstore/cosign/releases/download/v{{ common_cosign_version[common_cosign_arch] }}/cosign-linux-{{ common_cosign_arch }}"
     dest: /usr/local/bin/cosign
     mode: "0755"
     owner: root
     group: root
-    checksum: "sha256:{{ cosign_sha256[cosign_arch] }}"
+    checksum: "sha256:{{ common_cosign_sha256[common_cosign_arch] }}"
 
 - name: Smoke test cosign
   ansible.builtin.command: /usr/local/bin/cosign version
@@ -264,22 +264,22 @@
 
 - name: Allocate swap file
   ansible.builtin.command:
-    cmd: "fallocate -l {{ swap_file_size }} {{ swap_file_path }}"
-    creates: "{{ swap_file_path }}"
-  when: swap_file_enabled
+    cmd: "fallocate -l {{ common_swap_file_size }} {{ common_swap_file_path }}"
+    creates: "{{ common_swap_file_path }}"
+  when: common_swap_file_enabled
 
 - name: Set swap file permissions
   ansible.builtin.command:
-    cmd: chmod 600 /swapfile
+    cmd: chmod 600 {{ common_swap_file_path }}
 
 - name: Initialize swap file
   ansible.builtin.command:
-    cmd: mkswap /swapfile
+    cmd: mkswap {{ common_swap_file_path }}
 
 - name: Add swap to /etc/fstab
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "/swapfile none swap sw 0 0"
+    line: "{{ common_swap_file_path }} none swap sw 0 0"
     mode: "0644"
     # backup: true
     create: true
@@ -301,9 +301,12 @@
     - software-properties-common
 
 - name: Install the grafana gpg key
-  ansible.builtin.shell:
-    cmd: curl -s https://apt.grafana.com/gpg.key | gpg --dearmor > /usr/share/keyrings/grafana-archive-keyring.gpg
-    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
+  ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg.key
+    dest: /usr/share/keyrings/grafana-archive-keyring.gpg
+    mode: "0644"
+    owner: root
+    group: root
 
 - name: Ensure grafana gpg key is 644 not 640 or apt breaks
   ansible.builtin.file:
