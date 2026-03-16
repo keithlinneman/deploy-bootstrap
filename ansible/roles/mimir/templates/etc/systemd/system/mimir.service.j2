@@ -9,13 +9,13 @@ WorkingDirectory=/home/{{ mimir_system_user }}
 User={{ mimir_system_user }}
 Group={{ mimir_system_user }}
 ExecStart=/home/{{ mimir_system_user }}/bin/mimir --config.file=/home/{{ mimir_system_user }}/conf/mimir.yml
-#ExecStop=
-#StandardOutput=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
-#StandardError=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
+# ExecStop=
+# StandardOutput=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
+# StandardError=append:/var/log/{{ mimir_systemd_service_name[mimir_role] }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-#Environment=LOG_DIR="/home/{{ mimir_system_user }}/logs/"
+# Environment=LOG_DIR="/home/{{ mimir_system_user }}/logs/"
 LimitNOFILE=100000
 Restart=on-failure
 RestartSec=5s

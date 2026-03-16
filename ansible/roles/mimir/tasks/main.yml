@@ -82,19 +82,19 @@
     path: /home/{{ mimir_system_user }}/bin/mimir
   register: mimir_binary
 
-#- name: Get latest mimir release info from github
+# - name: Get latest mimir release info from github
 #  uri:
 #    url: https://api.github.com/repos/grafana/mimir/releases/latest
 #    return_content: yes
 #  register: release_info
 #  when: not mimir_binary.stat.exists
 
-#- name: Set release tag fact
+# - name: Set release tag fact
 #  set_fact:
 #    mimir_release_tag: "{{ release_info.json.tag_name }}"
 #  when: not mimir_binary.stat.exists
 
-##- name: Check if a newer mimir version exists than the pinned version
+## - name: Check if a newer mimir version exists than the pinned version
 ##  ansible.builtin.debug:
 ##    msg: |
 ##      #################################################################
@@ -126,7 +126,7 @@
 #     msg: "No asset found github latest release response matching our architecture {{ ansible_architecture }}"
 #   when: asset_url is not defined and not mimir_binary.stat.exists
 
-#- name: Set filename based on architecture
+# - name: Set filename based on architecture
 #  set_fact:
 #    mimir_asset_url: >-
 #      {%- if ansible_architecture == "aarch64" -%}
@@ -135,7 +135,7 @@
 #      https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-linux-amd64
 #      {%- endif -%}
 
-#- name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
+# - name: Download the pinned mimir release {{ mimir_version }} from github {{ mimir_asset_url }}
 #  get_url:
 #    url: "{{ mimir_asset_url }}"
 #    dest: /home/{{ mimir_system_user }}/bin/mimir
@@ -166,14 +166,13 @@
 
 - name: Create mimir systemd service
   ansible.builtin.template:
-    src: ../templates/etc/systemd/system/mimir.service.j2
+    src: /etc/systemd/system/mimir.service.j2
     dest: /etc/systemd/system/{{ mimir_systemd_service_name[mimir_role] }}.service
     mode: "0644"
 
 - name: Modify mimir main configuration
   ansible.builtin.template:
-    #src: ../templates/mimir/conf/{{ mimir_role }}.yml.j2
-    src: ../templates/mimir/conf/mimir.yml.j2
+    src: /mimir/conf/mimir.yml.j2
     dest: /home/{{ mimir_system_user }}/conf/mimir.yml
     mode: "0640"
     owner: "{{ mimir_system_user }}"
@@ -187,7 +186,7 @@
     proto: tcp
     rule: allow
   # this is used both for service traffic in case of distributors and query-frontend, and for prometheus metrics scraping on all services
-  #when: ansible_distribution == 'Ubuntu' and (mimir_role == 'distributor' or mimir_role == 'query-frontend')
+  # when: ansible_distribution == 'Ubuntu' and (mimir_role == 'distributor' or mimir_role == 'query-frontend')
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow mimir grpc traffic through firewall

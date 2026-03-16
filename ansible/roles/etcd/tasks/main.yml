@@ -13,7 +13,7 @@
     var: hostvars[inventory_hostname]
     verbosity: 2
 
-#- name: Ensure required variables are defined
+# - name: Ensure required variables are defined
 #  fail:
 #    msg: "{{ item }} must be defined use -e {{ item }}=value"
 #  when: (lookup('vars', item, default=None)) is none
@@ -104,20 +104,20 @@
 
 - name: Create etcd systemd service
   ansible.builtin.template:
-    src: ../templates/etc/systemd/system/{{ etcd_systemd_service_name }}.service.j2
+    src: /etc/systemd/system/{{ etcd_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ etcd_systemd_service_name }}.service
     mode: "0644"
 
 - name: Modify etcd main configuration
   ansible.builtin.template:
-    src: ../templates/etcd/conf/etcd.conf.yml.j2
+    src: /etcd/conf/etcd.conf.yml.j2
     dest: /home/{{ etcd_system_user }}/conf/etcd.conf.yml
     mode: "0644"
   notify: Restart etcd service
   when: ansible_os_family == 'Debian'
 
 # Let handler do this since it will get triggered by conf file write anyway, otherwise daemon_reload wont have run yet
-#- name: Enable etcd systemd service
+# - name: Enable etcd systemd service
 #  service:
 #    name: "{{ etcd_systemd_service_name }}"
 #    state: started

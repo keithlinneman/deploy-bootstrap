@@ -6,7 +6,6 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ tesseract_server_system_user }}
-#WorkingDirectory=/
 User={{ tesseract_server_system_user }}
 Group={{ tesseract_server_system_user }}
 EnvironmentFile=/etc/tesseract/tesseract-server.env
@@ -36,8 +35,8 @@ ExecStart={{ tesseract_app_dir }}/bin/tesseract-server \
  -signer_public_key_secret_name "${TESSERACT_CHECKPOINT_PUBKEY_LOCATION}" \
  -v ${TESSERACT_LOG_VERBOSITY}
 
-#StandardOutput=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ tesseract_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -72,7 +71,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ tesseract_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/tesseract
+# ReadOnlyPaths=/opt/tesseract
 ReadWritePaths=/var/lib/{{ tesseract_server_system_user }} /run
 
 # kernel/mem hardening

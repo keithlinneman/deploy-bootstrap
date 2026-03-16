@@ -6,13 +6,12 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ linnemanlabs_web_server_system_user }}
-#WorkingDirectory=/
 User={{ linnemanlabs_web_server_system_user }}
 Group={{ linnemanlabs_web_server_system_user }}
 EnvironmentFile=/etc/linnemanlabs-web/linnemanlabs-web-server.env
 ExecStart=/opt/linnemanlabs-web/server/bin/linnemanlabs-web-server
-#StandardOutput=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ linnemanlabs_web_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -47,7 +46,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ linnemanlabs_web_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/linnemanlabs-web
+# ReadOnlyPaths=/opt/linnemanlabs-web
 ReadWritePaths=/var/lib/{{ linnemanlabs_web_server_system_user }} /run
 
 # kernel/mem hardening

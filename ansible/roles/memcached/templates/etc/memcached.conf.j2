@@ -8,7 +8,7 @@ logfile /var/log/memcached.log
 # -v
 
 # maximum amount of memory to use in mb
-#-m 64
+# -m 64
 -m {{ memcached_max_memory[ansible_ec2_instance_type] }}
 
 # connection port

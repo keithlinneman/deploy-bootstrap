@@ -2,7 +2,7 @@ global:
   resolve_timeout: 5m
 
 route:
-  #group_by: ['alertname', 'env', 'service']
+  # group_by: ['alertname', 'env', 'service']
   group_by: ['phxi_account_name','deployment_environment_name', 'cloud_region', 'phxi_service_name', 'phxi_service_component', 'alertname']
   group_wait: 30s
   group_interval: 2m
@@ -32,7 +32,7 @@ route:
     # all cost alerts go to cost channel
     - matchers:
         - category = "cost"
-        #- deployment_environment_name = "prod"
+        # - deployment_environment_name = "prod"
       receiver: 'slack-alert-cost'
 
     # change/deploy alerts – separate low-noise channel
@@ -48,7 +48,7 @@ route:
       receiver: 'slack-page-crit'
 
     # paging/critical alerts in obs/network
-    #- matchers:
+    # - matchers:
     #    - env =~ "obs|network"
     #    - severity =~ "page|crit"
     #  receiver: 'slack-page-crit'

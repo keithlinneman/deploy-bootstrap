@@ -18,7 +18,7 @@ server:
     cert_file: /home/{{ mimir_system_user }}/conf/ssl/cert.pem
     key_file: /home/{{ mimir_system_user }}/conf/ssl/cert.key
   log_format: json
-  #log_format: logfmt
+  # log_format: logfmt
   log_level: info
   register_instrumentation: true
 
@@ -29,32 +29,32 @@ distributor:
   # charts refresh for the first 12h is probably a poor user experience
   ha_tracker:
     enable_ha_tracker: true
-    #enable_for_all_users: true 
+    # enable_for_all_users: true 
     kvstore:
       store: memberlist
     ha_tracker_update_timeout: 15s
     ha_tracker_update_timeout_jitter_max: 5s
     ha_tracker_failover_timeout: 30s
-  #ha_tracker:
-  #  enable_ha_tracker: true
-  #  kvstore:
-  #   store: etcd
-  #   prefix: mimir-ha-tracker/
-  #   etcd:
-  #     endpoints:
-  #       - monitoring-etcd-2a.{{ hosted_zone_name }}:2379
-  #       - monitoring-etcd-2b.{{ hosted_zone_name }}:2379
-  #       - monitoring-etcd-2c.{{ hosted_zone_name }}:2379
-  #  ha_tracker_update_timeout: 12s
-  #  ha_tracker_update_timeout_jitter_max: 2s
-  #  ha_tracker_failover_timeout: 20s
+  # ha_tracker:
+  #   enable_ha_tracker: true
+  #   kvstore:
+  #    store: etcd
+  #    prefix: mimir-ha-tracker/
+  #    etcd:
+  #      endpoints:
+  #        - monitoring-etcd-2a.{{ hosted_zone_name }}:2379
+  #        - monitoring-etcd-2b.{{ hosted_zone_name }}:2379
+  #        - monitoring-etcd-2c.{{ hosted_zone_name }}:2379
+  #   ha_tracker_update_timeout: 12s
+  #   ha_tracker_update_timeout_jitter_max: 2s
+  #   ha_tracker_failover_timeout: 20s
   ring:
     kvstore:
       store: memberlist
     heartbeat_period: 15s
     heartbeat_timeout: 30s
-  #tracing_enabled: false
-  #tracing_endpoint:
+  # tracing_enabled: false
+  # tracing_endpoint:
 
 ingester:
   ring:
@@ -70,7 +70,7 @@ ingester:
     kvstore:
       store: memberlist
   instance_limits:
-    #max_inflight_push_requests: 30000
+    # max_inflight_push_requests: 30000
     max_inflight_push_requests: 8192
   error_sample_rate: 0
 
@@ -83,14 +83,14 @@ ingester_client:
 querier:
   # default: 12h
   query_store_after: 12h
-  #query_engine: prometheus
+  # query_engine: prometheus
   # testing performance but this is an experimental feature currently
   query_engine: mimir
   enable_query_engine_fallback: true
   max_concurrent: 20
   # 2m default timeout
   timeout: 60s
-  #prefer_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
+  # prefer_availability_zone: {{ ansible_ec2_instance_identity_document_availabilityzone }}
 
 frontend:
   max_outstanding_per_tenant: 10000
@@ -106,7 +106,7 @@ frontend:
       addresses: mimir-memcached-2a.{{ hosted_zone_name }}:11211,mimir-memcached-2b.{{ hosted_zone_name }}:11211,mimir-memcached-2c.{{ hosted_zone_name }}:11211
       timeout: 200ms
       connect_timeout: 200ms
-      #max_item_size: 2097152
+      # max_item_size: 2097152
       max_item_size: 8388608
     compression: snappy
   cache_results: true
@@ -115,7 +115,7 @@ frontend:
 query_scheduler:
   max_outstanding_requests_per_tenant: 10000
   service_discovery_mode: ring
-  #service_discovery_mode: dns
+  # service_discovery_mode: dns
   ring:
     kvstore:
       store: memberlist
@@ -128,7 +128,7 @@ query_scheduler:
 
 frontend_worker:
   # if we change to dns service_discovery_mode for query_scheduler we need to define this as a hostname that resolves to all query-scheduler instances
-  #scheduler_address:
+  # scheduler_address:
   grpc_client_config:
     max_send_msg_size: 104857600
     max_recv_msg_size: 104857600
@@ -146,11 +146,11 @@ limits:
   creation_grace_period: 5m
   ingestion_rate: 100000
   ingestion_burst_factor: 2
-  #ingestion_burst_size: 20000
-  #ha_cluster_label: cluster
-  #ha_replica_label: __replica__
+  # ingestion_burst_size: 20000
+  # ha_cluster_label: cluster
+  # ha_replica_label: __replica__
   # labels to drop from all ingested samples, list of strings
-  #drop_labels: 
+  # drop_labels: 
   max_cache_freshness: 10m
   max_label_name_length: 1024
   max_label_value_length: 2048
@@ -159,17 +159,17 @@ limits:
   max_metadata_length: 1024
   native_histograms_ingestion_enabled: true
   # reject any samples with a timestamp in the past that varies from our clock by more than this amount
-  #past_grace_period: 5m
+  # past_grace_period: 5m
   # track time series per tenant, list of strings mapping
-  #active_series_custom_trackers:
+  # active_series_custom_trackers:
   # disabling so they get outright rejected instead so we can see the error and know
   reduce_native_histogram_over_max_buckets: false
   request_rate: 0
   request_burst_size: 0
   results_cache_ttl: 1w
-  #otel_metric_suffixes_enabled: false
+  # otel_metric_suffixes_enabled: false
   # otel resource attributes to promote to labels
-  #promote_otel_resource_attributes: 
+  # promote_otel_resource_attributes: 
   max_global_series_per_user: 2000000
 
 
@@ -188,13 +188,13 @@ blocks_storage:
   bucket_store:
     sync_interval: 10m
     max_concurrent: 200
-    #index_cache:
-    #  #backend: memcached
-    #  backend: inmemory
-    #  inmemory:
-    #    #max_size_bytes: 2147483648
-    #    #max_size_bytes: 1073741824
-    #    max_size_bytes: 10737418240
+    # index_cache:
+    #   # backend: memcached
+    #   backend: inmemory
+    #   inmemory:
+    #     # max_size_bytes: 2147483648
+    #     # max_size_bytes: 1073741824
+    #     max_size_bytes: 10737418240
     index_cache:
       backend: memcached
       memcached:
@@ -218,7 +218,7 @@ blocks_storage:
         max_item_size: 8388608
     bucket_index:
       idle_timeout: 24h
-      #idle_timeout: 1h
+      # idle_timeout: 1h
     # default: 10h
     ignore_blocks_within: 10h
     index_header:

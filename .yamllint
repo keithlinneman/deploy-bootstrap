@@ -2,7 +2,7 @@
 extends: default
 rules:
   line-length:
-    max: 160
+    max: 180
     allow-non-breakable-inline-mappings: true
   truthy:
     allowed-values: ["true", "false", "yes", "no"]

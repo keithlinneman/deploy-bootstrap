@@ -101,22 +101,22 @@
     path: /home/{{ pyroscope_system_user }}/bin/pyroscope
   register: pyroscope_binary
 
-#- name: Get latest pyroscope release info from github
+# - name: Get latest pyroscope release info from github
 #  uri:
 #    url: https://api.github.com/repos/grafana/pyroscope/releases/latest
 #    return_content: yes
 #  register: pyroscope_release_info
 
-#- name: Set release tag fact
+# - name: Set release tag fact
 #  set_fact:
 #    pyroscope_release_tag: "{{ pyroscope_release_info.json.tag_name }}"
 
-#- name: Fail if pyroscope_release_tag asset not found
+# - name: Fail if pyroscope_release_tag asset not found
 #  fail:
 #    msg: "No asset found github latest release response"
 #  when: pyroscope_release_tag is not defined
 
-#- name: Set filename based on architecture
+# - name: Set filename based on architecture
 #  set_fact:
 #    pyroscopecollector_asset_url: >-
 #      {%- if ansible_architecture == "aarch64" -%}
@@ -125,7 +125,7 @@
 #      https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_amd64.tar.gz
 #      {%- endif -%}
 
-#- name: Download the latest pyroscope release from github
+# - name: Download the latest pyroscope release from github
 #  get_url:
 #    url: "{{ pyroscopecollector_asset_url }}"
 #    dest: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
@@ -161,13 +161,13 @@
 
 - name: Create pyroscope systemd service
   ansible.builtin.template:
-    src: ../templates/etc/systemd/system/pyroscope.service.j2
+    src: /etc/systemd/system/pyroscope.service.j2
     dest: /etc/systemd/system/{{ pyroscope_systemd_service_name[pyroscope_role] }}.service
     mode: "0644"
 
 - name: Modify pyroscope main configuration
   ansible.builtin.template:
-    src: ../templates/pyroscope/conf/pyroscope.yml.j2
+    src: /pyroscope/conf/pyroscope.yml.j2
     dest: /home/{{ pyroscope_system_user }}/conf/pyroscope.yml
     mode: "0640"
     owner: "{{ pyroscope_system_user }}"
@@ -188,7 +188,7 @@
     proto: tcp
     rule: allow
   # this is used both for service traffic in case of distributors and query-frontend, and for prometheus metrics scraping on all services
-  #when: ansible_distribution == 'Ubuntu' and (pyroscope_role == 'distributor' or pyroscope_role == 'query-frontend')
+  # when: ansible_distribution == 'Ubuntu' and (pyroscope_role == 'distributor' or pyroscope_role == 'query-frontend')
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow pyroscope grpc traffic through firewall

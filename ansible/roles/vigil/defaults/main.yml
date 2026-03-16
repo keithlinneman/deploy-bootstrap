@@ -1,5 +1,5 @@
 ---
-#vigil_config_llm_claude_model: claude-sonnet-4-6
+# vigil_config_llm_claude_model: claude-sonnet-4-6
 vigil_config_llm_claude_model: claude-haiku-4-5
 vigil_server_admin_tcp_port: 9000
 vigil_server_tcp_port: 8443

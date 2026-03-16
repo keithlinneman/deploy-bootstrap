@@ -45,7 +45,7 @@
 
 - name: Modify alloy main configuration
   ansible.builtin.template:
-    src: ../templates/etc/alloy/config.alloy.j2
+    src: /etc/alloy/config.alloy.j2
     dest: /etc/alloy/config.alloy
     mode: "0644"
     owner: root
@@ -71,7 +71,7 @@
     path: /etc/default/alloy
     regexp: "^CUSTOM_ARGS=.*"
     line: 'CUSTOM_ARGS="--disable-reporting"'
-    #backup: true
+    # backup: true
     backrefs: true
     create: true
   notify: Restart alloy service

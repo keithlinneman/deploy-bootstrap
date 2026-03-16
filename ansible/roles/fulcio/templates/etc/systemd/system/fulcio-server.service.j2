@@ -6,7 +6,6 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ fulcio_server_system_user }}
-#WorkingDirectory=/
 User={{ fulcio_server_system_user }}
 Group={{ fulcio_server_system_user }}
 EnvironmentFile=/etc/fulcio/fulcio-server.env
@@ -25,8 +24,8 @@ ExecStart=/opt/fulcio/server/bin/fulcio-server serve \
  --metrics-port "${FULCIO_METRICS_PORT}" \
  --port "${FULCIO_HTTP_PORT}"
 
-#StandardOutput=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ fulcio_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -61,7 +60,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ fulcio_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/fulcio
+# ReadOnlyPaths=/opt/fulcio
 ReadWritePaths=/var/lib/{{ fulcio_server_system_user }} /run
 
 # kernel/mem hardening

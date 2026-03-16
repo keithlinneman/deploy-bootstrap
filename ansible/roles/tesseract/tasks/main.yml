@@ -199,7 +199,7 @@
 
 - name: Create tesseract systemd service
   ansible.builtin.template:
-    src: ../templates/etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service.j2
+    src: /etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service
     mode: "0644"
   notify: Restart tesseract service

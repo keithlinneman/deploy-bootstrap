@@ -106,8 +106,8 @@ changeset="$( jq -n \
  }'
 )"
 
-#echo "changeset: ${changeset}"
-#echo "AWS route53 call: aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch ${changeset}"
+# echo "changeset: ${changeset}"
+# echo "AWS route53 call: aws route53 change-resource-record-sets --hosted-zone-id ${hostedzoneid} --change-batch ${changeset}"
 awsout="$( aws route53 change-resource-record-sets --hosted-zone-id "${hostedzoneid}" --change-batch "${changeset}" )"
 if [[ ! "${awsout}" =~ \"PENDING\" ]];then
   echo "Failed to create CNAME record! changeset was ${changeset}"

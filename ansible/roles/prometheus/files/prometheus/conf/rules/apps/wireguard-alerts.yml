@@ -30,7 +30,7 @@ groups:
           description: "node_exporter does not report wg0 (node_network_info) for >2m"
 
   # 3) No traffic over tunnel
-  #- alert: WireguardNoTraffic
+  # - alert: WireguardNoTraffic
   #  expr: rate(node_network_receive_bytes_total{device="wg0"}[5m]) < 10
   #  for: 15m
   #  labels:

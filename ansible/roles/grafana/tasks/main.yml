@@ -51,7 +51,7 @@
     state: present
     filename: grafana
     # causing apt locks somehow
-    #update_cache: true
+    # update_cache: true
     update_cache: false
 
 - name: Update apt cache after adding repo
@@ -104,7 +104,7 @@
 
 - name: Modify grafana main configuration
   ansible.builtin.template:
-    src: ../templates/etc/grafana/grafana.ini.j2
+    src: /etc/grafana/grafana.ini.j2
     dest: /etc/grafana/grafana.ini
     mode: "0644"
     owner: root
@@ -112,9 +112,9 @@
   notify: Restart grafana service
   when: ansible_os_family == 'Debian'
 
-#- name: Configure grafana for prometheus data source
+# - name: Configure grafana for prometheus data source
 #  template:
-#    src: ../templates/etc/grafana/provisioning/datasources/prometheus.yaml.j2
+#    src: /etc/grafana/provisioning/datasources/prometheus.yaml.j2
 #    dest: /etc/grafana/provisioning/datasources/prometheus.yaml
 #    mode: 0644
 #    owner: root

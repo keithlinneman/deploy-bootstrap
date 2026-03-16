@@ -29,7 +29,7 @@ app_mode = production
 #################################### Server ####################################
 [server]
 # Protocol (http, https, h2, socket)
-#protocol = http
+# protocol = http
 protocol = https
 
 # The http port to use
@@ -90,7 +90,7 @@ cert_key = /etc/grafana/ssl/cert.key
 # This setting enables you to specify additional headers that the server adds to HTTP(S) responses.
 [server.custom_response_headers]
 grafanaNodeId = ${HOSTNAME}
-#exampleHeader2 = exampleValue2
+# exampleHeader2 = exampleValue2
 
 [environment]
 # Sets whether the local file system is available for Grafana to use. Default is true for backward compatibility.
@@ -117,7 +117,7 @@ type = postgres
 host = monitoring-core-dbw.{{ hosted_zone_name }}:5432
 name = grafana
 user = grafana
-password = """{{ lookup('amazon.aws.aws_secret', 'app/grafana/db/postgres/grafana/password', region=ansible_ec2_instance_identity_document_region ) }}"""
+password = """{{ lookup('amazon.aws.aws_secret', 'app/grafana/db/postgres/grafana/password', region=ansible_ec2_instance_identity_document_region) }}"""
 ssl_mode = require
 
 max_open_conn = 100
@@ -1000,7 +1000,7 @@ role_attribute_path = contains(groups[*], 'Grafana Admins') && 'Admin' || contai
 
 # Reset basic roles permissions on boot
 # Warning left to true, basic roles permissions will be reset on every boot
-#reset_basic_roles = false
+# reset_basic_roles = false
 
 # Validate permissions' action and scope on role creation and update
 ; permission_validation_enabled = true
@@ -1183,7 +1183,7 @@ format = json
 
 #################################### Unified Alerting ####################
 [unified_alerting]
-#Enable the Unified Alerting sub-system and interface. When enabled we'll migrate all of your alert rules and notification channels to the new system. New alert rules will be created and your notification channels will be converted into an Alertmanager configuration. Previous data is preserved to enable backwards compatibility but new data is removed.```
+# Enable the Unified Alerting sub-system and interface. When enabled we'll migrate all of your alert rules and notification channels to the new system. New alert rules will be created and your notification channels will be converted into an Alertmanager configuration. Previous data is preserved to enable backwards compatibility but new data is removed.```
 enabled = true
 
 # Comma-separated list of organization IDs for which to disable unified alerting. Only supported if unified alerting is enabled.
@@ -1541,7 +1541,7 @@ news_feed_enabled = false
 # The interval at which the total stats collector will update the stats. Default is 1800 seconds.
 ;total_stats_collector_interval_seconds = 1800
 
-#If both are set, basic auth will be required for the metrics endpoints.
+# If both are set, basic auth will be required for the metrics endpoints.
 ; basic_auth_username =
 ; basic_auth_password =
 
@@ -1549,7 +1549,7 @@ news_feed_enabled = false
 # can expose more information about the Grafana instance.
 [metrics.environment_info]
 grafanaNodeId = ${HOSTNAME}
-#exampleLabel2 = exampleValue2
+# exampleLabel2 = exampleValue2
 
 # Send internal metrics to Graphite
 [metrics.graphite]
@@ -1852,11 +1852,11 @@ grafanaNodeId = ${HOSTNAME}
 #################################### Support Bundles #####################################
 [support_bundles]
 # Enable support bundle creation (default: true)
-#enabled = true
+# enabled = true
 # Only server admins can generate and view support bundles (default: true)
-#server_admin_only = true
+# server_admin_only = true
 # If set, bundles will be encrypted with the provided public keys separated by whitespace
-#public_keys = ""
+# public_keys = ""
 
 # Move an app plugin referenced by its id (including all its pages) to a specific navigation section
 [navigation.app_sections]

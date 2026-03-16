@@ -11,7 +11,7 @@ server:
     cert_file: /home/{{ tempo_system_user }}/conf/ssl/cert.pem
     key_file: /home/{{ tempo_system_user }}/conf/ssl/cert.key
   log_format: json
-  #log_format: logfmt
+  # log_format: logfmt
   log_level: info
   register_instrumentation: true
 
@@ -24,14 +24,14 @@ distributor:
         http:
           endpoint: "{{ ansible_default_ipv4.address }}:{{ tempo_otlp_http_tcp_port }}"
   # for debugging
-  #log_received_spans:
-    #enabled: false
-    #include_all_attributes: true
-    #filter_by_status_error: true
-  #log_discarded_spans:
-    #enabled: false
-    #include_all_attributes: true
-    #filter_by_status_error: true
+  # log_received_spans:
+     # enabled: false
+     # include_all_attributes: true
+     # filter_by_status_error: true
+  # log_discarded_spans:
+     # enabled: false
+     # include_all_attributes: true
+     # filter_by_status_error: true
   ring:
     kvstore:
       store: memberlist
@@ -63,14 +63,14 @@ metrics_generator:
       - {{ ansible_default_ipv4.interface }}
   processor:
     service_graphs:
-      #histogram_buckets: 0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8
-      #dimensions:
+      # histogram_buckets: 0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8
+      # dimensions:
       enable_client_server_prefix: true
       enable_messaging_system_latency_histogram: true
     span_metrics:
-      #histogram_buckets: 0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384
-      #dimensions:
-         #dimension_mappings: <list of label mappings>
+      # histogram_buckets: 0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.024, 2.048, 4.096, 8.192, 16.384
+      # dimensions:
+         # dimension_mappings: <list of label mappings>
          #  - name: <string>
          #    source_labels: <list of strings>
          #    join: <string>
@@ -78,7 +78,7 @@ metrics_generator:
     local_blocks:
       block:
         version: vParquet4
-        #v2_encoding: zstd
+        # v2_encoding: zstd
         v2_encoding: snappy
         search_encoding: snappy
       search:
@@ -87,11 +87,11 @@ metrics_generator:
   registry:
     collection_interval: 15s
     stale_duration: 15m
-    #external_labels:
-    #  <map>
+    # external_labels:
+    #   <map>
   storage:
     path: /home/{{ tempo_system_user }}/data/metrics
-    #wal:
+    # wal:
     # For storage in mimir
     remote_write:
       - url: "https://mimir-distributor.{{ hosted_zone_name }}/api/v1/push"
@@ -106,21 +106,21 @@ metrics_generator:
           # capacity: 134217728
           capacity: 25000
           max_shards: 9
-        #write_relabel_configs:
+        # write_relabel_configs:
   traces_storage:
     path: /home/{{ tempo_system_user }}/data/traces
-    #wal:
-    #  version: vParquet4
-    #  #v2_encoding: zstd
-    #  v2_encoding: snappy
-    #  search_encoding: snappy
+    # wal:
+    #   version: vParquet4
+    #   # v2_encoding: zstd
+    #   v2_encoding: snappy
+    #   search_encoding: snappy
   
 query_frontend:
   max_retries: 2
   search:
     concurrent_jobs: 128
     duration_slo: 3s
-    #max_duration: 168h
+    # max_duration: 168h
     # 60 days
     max_duration: 1440h
     query_backend_after: 15m
@@ -129,8 +129,8 @@ query_frontend:
     duration_slo: 3s
 
 querier:
-  #shuffle_sharding_ingesters_enabled: true
-  #shuffle_sharding_ingesters_lookback_period: 1hr
+  # shuffle_sharding_ingesters_enabled: true
+  # shuffle_sharding_ingesters_lookback_period: 1hr
   query_relevant_ingesters: false
   trace_by_id:
     query_timeout: 10s
@@ -152,7 +152,7 @@ compactor:
     block_retention: 8784h
     compacted_block_retention: 1h
     compaction_window: 1h
-    #max_block_bytes:
+    # max_block_bytes:
 
 memberlist:
   join_members:
@@ -187,19 +187,19 @@ storage:
       endpoint: s3.{{ ansible_ec2_instance_identity_document_region }}.amazonaws.com
       insecure: false
       enable_dual_stack: false
-      #tags:
+      # tags:
     search:
       read_buffer_count: 32
       read_buffer_size_bytes: 1048576  
     wal:
       path: /home/{{ tempo_system_user }}/data/traces/wal
-      #v2_encoding: zstd
+      # v2_encoding: zstd
       v2_encoding: snappy
       search_encoding: snappy
       version: vParquet4
     block:
       version: vParquet4
-      #v2_encoding: zstd
+      # v2_encoding: zstd
       v2_encoding: snappy
       search_encoding: snappy
   

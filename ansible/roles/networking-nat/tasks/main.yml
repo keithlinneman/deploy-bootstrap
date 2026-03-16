@@ -13,7 +13,7 @@
 
 - name: Configure sysctl settings to allow forwarding
   ansible.builtin.template:
-    src: ../templates/etc/sysctl.d/999-phxi-nat.conf.j2
+    src: /etc/sysctl.d/999-phxi-nat.conf.j2
     dest: /etc/sysctl.d/999-phxi-nat.conf
   notify: Apply sysctl values
 
@@ -26,6 +26,6 @@
 
 - name: Configure nftables to allow forwarding
   ansible.builtin.template:
-    src: ../templates/etc/nftables.conf.j2
+    src: /etc/nftables.conf.j2
     dest: /etc/nftables.conf
   notify: Reload nftables

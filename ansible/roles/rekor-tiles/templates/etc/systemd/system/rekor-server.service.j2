@@ -6,7 +6,7 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ rekor_server_system_user }}
-#WorkingDirectory=/
+#=/
 User={{ rekor_server_system_user }}
 Group={{ rekor_server_system_user }}
 EnvironmentFile=/etc/rekor/rekor-server.env
@@ -22,8 +22,8 @@ ExecStart=/opt/rekor/server/bin/rekor-server serve \
  --grpc-address "${REKOR_GRPC_ADDRESS}" \
  --grpc-port "${REKOR_GRPC_PORT}" \
  --log-level "${REKOR_LOG_LEVEL}"
-#StandardOutput=append:/var/log/{{ rekor_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ rekor_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ rekor_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ rekor_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -58,7 +58,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ rekor_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/rekor
+# ReadOnlyPaths=/opt/rekor
 ReadWritePaths=/var/lib/{{ rekor_server_system_user }} /run
 
 # kernel/mem hardening

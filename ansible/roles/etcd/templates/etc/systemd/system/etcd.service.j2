@@ -9,12 +9,12 @@ WorkingDirectory=/home/{{ etcd_system_user }}
 User={{ etcd_system_user }}
 Group={{ etcd_system_user }}
 ExecStart=/home/{{ etcd_system_user }}/bin/etcd --config-file=/home/{{ etcd_system_user }}/conf/etcd.conf.yml
-#StandardOutput=append:/var/log/{{ etcd_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ etcd_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ etcd_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ etcd_systemd_service_name }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-#Environment=LOG_DIR="/home/{{ etcd_system_user }}/logs/"
+# Environment=LOG_DIR="/home/{{ etcd_system_user }}/logs/"
 LimitNOFILE=100000
 Restart=on-failure
 RestartSec=5s

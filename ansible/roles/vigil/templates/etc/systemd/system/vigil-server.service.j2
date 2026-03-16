@@ -6,13 +6,12 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ vigil_server_system_user }}
-#WorkingDirectory=/
 User={{ vigil_server_system_user }}
 Group={{ vigil_server_system_user }}
 EnvironmentFile=/etc/vigil/vigil-server.env
 ExecStart=/opt/vigil/server/bin/vigil-server
-#StandardOutput=append:/var/log/{{ vigil_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ vigil_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ vigil_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ vigil_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -47,7 +46,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ vigil_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/vigil
+# ReadOnlyPaths=/opt/vigil
 ReadWritePaths=/var/lib/{{ vigil_server_system_user }} /run
 
 # kernel/mem hardening

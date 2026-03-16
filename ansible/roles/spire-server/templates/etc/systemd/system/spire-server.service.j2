@@ -6,13 +6,12 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/var/lib/{{ spire_server_system_user }}
-#WorkingDirectory=/
 User={{ spire_server_system_user }}
 Group={{ spire_server_system_user }}
-#EnvironmentFile=/etc/spire/spire-server.env
+# EnvironmentFile=/etc/spire/spire-server.env
 ExecStart={{ spire_app_dir }}/bin/spire-server run -config {{ spire_app_dir }}/conf/server.conf
-#StandardOutput=append:/var/log/{{ spire_server_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ spire_server_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ spire_server_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ spire_server_systemd_service_name }}.log
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -47,7 +46,7 @@ ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ spire_server_system_user }}
 # covered by ProtectSystem=strict already
-#ReadOnlyPaths=/opt/spire
+# ReadOnlyPaths=/opt/spire
 ReadWritePaths=/var/lib/{{ spire_server_system_user }} /run
 
 # kernel/mem hardening

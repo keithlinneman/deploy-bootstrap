@@ -15,7 +15,7 @@
 
 - name: Configure sysctl settings to allow forwarding
   ansible.builtin.template:
-    src: ../templates/etc/sysctl.d/999-wireguard.conf.j2
+    src: /etc/sysctl.d/999-wireguard.conf.j2
     dest: /etc/sysctl.d/999-wireguard.conf
   notify: Apply sysctl values
 
@@ -33,7 +33,7 @@
 
 - name: Configure /etc/wireguard/wg0.conf
   ansible.builtin.template:
-    src: ../templates/etc/wireguard/wg0.conf.j2
+    src: /etc/wireguard/wg0.conf.j2
     dest: /etc/wireguard/wg0.conf
     mode: "0600"
   notify: Restart wireguard

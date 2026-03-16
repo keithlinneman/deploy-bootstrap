@@ -9,8 +9,8 @@ WorkingDirectory=/home/{{ pyroscope_system_user }}
 User={{ pyroscope_system_user }}
 Group={{ pyroscope_system_user }}
 ExecStart=/home/{{ pyroscope_system_user }}/bin/pyroscope --config.file=/home/{{ pyroscope_system_user }}/conf/pyroscope.yml
-#StandardOutput=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
-#StandardError=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
+# StandardOutput=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
+# StandardError=append:/var/log/{{ pyroscope_systemd_service_name[pyroscope_role] }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple

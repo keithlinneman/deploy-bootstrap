@@ -47,7 +47,7 @@ random_sleep()
 
 # delay the job execution by a random amount of time
 # removing sleep delay to give more control and insight into update timing
-#random_sleep
+# random_sleep
 
 # ensure we don't do this on battery
 check_power || exit 0

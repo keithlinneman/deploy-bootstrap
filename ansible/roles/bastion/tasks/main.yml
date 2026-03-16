@@ -21,7 +21,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*DisableForwarding .*"
     line: "DisableForwarding no"
-    #backup: true
+    # backup: true
     backrefs: false
     create: true
   notify: Restart service sshd

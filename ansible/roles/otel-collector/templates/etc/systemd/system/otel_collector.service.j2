@@ -6,18 +6,18 @@ StartLimitIntervalSec=0
 
 [Service]
 WorkingDirectory=/home/{{ otel_system_user }}
-#User={{ otel_system_user }}
-#Group={{ otel_system_user }}
+# User={{ otel_system_user }}
+# Group={{ otel_system_user }}
 User=root
 Group=root
-#ExecStart=/home/{{ otel_system_user }}/bin/otelcol-contrib --feature-gates {{ otel_collector_feature_gates }}
+# ExecStart=/home/{{ otel_system_user }}/bin/otelcol-contrib --feature-gates {{ otel_collector_feature_gates }}
 ExecStart=/home/{{ otel_system_user }}/bin/otelcol-contrib --config=/home/{{ otel_system_user }}/conf/collector.yaml
-#StandardOutput=append:/var/log/{{ otel_collector_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ otel_collector_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ otel_collector_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ otel_collector_systemd_service_name }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-#LimitNOFILE=100000
+# LimitNOFILE=100000
 Restart=on-failure
 RestartSec=5s
 

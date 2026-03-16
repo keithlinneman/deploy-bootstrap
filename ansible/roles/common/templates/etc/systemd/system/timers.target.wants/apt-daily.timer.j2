@@ -2,14 +2,14 @@
 Description=Daily apt download activities
 
 [Timer]
-#OnCalendar=*-*-* 6,18:00
+# OnCalendar=*-*-* 6,18:00
 # Daily at 7:05 pm MST
 OnCalendar={{ apt_update_schedule }}
-#RandomizedDelaySec=12h
+# RandomizedDelaySec=12h
 # setting this will prevent catch-up executions. These can interfere with deployment tasks which may error out due to apt locks being held
 # can alternatively leave catch-up executions enabled and use OnBootSec to prevent the deployment conflict. Deciding against that - updates should only ever be applied during anticipated windows and we can decide for ourselves
 Persistent=false
-#OnBootSec=15min
+# OnBootSec=15min
 
 [Install]
 WantedBy=timers.target

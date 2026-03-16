@@ -4,4 +4,4 @@ aide_config_location: /etc/aide/aide.conf
 pam_pwquality_package_name: libpam-pwquality
 auditd_package_name: auditd
 system_passwd_group: shadow
-#system_su_group: adm
+# system_su_group: adm

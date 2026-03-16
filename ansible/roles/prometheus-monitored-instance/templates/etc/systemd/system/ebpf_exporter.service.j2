@@ -9,12 +9,12 @@ WorkingDirectory={{ ebpf_exporter_base_directory }}
 User=root
 Group=root
 ExecStart={{ ebpf_exporter_base_directory }}/bin/ebpf_exporter {{ ebpf_exporter_flags }}
-#StandardOutput=append:/var/log/{{ ebpf_exporter_systemd_service_name }}.log
-#StandardError=append:/var/log/{{ ebpf_exporter_systemd_service_name }}.log
+# StandardOutput=append:/var/log/{{ ebpf_exporter_systemd_service_name }}.log
+# StandardError=append:/var/log/{{ ebpf_exporter_systemd_service_name }}.log
 KillMode=mixed
 TimeoutSec=60
 Type=simple
-#LimitNOFILE=100000
+# LimitNOFILE=100000
 Restart=on-failure
 RestartSec=5s
 

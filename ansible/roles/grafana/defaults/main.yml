@@ -1,8 +1,8 @@
 ---
-grafana_config_secret_key: "{{ lookup('amazon.aws.aws_secret', 'app/grafana/config/secret_key', region=ansible_ec2_instance_identity_document_region ) }}"
+grafana_config_secret_key: "{{ lookup('amazon.aws.aws_secret', 'app/grafana/config/secret_key', region=ansible_ec2_instance_identity_document_region) }}"
 grafana_system_user: grafana
 grafana_http_port: 8443
-hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-okta_client_id: "{{ lookup('amazon.aws.aws_ssm', '/app/grafana/okta/client_id', region=ansible_ec2_instance_identity_document_region ) }}"
-okta_client_secret: "{{ lookup('amazon.aws.aws_secret', 'app/grafana/okta/client_secret', region=ansible_ec2_instance_identity_document_region ) }}"
-okta_oidc_issuer_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/oidc/okta/issuer_domain', region=ansible_ec2_instance_identity_document_region ) }}"
+hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+okta_client_id: "{{ lookup('amazon.aws.aws_ssm', '/app/grafana/okta/client_id', region=ansible_ec2_instance_identity_document_region) }}"
+okta_client_secret: "{{ lookup('amazon.aws.aws_secret', 'app/grafana/okta/client_secret', region=ansible_ec2_instance_identity_document_region) }}"
+okta_oidc_issuer_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/oidc/okta/issuer_domain', region=ansible_ec2_instance_identity_document_region) }}"

@@ -185,8 +185,8 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: "^.*session\\s*optional\\s*pam_motd.so\\s*motd=/run/motd.dynamic.*", line: "#session    optional     pam_motd.so motd=/run/motd.dynamic" }
-    # - { regexp: '^.*session\s*optional\s*pam_motd.so\s*noupdate', line: '#session    optional     pam_motd.so noupdate' }
+    - { regexp: "^.*session\\s*optional\\s*pam_motd.so\\s*motd=/run/motd.dynamic.*", line: "# session    optional     pam_motd.so motd=/run/motd.dynamic" }
+    # - { regexp: '^.*session\s*optional\s*pam_motd.so\s*noupdate', line: '# session    optional     pam_motd.so noupdate' }
 
 - name: 1.6.1 | Ensure message of the day is configured properly | motd file
   ansible.builtin.file:
@@ -213,7 +213,7 @@
 
 - name: 1.6.2 | Ensure local login warning banner is configured properly
   ansible.builtin.copy:
-    src: ../files/etc/update-motd.d/00-header
+    src: /etc/update-motd.d/00-header
     dest: /etc/update-motd.d/00-header
     # backup: true
   when: ansible_distribution == 'Ubuntu'
@@ -521,7 +521,7 @@
   ansible.builtin.lineinfile:
     path: /etc/default/ufw
     regexp: "^IPT_SYSCTL=/etc/ufw/sysctl.conf"
-    line: "#IPT_SYSCTL=/etc/ufw/sysctl.conf"
+    line: "# IPT_SYSCTL=/etc/ufw/sysctl.conf"
     # backup: true
     backrefs: false
   notify: Reload sysctl values
@@ -625,7 +625,7 @@
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "^.*Banner .*"
-    line: "#Banner /etc/issue.net"
+    line: "# Banner /etc/issue.net"
     # backup: true
     backrefs: false
     create: true
@@ -1212,7 +1212,7 @@
 - name: 6.1.2.2 | Ensure journald ForwardToSyslog is disabled
   ansible.builtin.replace:
     path: /etc/systemd/journald.conf
-    regexp: "^#ForwardToSyslog=.*"
+    regexp: "^# ForwardToSyslog=.*"
     replace: "ForwardToSyslog=no"
   notify: Restart systemd-journald service
 
