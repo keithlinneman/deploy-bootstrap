@@ -58,7 +58,7 @@
 - name: (RedHat) Upgrade dnf packages
   ansible.builtin.dnf:
     name: "*"
-    state: latest
+    state: installed
     update_cache: true
   when: ansible_os_family == 'RedHat'
 
@@ -70,7 +70,7 @@
 - name: (RedHat) Install python3-pip for awscli dependency
   ansible.builtin.dnf:
     name: python3-pip
-    state: latest
+    state: installed
   when: ansible_os_family == 'RedHat'
 
 - name: (RedHat) install requests via pip
@@ -88,7 +88,7 @@
 - name: (RedHat) Install nano for rhel8
   ansible.builtin.dnf:
     name: nano
-    state: latest
+    state: installed
   when: ansible_os_family == 'RedHat'
 
 - name: (Ubuntu) Install awscli via snap for Ubuntu24
