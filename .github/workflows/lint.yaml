@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install ansible-lint
-        run: pip install ansible-lint==25.1.4
+        run: pip install ansible-lint==26.3.0
 
       - name: Install yamllint
         run: pip install yamllint==1.38.0
