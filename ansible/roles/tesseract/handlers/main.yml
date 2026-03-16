@@ -1,6 +1,6 @@
 ---
-- name: restart tesseract service
-  systemd:
+- name: Restart tesseract service
+  ansible.builtin.systemd:
     name: "{{ tesseract_server_systemd_service_name }}"
     state: restarted
     enabled: true

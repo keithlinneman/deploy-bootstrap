@@ -1,3 +1,4 @@
+---
 metrics:
   counters:
     - name: oom_kills_total

@@ -1,4 +1,5 @@
-- name: linnemanlabs-web-server playbook
+---
+- name: Linnemanlabs-web-server playbook
   hosts: all
   become: true
   roles:

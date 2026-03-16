@@ -1,17 +1,16 @@
 ---
 - name: Apply sysctl values
-  shell: sysctl --system
-
+  ansible.builtin.command: sysctl --system
 - name: Reload nftables
-  systemd:
+  ansible.builtin.systemd:
     name: nftables
     state: restarted
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Restart wireguard
-  systemd:
+  ansible.builtin.systemd:
     name: wg-quick@wg0
     state: restarted
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true

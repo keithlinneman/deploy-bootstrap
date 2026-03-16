@@ -7,4 +7,3 @@ pyroscope_http_tcp_port: 8080
 pyroscope_grpc_tcp_port: 9095
 pyroscope_replication_factor: 3
 pyroscope_version: "1.17.0"
-

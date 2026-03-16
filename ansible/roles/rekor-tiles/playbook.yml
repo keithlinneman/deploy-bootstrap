@@ -1,4 +1,5 @@
-- name: rekor-tiles playbook
+---
+- name: Rekor-tiles playbook
   hosts: all
   become: true
   roles:

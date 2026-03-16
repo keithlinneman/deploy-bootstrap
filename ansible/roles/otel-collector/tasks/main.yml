@@ -1,33 +1,33 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc
-  set_fact:
+  ansible.builtin.set_fact:
     hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
 - name: Set facts from ssm here since they require ec2 metadata to lookup region
-  set_fact: 
-    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    traces_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/traces/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
 
 - name: Set facts from environment variables
-  set_fact:
+  ansible.builtin.set_fact:
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
@@ -36,12 +36,12 @@
     tempo_tenant_name: "{{ company_name }}"
 
 - name: Print all environment vars for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
   when: vars[item] is not defined or vars[item] is none
   loop:
@@ -56,19 +56,19 @@
     - hostname_no_instanceid
 
 - name: Create otel user
-  user:
+  ansible.builtin.user:
     name: "{{ otel_system_user }}"
-    password: '*'
-    umask: 0027
+    password: "*"
+    umask: "027"
     shell: /usr/sbin/nologin
     system: true
 
 - name: Create otel directories
-  file:
+  ansible.builtin.file:
     path: /home/{{ otel_system_user }}/{{ item }}
     owner: "{{ otel_system_user }}"
     group: "{{ otel_system_user }}"
-    mode: 0750
+    mode: "0750"
     state: directory
   loop:
     - bin
@@ -111,52 +111,49 @@
 #  until: download_result is succeeded
 
 - name: Set normalized architecture name
-  set_fact:
+  ansible.builtin.set_fact:
     arch_normalized: >-
-      {%- if ansible_architecture == "aarch64" -%}
-      arm64
-      {%- else -%}
-      amd64
-      {%- endif -%}
+      {%- if ansible_architecture == "aarch64" -%} arm64{%- else -%} amd64{%- endif -%}
 
-- name: Get pinned otel_collector release from s3 artifacts bucket 
+- name: Get pinned otel_collector release from s3 artifacts bucket
   amazon.aws.s3_object:
     bucket: "{{ artifacts_bucket_name }}"
-    object: "thirdparty/open-telemetry/opentelemetry-collector-releases/v{{ otel_collector_version }}/otelcol-contrib_{{ otel_collector_version }}_linux_{{ arch_normalized }}.tar.gz"
+    object: "thirdparty/open-telemetry/opentelemetry-collector-releases/v{{ otel_collector_version }}/otelcol-contrib_{{ otel_collector_version }}_linux_{{ arch_normalized
+      }}.tar.gz"
     dest: /home/{{ otel_system_user }}/otel_collector.tar.gz
     mode: get
     overwrite: different
 
 - name: Decompress otel_collector installation package
-  unarchive:
+  ansible.builtin.unarchive:
     src: /home/{{ otel_system_user }}/otel_collector.tar.gz
     dest: /home/{{ otel_system_user }}/bin
-    extra_opts: ['--show-stored-names']
+    extra_opts: ["--show-stored-names"]
     include: "otelcol-contrib"
     owner: "{{ otel_system_user }}"
     group: "{{ otel_system_user }}"
-    mode: 0750
+    mode: "0750"
     creates: /home/{{ otel_system_user }}/bin/otelcol-contrib
 
 - name: Remove the otel_collector package
-  file:
+  ansible.builtin.file:
     path: /home/{{ otel_system_user }}/otel_collector.tar.gz
     state: absent
 
 - name: Create otel_collector configuration
-  template:
+  ansible.builtin.template:
     src: ../templates/otel/conf/collector.yaml.j2
     dest: /home/{{ otel_system_user }}/conf/collector.yaml
-    mode: 0644
+    mode: "0644"
   notify: restart otel_collector service
 
 - name: Create otel_collector systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ otel_collector_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ otel_collector_systemd_service_name }}.service
     owner: "{{ otel_system_user }}"
     group: "{{ otel_system_user }}"
-    mode: 0644
+    mode: "0644"
 
 # let systemd service task do this to avoid daemon-reload warnings
 #- name: Enable otel_collector systemd service
@@ -166,11 +163,9 @@
 #    enabled: true
 
 - name: Allow otel_collector traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ item.value }}"
     proto: tcp
     rule: allow
   loop: "{{ otel_collector_tcp_ports | dict2items }}"
   when: ansible_distribution == 'Ubuntu'
-
-

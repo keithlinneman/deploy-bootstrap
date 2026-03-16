@@ -1,4 +1,5 @@
-- name: jump bastion playbook
+---
+- name: Jump bastion playbook
   hosts: all
   become: true
   roles:

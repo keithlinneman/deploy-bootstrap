@@ -1,4 +1,5 @@
-- name: pyroscope playbook
+---
+- name: Pyroscope playbook
   hosts: all
   become: true
   roles:

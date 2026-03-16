@@ -1,3 +1,4 @@
+---
 metrics:
   histograms:
     - name: softirq_entry_latency_seconds

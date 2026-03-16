@@ -1,8 +1,8 @@
 ---
-  tempo_cluster_memberlist_port: 7946
-  tempo_http_tcp_port: 8443
-  tempo_grpc_tcp_port: 9095
-  tempo_otlp_grpc_tcp_port: 4317
-  tempo_otlp_http_tcp_port: 4318
-  tempo_replication_factor: 3
-  tempo_version: 2.9.0
+tempo_cluster_memberlist_port: 7946
+tempo_http_tcp_port: 8443
+tempo_grpc_tcp_port: 9095
+tempo_otlp_grpc_tcp_port: 4317
+tempo_otlp_http_tcp_port: 4318
+tempo_replication_factor: 3
+tempo_version: 2.9.0

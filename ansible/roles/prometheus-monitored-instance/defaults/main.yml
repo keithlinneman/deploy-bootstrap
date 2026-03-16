@@ -1,31 +1,31 @@
 ---
-  ebpf_exporter_tcp_port: 9435
-  ebpf_exporter_flags: >
-    --config.dir={{ ebpf_exporter_base_directory }}/modules
-    --config.names=biolatency,ext4dist,oomkill,percpu-softirq,softirq-latency,syscalls,tcp-retransmit,tcp-syn-backlog,tcp-window-clamps,udp-drops
-  ebpf_exporter_version: 2.5.1
-  prometheus_node_exporter_tcp_port: 9100
-  prometheus_node_exporter_version: 1.10.2
-  prometheus_node_exporter_flags: >
-    --no-collector.bonding
-    --no-collector.conntrack
-    --no-collector.fibrechannel
-    --no-collector.infiniband
-    --no-collector.ipvs
-    --no-collector.nfs
-    --no-collector.nfsd
-    --no-collector.tapestats
-    --no-collector.zfs
-    --collector.ethtool
-    --collector.logind
-    --collector.mountstats
-    --collector.processes
-    --collector.tcpstat
-    --collector.systemd
-    --collector.diskstats.device-exclude="^(z?ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"
-    --collector.ethtool.device-exclude="^(veth|docker).*"
-    --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|run/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
-    --collector.filesystem.fs-types-exclude="^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$"
-    --collector.systemd.unit-include='^(prometheus|alertmanager(-.*)?|loki(-.*)?|mimir(-.*)?|tempo(-.*)?|pyroscope(-.*)?|grafana(-server|-.*)?|blackbox_exporter|node_exporter|ebpf_exporter|otel_collector|alloy(-.*)?|etcd(-.*)?|memcached(-.*)?|memcached_exporter|wg-quick@wg0|sshd)\\.service$'
-    --collector.systemd.unit-exclude='.+\\.slice'
-    --log.format=json
+ebpf_exporter_tcp_port: 9435
+ebpf_exporter_flags: >
+  --config.dir={{ ebpf_exporter_base_directory }}/modules
+  --config.names=biolatency,ext4dist,oomkill,percpu-softirq,softirq-latency,syscalls,tcp-retransmit,tcp-syn-backlog,tcp-window-clamps,udp-drops
+ebpf_exporter_version: 2.5.1
+prometheus_node_exporter_tcp_port: 9100
+prometheus_node_exporter_version: 1.10.2
+prometheus_node_exporter_flags: >
+  --no-collector.bonding
+  --no-collector.conntrack
+  --no-collector.fibrechannel
+  --no-collector.infiniband
+  --no-collector.ipvs
+  --no-collector.nfs
+  --no-collector.nfsd
+  --no-collector.tapestats
+  --no-collector.zfs
+  --collector.ethtool
+  --collector.logind
+  --collector.mountstats
+  --collector.processes
+  --collector.tcpstat
+  --collector.systemd
+  --collector.diskstats.device-exclude="^(z?ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"
+  --collector.ethtool.device-exclude="^(veth|docker).*"
+  --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|run/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
+  --collector.filesystem.fs-types-exclude="^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$"
+  --collector.systemd.unit-include='^(prometheus|alertmanager(-.*)?|loki(-.*)?|mimir(-.*)?|tempo(-.*)?|pyroscope(-.*)?|grafana(-server|-.*)?|blackbox_exporter|node_exporter|ebpf_exporter|otel_collector|alloy(-.*)?|etcd(-.*)?|memcached(-.*)?|memcached_exporter|wg-quick@wg0|sshd)\\.service$'
+  --collector.systemd.unit-exclude='.+\\.slice'
+  --log.format=json

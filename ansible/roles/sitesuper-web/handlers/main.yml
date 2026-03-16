@@ -1,6 +1,6 @@
 ---
-- name: restart sitesuper-web service
-  systemd:
+- name: Restart sitesuper-web service
+  ansible.builtin.systemd:
     name: "{{ sitesuper_web_systemd_service_name }}"
     state: restarted
     enabled: true

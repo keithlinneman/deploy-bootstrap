@@ -1,4 +1,5 @@
-- name: timestamp-authority playbook
+---
+- name: Timestamp-authority playbook
   hosts: all
   become: true
   roles:

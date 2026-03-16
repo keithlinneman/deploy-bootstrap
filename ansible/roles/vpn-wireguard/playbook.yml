@@ -1,4 +1,5 @@
-- name: vpn-wireguard playbook
+---
+- name: Vpn-wireguard playbook
   hosts: all
   become: true
   roles:

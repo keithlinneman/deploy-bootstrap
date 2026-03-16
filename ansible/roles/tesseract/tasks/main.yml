@@ -1,41 +1,44 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Set facts from ssm here since they require ec2 metadata to lookup region
-  set_fact:
-    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    trust_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/dns/internal/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', tesseract_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region ) }}"
-    tesseract_s3_bucket: "{{ lookup('amazon.aws.aws_ssm', '/platform/tesseract/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    tesseract_config_checkpoint_key_location: "{{ lookup('amazon.aws.aws_ssm', tesseract_checkpoint_key_param, region=ansible_ec2_instance_identity_document_region ) }}"
-    tesseract_config_checkpoint_pubkey_location: "{{ lookup('amazon.aws.aws_ssm', tesseract_checkpoint_pubkey_param, region=ansible_ec2_instance_identity_document_region ) }}"
-    tesseract_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/tesseract/server/db/mysql/credentials', region=ansible_ec2_instance_identity_document_region ) }}"
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/dns/internal/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', tesseract_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region) }}"
+    tesseract_s3_bucket: "{{ lookup('amazon.aws.aws_ssm', '/platform/tesseract/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    tesseract_config_checkpoint_key_location: "{{ lookup('amazon.aws.aws_ssm', tesseract_checkpoint_key_param, region=ansible_ec2_instance_identity_document_region)
+      }}"
+    tesseract_config_checkpoint_pubkey_location: "{{ lookup('amazon.aws.aws_ssm', tesseract_checkpoint_pubkey_param, region=ansible_ec2_instance_identity_document_region)
+      }}"
+    tesseract_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/tesseract/server/db/mysql/credentials', region=ansible_ec2_instance_identity_document_region)
+      }}"
   no_log: true
 
 - name: Set facts from environment variables
-  set_fact:
+  ansible.builtin.set_fact:
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
     namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
 - name: Set base application directory
-  set_fact:
+  ansible.builtin.set_fact:
     tesseract_app_dir: "/opt/tesseract/server"
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
   loop:
@@ -55,55 +58,51 @@
     - tesseract_s3_bucket
 
 - name: Create tesseract user
-  user:
+  ansible.builtin.user:
     name: "{{ tesseract_server_system_user }}"
-    password: '*'
-    umask: 0027
+    password: "*"
+    umask: "027"
     shell: /usr/sbin/nologin
     system: true
 
 - name: Create tesseract directories
-  file:
+  ansible.builtin.file:
     path: "{{ tesseract_app_dir }}/{{ item }}"
     owner: "root"
-    group: "{{ tesseract_server_system_user}}"
-    mode: 0750
+    group: "{{ tesseract_server_system_user }}"
+    mode: "0750"
     state: directory
   loop:
     - bin
     - certs
 
 - name: Set architecture format based on normalized naming
-  set_fact:
+  ansible.builtin.set_fact:
     architecture_normalized_name: >-
-      {%- if ansible_architecture == "aarch64" -%}
-      arm64
-      {%- else -%}
-      amd64
-      {%- endif -%}
+      {%- if ansible_architecture == "aarch64" -%} arm64{%- else -%} amd64{%- endif -%}
 
 - name: Check current binary hash
-  stat:
+  ansible.builtin.stat:
     path: "{{ tesseract_app_dir }}/bin/tesseract-server"
     checksum_algorithm: sha256
-    get_checksum: yes
+    get_checksum: true
   register: current_binary
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Deploy tesseract binary
   when: current_binary.stat.checksum | default('') != tesseract_binary_sha256
   block:
     - name: Set binary staging directory path
-      set_fact:
+      ansible.builtin.set_fact:
         staging_dir: "{{ tesseract_app_dir }}/bin/.staging"
 
     - name: Create binary staging directory
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}"
         state: directory
         mode: "0700"
 
-    - name: Get pinned tesseract release from s3 artifacts bucket 
+    - name: Get pinned tesseract release from s3 artifacts bucket
       amazon.aws.s3_object:
         bucket: "{{ artifacts_bucket_name }}"
         object: "thirdparty/transparency-dev/tesseract/v{{ tesseract_version }}/tesseract-server-linux-{{ architecture_normalized_name }}"
@@ -112,32 +111,32 @@
         overwrite: always
 
     - name: Compute sha256 of downloaded binary
-      stat:
+      ansible.builtin.stat:
         path: "{{ staging_dir }}/tesseract-server"
         checksum_algorithm: sha256
-        get_checksum: yes
+        get_checksum: true
       register: staged_binary
 
     - name: Verify sha256 matches release index
-      fail:
+      ansible.builtin.fail:
         msg: >-
           SHA256 mismatch: expected {{ tesseract_binary_sha256 }},
           got {{ staged_binary.stat.checksum }}
       when: staged_binary.stat.checksum != tesseract_binary_sha256
 
     - name: Ensure binary has correct permissions
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}/tesseract-server"
         mode: "0755"
         owner: root
         group: root
 
     - name: Move verified binary into place
-      command: mv "{{ staging_dir }}/tesseract-server" "{{ tesseract_app_dir }}/bin/tesseract-server"
+      ansible.builtin.command: mv "{{ staging_dir }}/tesseract-server" "{{ tesseract_app_dir }}/bin/tesseract-server"
       notify: restart tesseract service
 
     - name: Clean staging directory
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}"
         state: absent
 
@@ -151,14 +150,14 @@
   notify: restart tesseract service
 
 - name: Ensure certificate chain has correct permissions
-  file:
+  ansible.builtin.file:
     path: "{{ tesseract_app_dir }}/certs/root-ca.crt"
     mode: "0644"
     owner: root
-    group: "{{ tesseract_server_system_user }}"  
+    group: "{{ tesseract_server_system_user }}"
 
 - name: Ensure /etc/tesseract directory exists
-  file:
+  ansible.builtin.file:
     path: /etc/tesseract
     state: directory
     owner: root
@@ -166,7 +165,7 @@
     mode: "0755"
 
 - name: Build tesseract env content
-  set_fact:
+  ansible.builtin.set_fact:
     tesseract_env_content: |
       TESSERACT_CHECKPOINT_KEY_LOCATION="{{ tesseract_config_checkpoint_key_location }}"
       TESSERACT_CHECKPOINT_PUBKEY_LOCATION="{{ tesseract_config_checkpoint_pubkey_location }}"
@@ -189,24 +188,24 @@
       AWS_REGION="{{ ansible_ec2_instance_identity_document_region }}"
 
 - name: Write tesseract environment file
-  copy:
+  ansible.builtin.copy:
     dest: /etc/tesseract/tesseract-server.env
     owner: root
     group: root
     mode: "0600"
     content: "{{ tesseract_env_content }}"
   notify:
-    - restart tesseract service  
+    - restart tesseract service
 
 - name: Create tesseract systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service
-    mode: 0644
+    mode: "0644"
   notify: restart tesseract service
 
 - name: Allow tesseract http traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tesseract_server_port }}"
     proto: tcp
     rule: allow
@@ -215,9 +214,8 @@
 # flush handlers for service restart, then ensure its started after.
 # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
 - name: Flush pending handlers
-  meta: flush_handlers
-
+  ansible.builtin.meta: flush_handlers
 - name: Enable tesseract systemd service
-  service:
+  ansible.builtin.service:
     name: "{{ tesseract_server_systemd_service_name }}"
     enabled: true

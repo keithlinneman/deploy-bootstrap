@@ -1,4 +1,5 @@
-- name: tesseract playbook
+---
+- name: Tesseract playbook
   hosts: all
   become: true
   roles:

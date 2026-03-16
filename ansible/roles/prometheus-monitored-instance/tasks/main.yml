@@ -1,17 +1,17 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Set facts from ssm here since they require ec2 metadata to lookup region
-  set_fact: 
-    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  ansible.builtin.set_fact:
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     #account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
     #company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
     #hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
@@ -19,36 +19,36 @@
     #metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
 
 - name: Print all environment vars for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
   loop:
     - platform_env
     - artifacts_bucket_name
-    
+
 - name: Create prometheus user
-  user:
+  ansible.builtin.user:
     name: "{{ prometheus_system_user }}"
-    password: '*'
-    umask: 0027
+    password: "*"
+    umask: "027"
     shell: /usr/sbin/nologin
     system: true
 
 - name: Create prometheus directories
-  file:
+  ansible.builtin.file:
     path: "/home/{{ prometheus_system_user }}/{{ item }}"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-    mode: 0750
+    mode: "0750"
     state: directory
   loop:
-  - bin
-  - scrapedata
+    - bin
+    - scrapedata
 
 #- name: Get latest prometheus node_exporter release info from github
 #  uri:
@@ -61,13 +61,9 @@
 #    node_exporter_release_tag: "{{ node_exporter_release_info.json.tag_name }}"
 
 - name: Set filename based on architecture
-  set_fact:
+  ansible.builtin.set_fact:
     nodeexporter_arch: >-
-      {%- if ansible_architecture == "aarch64" -%}
-      linux-arm64
-      {%- else -%}
-      linux-amd64
-      {%- endif -%}
+      {%- if ansible_architecture == "aarch64" -%} linux-arm64{%- else -%} linux-amd64{%- endif -%}
 
 #- name: Find architecture asset URL from release assets
 #  set_fact:
@@ -85,47 +81,48 @@
 #    url: "{{ node_exporter_asset_url }}"
 #    dest: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
 
-- name: Get pinned node_exporter release from s3 artifacts bucket 
+- name: Get pinned node_exporter release from s3 artifacts bucket
   amazon.aws.s3_object:
     bucket: "{{ artifacts_bucket_name }}"
-    object: "thirdparty/prometheus/node_exporter/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ nodeexporter_arch }}.tar.gz"
+    object: "thirdparty/prometheus/node_exporter/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ nodeexporter_arch
+      }}.tar.gz"
     dest: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
     mode: get
     overwrite: different
 
 - name: Decompress node_exporter installation package
-  unarchive:
+  ansible.builtin.unarchive:
     src: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
     dest: /home/{{ prometheus_system_user }}/bin
-    extra_opts: ['--wildcards', '--strip-components=1','--show-stored-names']
+    extra_opts: ["--wildcards", "--strip-components=1", "--show-stored-names"]
     include: "*/node_exporter"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-    mode: 0750
+    mode: "0750"
     creates: /home/{{ prometheus_system_user }}/bin/node_exporter
 
 - name: Remove the node_exporter installation package
-  file:
+  ansible.builtin.file:
     path: /home/{{ prometheus_system_user }}/node_exporter.tar.gz
     state: absent
 
 - name: Create prometheus node_exporter systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service
-    mode: 0644
+    mode: "0644"
   notify:
     - restart prometheus node_exporter systemd service
 
 - name: Enable prometheus node_exporter systemd service
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ prometheus_node_exporter_systemd_service_name }}"
     state: started
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Allow prometheus node_exporter traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ prometheus_node_exporter_tcp_port }}"
     proto: tcp
     rule: allow
@@ -151,11 +148,11 @@
 #    ebpf_exporter_asset_url: https://github.com/cloudflare/ebpf_exporter/releases/download/{{ ebpf_exporter_release_tag }}/ebpf_exporter.{{ ansible_architecture }}
 
 - name: Create ebpf_exporter /opt directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: root
     group: root
-    mode: 0750
+    mode: "0750"
     state: directory
   loop:
     - "{{ ebpf_exporter_base_directory }}"
@@ -170,7 +167,7 @@
 #    group: root
 #    mode: 0750
 
-- name: Get pinned ebpf_exporter release from s3 artifacts bucket 
+- name: Get pinned ebpf_exporter release from s3 artifacts bucket
   amazon.aws.s3_object:
     bucket: "{{ artifacts_bucket_name }}"
     object: "thirdparty/cloudflare/ebpf_exporter/{{ ebpf_exporter_version }}/ebpf_exporter.{{ ansible_architecture }}"
@@ -179,37 +176,37 @@
     overwrite: different
 
 - name: Ensure ebpf_exporter binary is executable
-  file:
+  ansible.builtin.file:
     path: "{{ ebpf_exporter_base_directory }}/bin/ebpf_exporter"
     owner: root
     group: root
-    mode: 0750
+    mode: "0750"
 
 - name: Copy custom ebpf modules and configs
-  copy:
+  ansible.builtin.copy:
     src: ../files/ebpf_exporter/modules/{{ ansible_architecture }}/
     dest: "{{ ebpf_exporter_base_directory }}/modules/"
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
 
 - name: Create ebpf_exporter systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service
-    mode: 0644
+    mode: "0644"
   notify:
     - restart ebpf_exporter systemd service
 
 - name: Enable prometheus ebpf_exporter systemd service
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ ebpf_exporter_systemd_service_name }}"
     state: started
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Allow ebpf_exporter traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ ebpf_exporter_tcp_port }}"
     proto: tcp
     rule: allow

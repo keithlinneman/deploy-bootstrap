@@ -1,4 +1,5 @@
-- name: alloy playbook
+---
+- name: Alloy playbook
   hosts: all
   become: true
   roles:

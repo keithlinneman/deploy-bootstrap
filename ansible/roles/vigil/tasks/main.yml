@@ -1,52 +1,57 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Set facts from ssm here since they require ec2 metadata to lookup region
-  set_fact:
-    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    artifacts_cosign_signing_key: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/vigil/signing/cosign/signer', region=ansible_ec2_instance_identity_document_region ) }}"
-    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    vigil_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/db/postgres/credentials', region=ansible_ec2_instance_identity_document_region ) }}"
-    vigil_config_llm_claude_key: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/llm/claude/key', region=ansible_ec2_instance_identity_document_region ) }}"
-    vigil_config_slack_url_vigil_triage: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/slack/webhook/vigil_triage', region=ansible_ec2_instance_identity_document_region ) }}"
-    vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region ) }}"
-    vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region ) }}"
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_cosign_signing_key: "{{ lookup('amazon.aws.aws_ssm', 'arn:aws:ssm:us-east-2:130677209948:parameter/app/vigil/signing/cosign/signer', region=ansible_ec2_instance_identity_document_region)
+      }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    vigil_config_database_credentials: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/db/postgres/credentials', region=ansible_ec2_instance_identity_document_region)
+      }}"
+    vigil_config_llm_claude_key: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/server/llm/claude/key', region=ansible_ec2_instance_identity_document_region) }}"
+    vigil_config_slack_url_vigil_triage: "{{ lookup('amazon.aws.aws_secret', 'app/vigil/slack/webhook/vigil_triage', region=ansible_ec2_instance_identity_document_region)
+      }}"
+    vigil_server_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/vigil/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region)
+      }}"
+    vigil_api_token: "{{ lookup('amazon.aws.aws_secret', 'app/alertmanager/vigil/webhook/key', region=ansible_ec2_instance_identity_document_region) }}"
   no_log: true
 
 - name: Set facts from environment variables
-  set_fact:
+  ansible.builtin.set_fact:
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
     namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
 
 - name: Build database connection string
-  set_fact:
-    vigil_database_url: "postgres://{{ vigil_config_database_credentials.username }}:{{ vigil_config_database_credentials.password }}@{{ vigil_config_database_credentials.host }}:{{ vigil_config_database_credentials.port }}/vigil?sslmode=require"
+  ansible.builtin.set_fact:
+    vigil_database_url: "postgres://{{ vigil_config_database_credentials.username }}:{{ vigil_config_database_credentials.password }}@{{ vigil_config_database_credentials.host
+      }}:{{ vigil_config_database_credentials.port }}/vigil?sslmode=require"
   no_log: true
 
 - name: Set base application directory
-  set_fact:
+  ansible.builtin.set_fact:
     vigil_app_dir: "/opt/vigil/server"
 
 - name: Print all environment vars for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
   loop:
@@ -63,29 +68,25 @@
     - otlp_profiles_endpoint
 
 - name: Create vigil user
-  user:
+  ansible.builtin.user:
     name: "{{ vigil_server_system_user }}"
-    password: '*'
-    umask: 0027
+    password: "*"
+    umask: "027"
     shell: /usr/sbin/nologin
     system: true
 
 - name: Create vigil directories
-  file:
+  ansible.builtin.file:
     path: "{{ vigil_app_dir }}/bin"
     owner: "root"
-    group: "{{ vigil_server_system_user}}"
-    mode: 0750
+    group: "{{ vigil_server_system_user }}"
+    mode: "0750"
     state: directory
 
 - name: Set architecture format based on normalized naming
-  set_fact:
+  ansible.builtin.set_fact:
     architecture_normalized_name: >-
-      {%- if ansible_architecture == "aarch64" -%}
-      arm64
-      {%- else -%}
-      amd64
-      {%- endif -%}
+      {%- if ansible_architecture == "aarch64" -%} arm64{%- else -%} amd64{%- endif -%}
 
 # download release index and signature
 - name: Get vigil release.json index and release.json.sig from s3
@@ -101,7 +102,7 @@
 
 # verify signature against golden-ami baked in public key
 - name: Verify vigil server release index signature
-  command: >
+  ansible.builtin.command: >
     cosign verify-blob
     --key {{ artifacts_cosign_signing_key }}
     --bundle {{ vigil_app_dir }}/release.json.bundle.sigstore.json
@@ -114,13 +115,13 @@
     AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
 
 # load release index
-- name: load release index
-  set_fact:
+- name: Load release index
+  ansible.builtin.set_fact:
     release_index: "{{ lookup('file', vigil_app_dir + '/release.json') | from_json }}"
 
 # find binary path for our architecture
 - name: Set vigil binary path from release index
-  set_fact:
+  ansible.builtin.set_fact:
     vigil_binary_path: >-
       {{ release_index.artifacts
         | selectattr('os','equalto','linux')
@@ -130,7 +131,7 @@
 
 # find sha256 sum for our architecture
 - name: Find sha256 sum for vigil binary
-  set_fact:
+  ansible.builtin.set_fact:
     vigil_binary_sha256: >-
       {{ release_index.artifacts
         | selectattr('os','equalto','linux')
@@ -139,32 +140,32 @@
         | first }}
 
 - name: Ensure release index contains an artifact for this os/arch
-  fail:
+  ansible.builtin.fail:
     msg: "No artifact found in release.json for vigil linux/{{ architecture_normalized_name }}"
   when: vigil_binary_path | default('') == ''
 
 - name: Ensure release index contains an sha256 sum for this artifact
-  fail:
+  ansible.builtin.fail:
     msg: "No sha256 sum found in release.json for vigil linux/{{ architecture_normalized_name }}"
   when: vigil_binary_sha256 | default('') == ''
 
 - name: Check current binary hash
-  stat:
+  ansible.builtin.stat:
     path: "{{ vigil_app_dir }}/bin/vigil"
     checksum_algorithm: sha256
-    get_checksum: yes
+    get_checksum: true
   register: current_binary
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Deploy vigil binary
   when: current_binary.stat.checksum | default('') != vigil_binary_sha256
   block:
     - name: Set binary staging directory path
-      set_fact:
+      ansible.builtin.set_fact:
         staging_dir: "{{ vigil_app_dir }}/bin/.staging"
 
     - name: Create binary staging directory
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}"
         state: directory
         mode: "0700"
@@ -178,37 +179,37 @@
         overwrite: always
 
     - name: Compute sha256 of downloaded binary
-      stat:
+      ansible.builtin.stat:
         path: "{{ staging_dir }}/vigil-server"
         checksum_algorithm: sha256
-        get_checksum: yes
+        get_checksum: true
       register: staged_binary
 
     - name: Verify sha256 matches release index
-      fail:
+      ansible.builtin.fail:
         msg: >-
           SHA256 mismatch: expected {{ vigil_binary_sha256 }},
           got {{ staged_binary.stat.checksum }}
       when: staged_binary.stat.checksum != vigil_binary_sha256
 
     - name: Ensure binary has correct permissions
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}/vigil-server"
         mode: "0755"
         owner: root
         group: root
 
     - name: Move verified binary into place
-      command: mv "{{ staging_dir }}/vigil-server" "{{ vigil_app_dir }}/bin/vigil-server"
+      ansible.builtin.command: mv "{{ staging_dir }}/vigil-server" "{{ vigil_app_dir }}/bin/vigil-server"
       notify: restart vigil service
 
     - name: Clean staging directory
-      file:
+      ansible.builtin.file:
         path: "{{ staging_dir }}"
         state: absent
 
 - name: Ensure /etc/vigil directory exists
-  file:
+  ansible.builtin.file:
     path: /etc/vigil
     state: directory
     owner: root
@@ -219,20 +220,20 @@
   when: vigil_tls_enabled and vigil_tls_self_signed
   block:
     - name: Set ssl directory path
-      set_fact:
+      ansible.builtin.set_fact:
         ssl_dir: "{{ vigil_app_dir }}/conf/ssl"
 
     - name: Set vigil TLS cert and key paths
-      set_fact:
+      ansible.builtin.set_fact:
         vigil_tls_cert_path: "{{ ssl_dir }}/cert.pem"
         vigil_tls_key_path: "{{ ssl_dir }}/cert.key"
 
     - name: Create ssl directories
-      file:
+      ansible.builtin.file:
         path: "{{ ssl_dir }}"
         owner: "root"
-        group: "{{ vigil_server_system_user}}"
-        mode: 0750
+        group: "{{ vigil_server_system_user }}"
+        mode: "0750"
         state: directory
 
     - name: Check if ssl cert already exists
@@ -264,7 +265,7 @@
       notify: restart vigil service
 
 - name: Build vigil env content
-  set_fact:
+  ansible.builtin.set_fact:
     vigil_env_content: |
       VIGIL_ADMIN_PORT={{ vigil_server_admin_tcp_port }}
       VIGIL_HTTP_PORT={{ vigil_server_tcp_port }}
@@ -294,7 +295,7 @@
   no_log: true
 
 - name: Write vigil environment file
-  copy:
+  ansible.builtin.copy:
     dest: /etc/vigil/vigil-server.env
     owner: root
     group: root
@@ -305,10 +306,10 @@
     - restart vigil service
 
 - name: Create vigil systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ vigil_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ vigil_server_systemd_service_name }}.service
-    mode: 0644
+    mode: "0644"
   notify: restart vigil service
 
 # restart handler will activate and start the service, this prevents starting it here
@@ -319,14 +320,14 @@
 #     enabled: true
 
 - name: Allow vigil traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ vigil_server_tcp_port }}"
     proto: tcp
     rule: allow
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow vigil admin port traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ vigil_server_admin_tcp_port }}"
     proto: tcp
     rule: allow

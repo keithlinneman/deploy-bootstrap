@@ -1,32 +1,33 @@
+---
 groups:
-- name: wireguard.rules
-  rules:
-  # 1) Systemd unit not active
-  - alert: WireguardServiceDown
-    expr: max by (node) ( node_systemd_unit_state{name="wg-quick@wg0.service",state!="active"} ) == 1
-    for: 1m
-    labels:
-      severity: critical
-      app: wireguard
-    annotations:
-      summary: "WireGuard service down on {{ $labels.node }}"
-      description: |
-        systemd unit wg-quick@wg0.service is not active on {{ $labels.node }}
-        for more than 1 minute
+  - name: wireguard.rules
+    rules:
+      # 1) Systemd unit not active
+      - alert: WireguardServiceDown
+        expr: max by (node) ( node_systemd_unit_state{name="wg-quick@wg0.service",state!="active"} ) == 1
+        for: 1m
+        labels:
+          severity: critical
+          app: wireguard
+        annotations:
+          summary: "WireGuard service down on {{ $labels.node }}"
+          description: |
+            systemd unit wg-quick@wg0.service is not active on {{ $labels.node }}
+            for more than 1 minute
 
-  # 2) Interface down
-  - alert: WireguardInterfaceMissing
-    expr: |
-      (up{job="node/node-exporter", phxi_service_name="vpn", phxi_service_component="wireguard"} == 1)
-      unless on(node)
-      (node_network_info{device="wg0"} == 1)
-    for: 2m
-    labels:
-      severity: critical
-      app: wireguard
-    annotations:
-      summary: "wg0 interface missing on {{ $labels.node }}"
-      description: "node_exporter does not report wg0 (node_network_info) for >2m"
+      # 2) Interface down
+      - alert: WireguardInterfaceMissing
+        expr: |
+          (up{job="node/node-exporter", phxi_service_name="vpn", phxi_service_component="wireguard"} == 1)
+          unless on(node)
+          (node_network_info{device="wg0"} == 1)
+        for: 2m
+        labels:
+          severity: critical
+          app: wireguard
+        annotations:
+          summary: "wg0 interface missing on {{ $labels.node }}"
+          description: "node_exporter does not report wg0 (node_network_info) for >2m"
 
   # 3) No traffic over tunnel
   #- alert: WireguardNoTraffic

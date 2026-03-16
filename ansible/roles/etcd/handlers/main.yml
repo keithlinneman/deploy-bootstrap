@@ -9,5 +9,5 @@
   ignore_errors: true
   daemon_reload: true
 
-- name: reload systemd daemon configurations
-  command: systemctl daemon-reload
+- name: Reload systemd daemon configurations
+  ansible.builtin.command: systemctl daemon-reload

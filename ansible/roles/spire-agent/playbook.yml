@@ -1,4 +1,5 @@
-- name: spire-agent playbook
+---
+- name: Spire-agent playbook
   hosts: all
   become: true
   roles:

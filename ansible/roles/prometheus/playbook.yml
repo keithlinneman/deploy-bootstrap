@@ -1,4 +1,5 @@
-- name: prometheus playbook
+---
+- name: Prometheus playbook
   hosts: all
   become: true
   roles:

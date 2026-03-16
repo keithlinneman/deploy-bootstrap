@@ -1,22 +1,21 @@
 ---
 - name: Include OS-specific variables
-  include_vars: "{{ ansible_os_family }}.yml"
-
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
 - name: Get instance metadata
-  ec2_metadata_facts:
-  
-- name: Set facts from ssm here since they require ec2 metadata to lookup region       
-  set_fact:
-    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
+  amazon.aws.ec2_metadata_facts:
+
+- name: Set facts from ssm here since they require ec2 metadata to lookup region
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    profiles_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    logs_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/logs/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
 
 - name: Set facts from environment variables
-  set_fact:
+  ansible.builtin.set_fact:
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
@@ -24,16 +23,16 @@
     pyroscope_tenant_name: "{{ company_name }}"
 
 - name: Set variable for hostname without instanceid used to correlate metric, logs, traces, profiles, etc as node
-  set_fact:
+  ansible.builtin.set_fact:
     hostname_no_instanceid: "{{ ansible_hostname.split('-')[0:-1] | join('-') }}"
 
 - name: Print all environment vars for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value or set the associated ENV var"
   when: vars[item] is not defined or vars[item] is none
   loop:
@@ -45,17 +44,17 @@
     - hostname_no_instanceid
 
 - name: Modify alloy main configuration
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/alloy/config.alloy.j2
     dest: /etc/alloy/config.alloy
-    mode: 0644
+    mode: "0644"
     owner: root
     group: alloy
   notify: restart alloy service
   when: ansible_os_family == 'Debian'
 
 - name: Modify alloy service configuration
-  ini_file:
+  community.general.ini_file:
     path: /usr/lib/systemd/system/alloy.service
     section: Service
     option: "{{ item.option }}"
@@ -67,11 +66,10 @@
   notify: restart alloy service
   when: ansible_os_family == 'Debian'
 
-
 - name: Modify alloy service defaults
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/default/alloy
-    regexp: '^CUSTOM_ARGS=.*'
+    regexp: "^CUSTOM_ARGS=.*"
     line: 'CUSTOM_ARGS="--disable-reporting"'
     #backup: true
     backrefs: true
@@ -80,7 +78,7 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: Enable alloy systemd service
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ alloy_systemd_service_name }}"
     state: started
     enabled: true

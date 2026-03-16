@@ -1,3 +1,4 @@
+---
 metrics:
   histograms:
     - name: unix_socket_backlog

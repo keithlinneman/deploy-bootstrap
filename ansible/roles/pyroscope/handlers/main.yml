@@ -1,6 +1,6 @@
 ---
-- name: restart pyroscope service
-  systemd:
+- name: Restart pyroscope service
+  ansible.builtin.systemd:
     name: "{{ pyroscope_systemd_service_name[pyroscope_role] }}"
     state: restarted
     enabled: true

@@ -1,3 +1,4 @@
+---
 metrics:
   counters:
     - name: tcp_window_clamps_total

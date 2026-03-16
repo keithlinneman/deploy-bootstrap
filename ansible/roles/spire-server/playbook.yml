@@ -1,4 +1,5 @@
-- name: spire-server playbook
+---
+- name: Spire-server playbook
   hosts: all
   become: true
   roles:

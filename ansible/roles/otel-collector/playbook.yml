@@ -1,4 +1,5 @@
-- name: otel-collector playbook
+---
+- name: Otel-collector playbook
   hosts: all
   become: true
   roles:

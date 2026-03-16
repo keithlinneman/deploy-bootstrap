@@ -1,4 +1,5 @@
-- name: mimir playbook
+---
+- name: Mimir playbook
   hosts: all
   become: true
   roles:

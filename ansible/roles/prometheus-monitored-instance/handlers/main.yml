@@ -1,13 +1,14 @@
-- name: restart prometheus node_exporter systemd service
-  systemd:
+---
+- name: Restart prometheus node_exporter systemd service
+  ansible.builtin.systemd:
     name: "{{ prometheus_node_exporter_systemd_service_name }}"
     state: restarted
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true
 
-- name: restart ebpf_exporter systemd service
-  systemd:
+- name: Restart ebpf_exporter systemd service
+  ansible.builtin.systemd:
     name: "{{ ebpf_exporter_systemd_service_name }}"
     state: restarted
     enabled: true
-    daemon_reload: yes
+    daemon_reload: true

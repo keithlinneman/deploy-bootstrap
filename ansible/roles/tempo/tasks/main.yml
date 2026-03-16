@@ -1,46 +1,45 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Set facts from ssm here since they require ec2 metadata to lookup region
-  set_fact: 
-    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region ) }}"
-    alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region ) }}"
-    tempo_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/tempo/s3/bucket/name', region=ansible_ec2_instance_identity_document_region ) }}"
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    alerts_push_endpoints: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/alerts/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    metrics_push_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/metrics/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    tempo_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/app/tempo/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
 
 - name: Set facts from environment variables
-  set_fact:
+  ansible.builtin.set_fact:
     service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
     service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
     project: "{{ ansible_env.PROJECT | default('unknown') }}"
     namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
     tempo_role: "{{ lookup('env', 'TEMPOROLE') }}"
 
-
 - name: Print all environment vars for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Exit with failure if no tempo role is defined
-  fail:
+  ansible.builtin.fail:
     msg: No ansible roles found in ENV var TEMPOROLE (expected one of 'compactor', 'distributor', 'ingester', 'metrics-generator', 'query-frontend', 'querier')
   when: tempo_role not in ['compactor', 'distributor', 'ingester', 'metrics-generator', 'query-frontend', 'querier']
 
 - name: Ensure required variables are defined
-  fail:
+  ansible.builtin.fail:
     msg: "{{ item }} must be defined use -e {{ item }}=value"
   when: (lookup('vars', item, default=None)) is none
   loop:
@@ -48,19 +47,19 @@
     - tempo_role
 
 - name: Create tempo user
-  user:
+  ansible.builtin.user:
     name: "{{ tempo_system_user }}"
-    password: '*'
-    umask: 0027
+    password: "*"
+    umask: "027"
     shell: /usr/sbin/nologin
     system: true
 
 - name: Create tempo bin, conf, data directories
-  file:
+  ansible.builtin.file:
     path: /home/{{ tempo_system_user }}/{{ item }}
     owner: "{{ tempo_system_user }}"
     group: "{{ tempo_system_user }}"
-    mode: 0750
+    mode: "0750"
     state: directory
   loop:
     - bin
@@ -98,7 +97,7 @@
   when: not tempo_cert.stat.exists
 
 - name: Check if tempo is already installed
-  stat:
+  ansible.builtin.stat:
     path: /home/{{ tempo_system_user }}/bin/tempo
   register: tempo_binary
 
@@ -144,15 +143,11 @@
 #  when: not tempo_binary.stat.exists
 
 - name: Set normalized architecture fact
-  set_fact:
+  ansible.builtin.set_fact:
     arch_normalized: >-
-      {%- if ansible_architecture == "aarch64" -%}
-      arm64
-      {%- else -%}
-      amd64
-      {%- endif -%}
+      {%- if ansible_architecture == "aarch64" -%} arm64{%- else -%} amd64{%- endif -%}
 
-- name: Get pinned Tempo release from s3 artifacts bucket 
+- name: Get pinned Tempo release from s3 artifacts bucket
   amazon.aws.s3_object:
     bucket: "{{ artifacts_bucket_name }}"
     object: "thirdparty/grafana/tempo/v{{ tempo_version }}/tempo_{{ tempo_version }}_linux_{{ arch_normalized }}.tar.gz"
@@ -160,41 +155,40 @@
     mode: get
     overwrite: different
 
-
 - name: Decompress tempo installation package
-  unarchive:
+  ansible.builtin.unarchive:
     src: /home/{{ tempo_system_user }}/tempo.tar.gz
     dest: /home/{{ tempo_system_user }}/bin
     #extra_opts: ['--strip-components=1','--show-stored-names']
     owner: "{{ tempo_system_user }}"
     group: "{{ tempo_system_user }}"
-    mode: 0750
+    mode: "0750"
     creates: /home/{{ tempo_system_user }}/bin/tempo
 
 - name: Remove the tempo installation package
-  file:
+  ansible.builtin.file:
     path: /home/{{ tempo_system_user }}/tempo.tar.gz
     state: absent
 
 - name: Create tempo systemd service
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/systemd/system/tempo.service.j2
     dest: /etc/systemd/system/{{ tempo_systemd_service_name[tempo_role] }}.service
-    mode: 0644
+    mode: "0644"
 
 - name: Modify tempo main configuration
-  template:
+  ansible.builtin.template:
     #src: ../templates/tempo/conf/{{ tempo_role }}.yml.j2
     src: ../templates/tempo/conf/tempo.yml.j2
     dest: /home/{{ tempo_system_user }}/conf/tempo.yml
-    mode: 0640
+    mode: "0640"
     owner: "{{ tempo_system_user }}"
     group: "{{ tempo_system_user }}"
   notify: restart tempo service
   when: ansible_os_family == 'Debian'
 
 - name: Allow tempo http traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_http_tcp_port }}"
     proto: tcp
     rule: allow
@@ -203,35 +197,35 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow tempo grpc traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_grpc_tcp_port }}"
     proto: tcp
     rule: allow
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow tempo otlp grpc traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_otlp_grpc_tcp_port }}"
     proto: tcp
     rule: allow
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow tempo otlp http traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_otlp_http_tcp_port }}"
     proto: tcp
     rule: allow
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow tempo cluster memberlist tcp traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_cluster_memberlist_port }}"
     proto: tcp
     rule: allow
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow tempo cluster memberlist udp traffic through firewall
-  ufw:
+  community.general.ufw:
     port: "{{ tempo_cluster_memberlist_port }}"
     proto: udp
     rule: allow

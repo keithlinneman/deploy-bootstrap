@@ -1,4 +1,5 @@
-- name: vigil playbook
+---
+- name: Vigil playbook
   hosts: all
   become: true
   roles:

@@ -1,22 +1,23 @@
+---
 groups:
-- name: nodeCpu
-  rules:
-  - alert: HighCpuSaturation
-    expr: avg by (instance) (rate(node_cpu_seconds_total{mode!="idle"}[5m])) > 0.85
-    for: 15m
-    labels:
-      severity: crit
-      team: infra
-    annotations:
-      summary: "High CPU on {{ $labels.node }}"
-      description: "CPU > 85% for 15m. Investigate hot processes, recent deploys, or load changes."
+  - name: nodeCpu
+    rules:
+      - alert: HighCpuSaturation
+        expr: avg by (instance) (rate(node_cpu_seconds_total{mode!="idle"}[5m])) > 0.85
+        for: 15m
+        labels:
+          severity: crit
+          team: infra
+        annotations:
+          summary: "High CPU on {{ $labels.node }}"
+          description: "CPU > 85% for 15m. Investigate hot processes, recent deploys, or load changes."
 
-  - alert: HighLoadRelativeToCores
-    expr: (node_load1 / count without (mode) (node_cpu_seconds_total{mode="idle"})) > 2
-    for: 10m
-    labels:
-      severity: warn
-      team: infra
-    annotations:
-      summary: "High load on {{ $labels.node }}"
-      description: "Load average is > 2x CPU cores for 10m; processes may be heavily contending."
+      - alert: HighLoadRelativeToCores
+        expr: (node_load1 / count without (mode) (node_cpu_seconds_total{mode="idle"})) > 2
+        for: 10m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "High load on {{ $labels.node }}"
+          description: "Load average is > 2x CPU cores for 10m; processes may be heavily contending."

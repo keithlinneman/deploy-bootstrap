@@ -1,6 +1,6 @@
 ---
-- name: restart linnemanlabs-web server service
-  systemd:
+- name: Restart linnemanlabs-web server service
+  ansible.builtin.systemd:
     name: "{{ linnemanlabs_web_server_systemd_service_name }}"
     state: restarted
     enabled: true

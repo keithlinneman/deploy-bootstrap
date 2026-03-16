@@ -18,7 +18,7 @@ spire_agent_svid_ttl: 1h
 spire_assume_iam_role: trust-spiffe-spire-server-{{ ansible_ec2_instance_identity_document_region }}
 spire_default_svid_ttl: 1h
 spire_intermediate_cert_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/cert-wbHUYE
-spire_intermediate_key_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/key-av1Icr 
+spire_intermediate_key_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/key-av1Icr
 spire_intermediate_bundle_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/bundle-MohJOG
 spire_log_level: INFO
 spire_log_format: json

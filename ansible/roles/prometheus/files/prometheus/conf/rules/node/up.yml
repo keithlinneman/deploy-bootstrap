@@ -1,12 +1,13 @@
+---
 groups:
-- name: nodeUp
-  rules:
-  - alert: InstanceObsDown
-    expr: up{job="aws-sd-infra"} == 0
-    for: 5m
-    labels:
-      severity: crit
-      team: infra
-    annotations:
-      summary: "Instance down: {{ $labels.node }}"
-      description: "node_exporter has been unreachable for >5m. Host likely down or unreachable."
+  - name: nodeUp
+    rules:
+      - alert: InstanceObsDown
+        expr: up{job="aws-sd-infra"} == 0
+        for: 5m
+        labels:
+          severity: crit
+          team: infra
+        annotations:
+          summary: "Instance down: {{ $labels.node }}"
+          description: "node_exporter has been unreachable for >5m. Host likely down or unreachable."

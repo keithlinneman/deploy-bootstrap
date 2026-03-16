@@ -1,13 +1,13 @@
 ---
-- name: restart memcached service
-  systemd:
+- name: Restart memcached service
+  ansible.builtin.systemd:
     name: "{{ memcached_systemd_service_name }}"
     state: restarted
     enabled: true
     daemon_reload: true
 
-- name: restart memcached_exporter service
-  systemd:
+- name: Restart memcached_exporter service
+  ansible.builtin.systemd:
     name: "{{ memcached_exporter_systemd_service_name }}"
     state: restarted
     enabled: true

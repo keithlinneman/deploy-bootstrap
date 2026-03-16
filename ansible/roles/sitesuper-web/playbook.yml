@@ -1,4 +1,5 @@
-- name: sitesuper-web playbook
+---
+- name: Sitesuper-web playbook
   hosts: all
   become: true
   roles:

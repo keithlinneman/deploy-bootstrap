@@ -1,3 +1,4 @@
+---
 groups:
   - name: diskSpace
     interval: 30s
@@ -75,8 +76,7 @@ groups:
           description: "FDs > 85% of system limit; may hit EMFILE soon."
 
       - alert: FilesystemInodesLow
-        expr: (node_filesystem_files_free{fstype!~"tmpfs"}
-               / node_filesystem_files{fstype!~"tmpfs"}) < 0.10
+        expr: (node_filesystem_files_free{fstype!~"tmpfs"} / node_filesystem_files{fstype!~"tmpfs"}) < 0.10
         for: 5m
         labels:
           severity: warn

@@ -1,6 +1,6 @@
 ---
-- name: restart spire-agent service
-  systemd:
+- name: Restart spire-agent service
+  ansible.builtin.systemd:
     name: "{{ spire_agent_systemd_service_name }}"
     state: restarted
     enabled: true

@@ -1,4 +1,5 @@
-- name: loki playbook
+---
+- name: Loki playbook
   hosts: all
   become: true
   roles:

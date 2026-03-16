@@ -1,45 +1,45 @@
 ---
 - name: Include OS variables
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
 
 - name: Get instance metadata
-  ec2_metadata_facts:
+  amazon.aws.ec2_metadata_facts:
 
 - name: Print all variables for debugging
-  debug:
+  ansible.builtin.debug:
     var: hostvars[inventory_hostname]
     verbosity: 2
 
 - name: Configure sysctl settings to allow forwarding
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/sysctl.d/999-wireguard.conf.j2
     dest: /etc/sysctl.d/999-wireguard.conf
   notify: Apply sysctl values
 
 - name: Find wan interface from default route
-  set_fact:
+  ansible.builtin.set_fact:
     wan_if: >-
       {{ ansible_default_ipv4.interface
           | default(ansible_facts.default_ipv4.interface, true)
           | default(ansible_default_ipv6.interface, true) }}
 
 - name: Install wireguard package
-  package:
+  ansible.builtin.package:
     name: wireguard
     state: present
 
 - name: Configure /etc/wireguard/wg0.conf
-  template:
+  ansible.builtin.template:
     src: ../templates/etc/wireguard/wg0.conf.j2
     dest: /etc/wireguard/wg0.conf
-    mode: 0600
+    mode: "0600"
   notify: Restart wireguard
 
 - name: Allow all inbound wireguard (let sg handle finer-grained access)
-  ufw:
+  community.general.ufw:
     state: "{{ item.state }}"
     rule: "{{ item.rule }}"
     direction: "{{ item.direction }}"
@@ -51,9 +51,9 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow traffic routing through wireguard cidr to aws network cidrs
-  ufw:
+  community.general.ufw:
     rule: allow
-    route: yes
+    route: true
     from_ip: "{{ vpn_cidr }}"
     to_ip: "{{ item.cidr }}"
   loop: "{{ vpn_networks }}"

@@ -1,4 +1,5 @@
-- name: etcd playbook
+---
+- name: Etcd playbook
   hosts: all
   become: true
   roles:

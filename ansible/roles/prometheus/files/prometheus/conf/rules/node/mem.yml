@@ -1,15 +1,16 @@
+---
 groups:
-- name: nodeMem
-  rules:
-  - alert: MemoryPressure
-    expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 0.10
-    for: 15m
-    labels:
-      severity: crit
-      team: infra
-    annotations:
-      summary: "Memory pressure on {{ $labels.node }}"
-      description: "Available memory < 10% for 15m. OOM risk is high."
+  - name: nodeMem
+    rules:
+      - alert: MemoryPressure
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 0.10
+        for: 15m
+        labels:
+          severity: crit
+          team: infra
+        annotations:
+          summary: "Memory pressure on {{ $labels.node }}"
+          description: "Available memory < 10% for 15m. OOM risk is high."
 
 #  - alert: SwapAnyUse
 #    expr: (node_memory_SwapTotal_bytes > 0)
@@ -33,21 +34,21 @@ groups:
 #      summary: "High swap usage on {{ $labels.node }}"
 #      description: "Swap usage > 512MiB for 5m; host is severely memory constrained."
 
-  - alert: SwapActivityHigh
-    expr: rate(node_vmstat_pswpout[5m]) > 100
-    for: 5m
-    labels:
-      severity: warn
-    annotations:
-      summary: "High swap-out activity on {{ $labels.node }}"
-      description: "More than 100 pages/s being swapped out for 5m; host is actively paging."
+      - alert: SwapActivityHigh
+        expr: rate(node_vmstat_pswpout[5m]) > 100
+        for: 5m
+        labels:
+          severity: warn
+        annotations:
+          summary: "High swap-out activity on {{ $labels.node }}"
+          description: "More than 100 pages/s being swapped out for 5m; host is actively paging."
 
-  - alert: MajorPageFaults
-    expr: rate(node_vmstat_pgmajfault[5m]) > 10
-    for: 10m
-    labels:
-      severity: warn
-      team: infra
-    annotations:
-      summary: "High major page faults on {{ $labels.node }}"
-      description: "Sustained major page faults indicate active memory thrashing."
+      - alert: MajorPageFaults
+        expr: rate(node_vmstat_pgmajfault[5m]) > 10
+        for: 10m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "High major page faults on {{ $labels.node }}"
+          description: "Sustained major page faults indicate active memory thrashing."

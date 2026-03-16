@@ -1,0 +1,8 @@
+---
+profile: production
+strict: true
+skip_list:
+  - role-name
+warn_list:
+  - experimental
+offline: true

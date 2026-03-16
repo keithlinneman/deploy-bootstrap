@@ -1,3 +1,4 @@
+---
 groups:
   - name: operatingSystem
     interval: 30s

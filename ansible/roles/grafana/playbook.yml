@@ -1,4 +1,5 @@
-- name: grafana playbook
+---
+- name: Grafana playbook
   hosts: all
   become: true
   roles:

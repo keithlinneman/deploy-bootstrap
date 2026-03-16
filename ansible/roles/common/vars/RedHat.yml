@@ -10,5 +10,4 @@ install_package_names:
   - jq
 
 disable_service_names:
-
 amazon_ssm_agent_package_filename: amazon-ssm-agent.rpm

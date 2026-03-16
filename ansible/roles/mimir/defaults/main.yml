@@ -1,6 +1,6 @@
 ---
-  mimir_cluster_memberlist_port: 7946
-  mimir_http_tcp_port: 8443
-  mimir_grpc_tcp_port: 9095
-  mimir_replication_factor: 3
-  mimir_version: 2.17.3
+mimir_cluster_memberlist_port: 7946
+mimir_http_tcp_port: 8443
+mimir_grpc_tcp_port: 9095
+mimir_replication_factor: 3
+mimir_version: 2.17.3

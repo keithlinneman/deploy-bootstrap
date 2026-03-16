@@ -1,6 +1,6 @@
 ---
-- name: restart mimir service
-  systemd:
+- name: Restart mimir service
+  ansible.builtin.systemd:
     name: "{{ mimir_systemd_service_name[mimir_role] }}"
     state: restarted
     enabled: true

@@ -1,4 +1,5 @@
-- name: fulcio playbook
+---
+- name: Fulcio playbook
   hosts: all
   become: true
   roles:

@@ -1,27 +1,28 @@
+---
 groups:
   - name: network
     interval: 30s
     rules:
-    - alert: NetworkTransitErrors
-      expr: |
-        rate(node_network_receive_errs_total[5m]) +
-        rate(node_network_transmit_errs_total[5m]) > 0
-      for: 5m
-      labels:
-        severity: warn
-        team: infra
-      annotations:
-        summary: "Network errors on {{ $labels.node }} ({{ $labels.device }})"
-        description: "Non-zero RX/TX errors for 5m; check NIC, cabling, MTU, or upstream."
+      - alert: NetworkTransitErrors
+        expr: |
+          rate(node_network_receive_errs_total[5m]) +
+          rate(node_network_transmit_errs_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "Network errors on {{ $labels.node }} ({{ $labels.device }})"
+          description: "Non-zero RX/TX errors for 5m; check NIC, cabling, MTU, or upstream."
 
-    - alert: NetworkTransitDrops
-      expr: |
-        rate(node_network_receive_drop_total{device!~"wg0|lo"}[5m]) +
-        rate(node_network_transmit_drop_total{device!~"wg0|lo"}[5m]) > 0
-      for: 5m
-      labels:
-        severity: warn
-        team: infra
-      annotations:
-        summary: "Network errors on {{ $labels.node }} ({{ $labels.device }})"
-        description: "Non-zero RX/TX drops for 5m; check kernel buffers, network activity, or system config."
+      - alert: NetworkTransitDrops
+        expr: |
+          rate(node_network_receive_drop_total{device!~"wg0|lo"}[5m]) +
+          rate(node_network_transmit_drop_total{device!~"wg0|lo"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warn
+          team: infra
+        annotations:
+          summary: "Network errors on {{ $labels.node }} ({{ $labels.device }})"
+          description: "Non-zero RX/TX drops for 5m; check kernel buffers, network activity, or system config."

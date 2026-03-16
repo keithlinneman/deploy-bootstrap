@@ -1,18 +1,18 @@
 ---
 remove_package_names:
-#  - snapd
+  #  - snapd
   - fwupd
   - fwupd-signed
   - motd-news-config
   - bluez
-#  - telnet
+  #  - telnet
   - realvnc-vnc-server
   - landscape-client
   - landscape-common
 
 install_package_names:
-#  - python3-pip
-#  - awscli
+  #  - python3-pip
+  #  - awscli
   - lsof
   - nano
   - bind9-dnsutils

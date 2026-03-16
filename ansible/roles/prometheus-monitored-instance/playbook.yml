@@ -1,4 +1,5 @@
-- name: prometheus-monitored-instance playbook
+---
+- name: Prometheus-monitored-instance playbook
   hosts: all
   become: true
   roles:
