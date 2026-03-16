@@ -117,15 +117,18 @@
 
 - name: 1.3.1.3 | Ensure all AppArmor Profiles are in enforce or complain mode | Live
   ansible.builtin.shell:
-    cmd: apparmor_status --filter.mode=unconfined --show=profiles --quiet | grep '^\s' | sed 's/vscode/code/g;s/^\s*//g;s/\s/_/g'
+    cmd: set -o pipefail && apparmor_status --filter.mode=unconfined --show=profiles --quiet | grep '^\s' | sed 's/vscode/code/g;s/^\s*//g;s/\s/_/g'
+    executable: /bin/bash
   register: apparmor_unconfined_profiles
   changed_when: false
 
 # put any profiles in unconfined mode into complain mode
 - name: 1.3.1.3 | Ensure all AppArmor Profiles are in enforce or complain mode | Action
   ansible.builtin.shell:
-    cmd: apparmor_status --filter.mode=unconfined --show=profiles --quiet | grep '^\s' | sed 's/vscode/code/g;s/^\s*//g;s/\s/_/g' | xargs aa-complain
+    cmd: set -o pipefail && apparmor_status --filter.mode=unconfined --show=profiles --quiet | grep '^\s' | sed 's/vscode/code/g;s/^\s*//g;s/\s/_/g' | xargs aa-complain
+    executable: /bin/bash
   when: apparmor_unconfined_profiles.stdout != "" and ansible_distribution == 'Ubuntu'
+  changed_when: true
 
 ## CIS 1.5 Configure Additional Process Hardening
 - name: 1.5.1 | Ensure address space layout randomization (ASLR) is enabled | sysctl_configured
@@ -1172,8 +1175,9 @@
 
 - name: 5.4.1.1 | Ensure password expiration is 365 days or less | /etc/shadow
   ansible.builtin.shell:
-    cmd: cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_age_max_days }}",$5)}1' > /etc/shadow.new && mv /etc/shadow.new /etc/shadow && chmod
+    cmd: set -o pipefail && cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_age_max_days }}",$5)}1' > /etc/shadow.new && mv /etc/shadow.new /etc/shadow && chmod
       640 /etc/shadow && chown root:{{ system_passwd_group }} /etc/shadow
+    executable: /bin/bash
   changed_when: false
 
 - name: 5.4.1.2 | Ensure minimum password age is configured
@@ -1184,8 +1188,9 @@
 
 - name: 5.4.1.2 | Ensure minimum password age is configured | /etc/shadow
   ansible.builtin.shell:
-    cmd: cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_age_min_days }}",$4)}1' > /etc/shadow.new && mv /etc/shadow.new /etc/shadow && chmod
+    cmd: set -o pipefail && cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_age_min_days }}",$4)}1' > /etc/shadow.new && mv /etc/shadow.new /etc/shadow && chmod
       640 /etc/shadow && chown root:{{ system_passwd_group }} /etc/shadow
+    executable: /bin/bash
   changed_when: false
 
 - name: 5.4.1.3 | Ensure password expiration warning days is configured
@@ -1206,8 +1211,9 @@
 
 - name: 5.4.1.5 | Ensure inactive password lock is configured | shadow
   ansible.builtin.shell:
-    cmd: cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_expired_days_disabled_account }}",$7)}1' > /etc/shadow.new && mv /etc/shadow.new
-      /etc/shadow && chmod 640 /etc/shadow && chown root:{{ system_passwd_group }} /etc/shadow
+    cmd: set -o pipefail && cat /etc/shadow | awk -F ':' -v 'OFS=:' '{gsub(".*","{{ password_expired_days_disabled_account }}",$7)}1' > /etc/shadow.new
+      && mv /etc/shadow.new /etc/shadow && chmod 640 /etc/shadow && chown root:{{ system_passwd_group }} /etc/shadow
+    executable: /bin/bash
   changed_when: false
   when: ansible_os_family == 'Debian'
 
