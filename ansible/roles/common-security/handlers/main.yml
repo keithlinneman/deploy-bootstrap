@@ -4,35 +4,39 @@
     name: auditd
     state: restarted
     enabled: true
+  changed_when: true
+
 - name: Restart systemd-journald service
   ansible.builtin.service:
     name: systemd-journald
     state: restarted
     enabled: true
+  changed_when: true
+
 - name: Regenerate auditd rules
   ansible.builtin.shell:
     cmd: /usr/sbin/augenrules --load || /usr/sbin/augenrules --check
   notify: Restart service auditd
+  changed_when: true
 
 - name: Update grub
   ansible.builtin.command:
     cmd: /usr/sbin/update-grub
+  changed_when: true
 
 - name: Reload sysctl values
   ansible.builtin.command:
     cmd: /usr/sbin/sysctl -p /etc/sysctl.d/99-phxi.conf
+  changed_when: true
+
+- name: Refresh aide database
+  ansible.builtin.shell:
+    cmd: /usr/bin/aide --update --config /etc/aide/aide.conf && mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+  when: aidinitstatus is undefined
+  changed_when: true
 
 - name: Restart service sshd
   ansible.builtin.service:
     name: ssh
     state: restarted
     enabled: true
-- name: Generate aide database
-  ansible.builtin.shell:
-    cmd: /usr/sbin/aideinit && mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
-    creates: /var/lib/aide/aide.db
-
-- name: Refresh aide database
-  ansible.builtin.shell:
-    cmd: /usr/bin/aide --update --config /etc/aide/aide.conf && mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
-  when: aidinitstatus is undefined

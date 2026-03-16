@@ -135,7 +135,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/spire-agent" "{{ spire_app_dir }}/bin/spire-agent"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/spire-agent" "{{ spire_app_dir }}/bin/spire-agent"
+        removes: "{{ staging_dir }}/spire-agent"
+        creates: "{{ spire_app_dir }}/bin/spire-agent"
       notify: Restart spire-agent service
 
     - name: Clean staging directory

@@ -3,13 +3,19 @@
   ansible.builtin.service:
     name: systemd-resolved
     state: restarted
+  changed_when: true
+
 - name: Reload systemd configurations
   ansible.builtin.systemd:
     daemon_reload: "true"
+  changed_when: true
+
 - name: Reload-motd-updates
   ansible.builtin.command: /usr/lib/update-notifier/update-motd-updates-available --force
+  changed_when: true
 
 - name: Restart service chrony
   ansible.builtin.service:
     name: chrony
     state: restarted
+  changed_when: true

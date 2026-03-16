@@ -125,7 +125,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/tsa-server" "{{ tsa_app_dir }}/bin/tsa-server"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/tsa-server" "{{ tsa_app_dir }}/bin/tsa-server"
+        removes: "{{ staging_dir }}/tsa-server"
+        creates: "{{ tsa_app_dir }}/bin/tsa-server"
       notify: Restart tsa service
 
     - name: Clean staging directory

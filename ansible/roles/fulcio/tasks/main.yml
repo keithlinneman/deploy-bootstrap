@@ -127,7 +127,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/fulcio-server" "{{ fulcio_app_dir }}/bin/fulcio-server"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/fulcio-server" "{{ fulcio_app_dir }}/bin/fulcio-server"
+        removes: "{{ staging_dir }}/fulcio-server"
+        creates: "{{ fulcio_app_dir }}/bin/fulcio-server"
       notify: Restart fulcio service
 
     - name: Clean staging directory

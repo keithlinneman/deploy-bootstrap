@@ -133,7 +133,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/rekor-server" "{{ rekor_app_dir }}/bin/rekor-server"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/rekor-server" "{{ rekor_app_dir }}/bin/rekor-server"
+        removes: "{{ staging_dir }}/rekor-server"
+        creates: "{{ rekor_app_dir }}/bin/rekor-server"
       notify: Restart rekor service
 
     - name: Clean staging directory
@@ -198,9 +201,7 @@
         # yamllint disable-line rule:line-length
         cmd: awk 'BEGIN {n=0} /-----BEGIN CERTIFICATE-----/ {n++; filename=sprintf("/usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-%d.crt", n)} {print > filename}' /tmp/rds-ca-bundle.pem
         creates: /usr/local/share/ca-certificates/rds-{{ ansible_ec2_instance_identity_document_region }}-1.crt
-
-    - name: Update system CA certificates
-      ansible.builtin.command: update-ca-certificates
+      notify: Update system CA certificates
 
 - name: Allow rekor http traffic through firewall
   community.general.ufw:

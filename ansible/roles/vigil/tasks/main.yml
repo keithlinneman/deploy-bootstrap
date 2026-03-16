@@ -197,7 +197,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/vigil-server" "{{ vigil_app_dir }}/bin/vigil-server"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/vigil-server" "{{ vigil_app_dir }}/bin/vigil-server"
+        removes: "{{ staging_dir }}/vigil-server"
+        creates: "{{ vigil_app_dir }}/bin/vigil-server"
       notify: Restart vigil service
 
     - name: Clean staging directory

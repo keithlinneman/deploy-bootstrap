@@ -132,7 +132,10 @@
         group: root
 
     - name: Move verified binary into place
-      ansible.builtin.command: mv "{{ staging_dir }}/tesseract-server" "{{ tesseract_app_dir }}/bin/tesseract-server"
+      ansible.builtin.command:
+        cmd: mv "{{ staging_dir }}/tesseract-server" "{{ tesseract_app_dir }}/bin/tesseract-server"
+        removes: "{{ staging_dir }}/tesseract-server"
+        creates: "{{ tesseract_app_dir }}/bin/tesseract-server"
       notify: Restart tesseract service
 
     - name: Clean staging directory

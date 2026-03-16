@@ -1,8 +1,11 @@
 ---
 - name: Apply sysctl values
   ansible.builtin.command: sysctl --system
+  changed_when: true
+
 - name: Reload nftables
   ansible.builtin.systemd:
     name: nftables
     state: restarted
     daemon_reload: true
+  changed_when: true

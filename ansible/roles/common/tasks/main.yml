@@ -10,9 +10,9 @@
     var: hostvars[inventory_hostname]
     verbosity: 2
 
-- name: Set timezone to EST
-  ansible.builtin.command:
-    cmd: /usr/bin/timedatectl set-timezone {{ common_timezone }}
+- name: Set system timezone
+  community.general.timezone:
+    name: "{{ common_timezone }}"
 
 - name: (Debian) Update apt repos
   ansible.builtin.apt:
@@ -269,12 +269,22 @@
   when: common_swap_file_enabled
 
 - name: Set swap file permissions
+  ansible.builtin.file:
+    path: "{{ common_swap_file_path }}"
+    mode: "0600"
+
+- name: Check if swap file is already formatted
   ansible.builtin.command:
-    cmd: chmod 600 {{ common_swap_file_path }}
+    cmd: blkid -t TYPE=swap {{ common_swap_file_path }}
+  register: swap_check
+  changed_when: false
+  failed_when: false
 
 - name: Initialize swap file
   ansible.builtin.command:
     cmd: mkswap {{ common_swap_file_path }}
+  when: swap_check.rc != 0
+  changed_when: true
 
 - name: Add swap to /etc/fstab
   ansible.builtin.lineinfile:
