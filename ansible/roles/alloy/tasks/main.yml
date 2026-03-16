@@ -60,6 +60,7 @@
     option: "{{ item.option }}"
     value: "{{ item.value }}"
     no_extra_spaces: true
+    mode: "0644"
   loop:
     - { option: "User", value: "root" }
     - { option: "Group", value: "root" }
@@ -71,6 +72,7 @@
     path: /etc/default/alloy
     regexp: "^CUSTOM_ARGS=.*"
     line: 'CUSTOM_ARGS="--disable-reporting"'
+    mode: "0644"
     # backup: true
     backrefs: true
     create: true

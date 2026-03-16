@@ -21,6 +21,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*DisableForwarding .*"
     line: "DisableForwarding no"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true

@@ -1,5 +1,4 @@
 ---
--
 - name: Include OS variables
   ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
@@ -15,6 +14,7 @@
   ansible.builtin.template:
     src: /etc/sysctl.d/999-phxi-nat.conf.j2
     dest: /etc/sysctl.d/999-phxi-nat.conf
+    mode: "0644"
   notify: Apply sysctl values
 
 - name: Find wan interface from default route
@@ -28,4 +28,5 @@
   ansible.builtin.template:
     src: /etc/nftables.conf.j2
     dest: /etc/nftables.conf
+    mode: "0644"
   notify: Reload nftables

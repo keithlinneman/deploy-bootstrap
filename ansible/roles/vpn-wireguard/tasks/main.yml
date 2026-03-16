@@ -17,6 +17,7 @@
   ansible.builtin.template:
     src: /etc/sysctl.d/999-wireguard.conf.j2
     dest: /etc/sysctl.d/999-wireguard.conf
+    mode: "0644"
   notify: Apply sysctl values
 
 - name: Find wan interface from default route

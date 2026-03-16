@@ -191,6 +191,7 @@
       ansible.builtin.get_url:
         url: "https://truststore.pki.rds.amazonaws.com/{{ ansible_ec2_instance_identity_document_region }}/{{ ansible_ec2_instance_identity_document_region }}-bundle.pem"
         dest: /tmp/rds-ca-bundle.pem
+        mode: "0644"
 
     - name: Split RDS CA bundle into individual certs
       ansible.builtin.shell:
@@ -200,6 +201,7 @@
 
     - name: Update system CA certificates
       ansible.builtin.command: update-ca-certificates
+
 - name: Allow rekor http traffic through firewall
   community.general.ufw:
     port: "{{ rekor_server_http_port }}"

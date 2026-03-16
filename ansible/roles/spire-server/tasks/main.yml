@@ -206,6 +206,8 @@
       ansible.builtin.get_url:
         url: "https://truststore.pki.rds.amazonaws.com/{{ ansible_ec2_instance_identity_document_region }}/{{ ansible_ec2_instance_identity_document_region }}-bundle.pem"
         dest: /root/rds-ca-bundle.pem
+        mode: "0644"
+
 
     - name: Split RDS CA bundle into individual certs
       ansible.builtin.shell:
@@ -215,6 +217,7 @@
 
     - name: Update system CA certificates
       ansible.builtin.command: update-ca-certificates
+
 - name: Create spire systemd service
   ansible.builtin.template:
     src: /etc/systemd/system/{{ spire_server_systemd_service_name }}.service.j2

@@ -44,11 +44,15 @@
     state: stopped
     enabled: false
   loop: "{{ disable_service_names }}"
-  ignore_errors: true
+  register: service_result
+  failed_when:
+    - service_result is failed
+    - "'does not exist' not in service_result.msg"
 
 - name: (Debian) Disable multicast name resolution (listens on all addresses publicly)
   community.general.ini_file:
     path: /etc/systemd/resolved.conf
+    mode: "0644"
     section: Resolve
     option: LLMNR
     value: "no"
@@ -106,6 +110,7 @@
 
 - name: (Debian) Configure apt daily update timing (unused)
   ansible.builtin.copy:
+    mode: "0644"
     src: /etc/cron.daily/apt-compat
     dest: /etc/cron.daily/apt-compat
   when: ansible_os_family == 'Debian'
@@ -114,18 +119,21 @@
   ansible.builtin.template:
     src: /etc/apt/apt.conf.d/20auto-upgrades.j2
     dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
   when: ansible_os_family == 'Debian'
 
 - name: (Debian) Configure apt unattended upgrade
   ansible.builtin.copy:
     src: /etc/apt/apt.conf.d/50unattended-upgrades
     dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    mode: "0644"
   when: ansible_os_family == 'Debian'
 
 - name: (Debian) Configure apt update timing
   ansible.builtin.template:
     src: /etc/systemd/system/timers.target.wants/apt-daily.timer.j2
     dest: /lib/systemd/system/apt-daily.timer
+    mode: "0644"
   when: ansible_os_family == 'Debian'
   notify: Reload systemd configurations
 
@@ -133,6 +141,7 @@
   ansible.builtin.template:
     src: /etc/systemd/system/timers.target.wants/apt-daily-upgrade.timer.j2
     dest: /lib/systemd/system/apt-daily-upgrade.timer
+    mode: "0644"
   when: ansible_os_family == 'Debian'
   notify: Reload systemd configurations
 
@@ -146,13 +155,14 @@
   ansible.builtin.command:
     cmd: mv /etc/apt/apt.conf.d/99update-notifier /etc/apt/apt.conf.d/99update-notifier.disabled
     creates: /etc/apt/apt.conf.d/99update-notifier.disabled
-  ignore_errors: true
+    removes: /etc/apt/apt.conf.d/99update-notifier
+  when: ansible_os_family == 'Debian'
 
 - name: Download Amazon SSM agent package file
   ansible.builtin.get_url:
-    url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ amazon_ssm_agent_package_path[ansible_architecture] }}/{{ amazon_ssm_agent_package_filename
-      }}"
+    url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/{{ amazon_ssm_agent_package_path[ansible_architecture] }}/{{ amazon_ssm_agent_package_filename }}"
     dest: /root/{{ amazon_ssm_agent_package_filename }}
+    mode: "0644"
 
 - name: (Debian) Install Amazon SSM agent
   ansible.builtin.apt:
@@ -189,6 +199,7 @@
   ansible.builtin.copy:
     src: /etc/update-motd.d/10-help-text
     dest: /etc/update-motd.d/10-help-text
+    mode: "0644"
     # backup: true
   when: ansible_distribution == 'Ubuntu'
 
@@ -211,11 +222,13 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: Setup our motd
   ansible.builtin.copy:
     src: /etc/motd
     dest: /etc/motd
+    mode: "0644"
     # backup: true
 
 # replacing with aws vpc ntp servers so i can filter egress heavily
@@ -267,6 +280,7 @@
   ansible.builtin.lineinfile:
     path: /etc/fstab
     line: "/swapfile none swap sw 0 0"
+    mode: "0644"
     # backup: true
     create: true
 
@@ -274,6 +288,7 @@
   ansible.builtin.copy:
     src: /etc/sysctl.d/99-swap.conf
     dest: /etc/sysctl.d/99-swap.conf
+    mode: "0644"
   when: ansible_os_family == 'Debian'
 
 # too many deploy failures from apt related tasks, doing this in common for golden amis from now on since all nodes use alloy

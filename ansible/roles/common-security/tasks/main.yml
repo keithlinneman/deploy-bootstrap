@@ -12,6 +12,7 @@
     path: /etc/modprobe.d/99-blacklist-cramfs.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -24,6 +25,7 @@
     path: /etc/modprobe.d/99-blacklist-frevxfs.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -36,6 +38,7 @@
     path: /etc/modprobe.d/99-blacklist-hfsplus.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -48,6 +51,7 @@
     path: /etc/modprobe.d/99-blacklist-jffs2.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -60,6 +64,7 @@
     path: /etc/modprobe.d/99-blacklist-overlayfs.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -72,6 +77,7 @@
     path: /etc/modprobe.d/99-blacklist-tipc.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -84,6 +90,7 @@
     path: /etc/modprobe.d/99-blacklist-usb-storage.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -98,6 +105,7 @@
     path: /etc/default/grub
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: true
     create: true
@@ -112,6 +120,7 @@
     cmd: apparmor_status --filter.mode=unconfined --show=profiles --quiet | grep '^\s' | sed 's/vscode/code/g;s/^\s*//g;s/\s/_/g'
   register: apparmor_unconfined_profiles
   changed_when: false
+
 # put any profiles in unconfined mode into complain mode
 - name: 1.3.1.3 | Ensure all AppArmor Profiles are in enforce or complain mode | Action
   ansible.builtin.shell:
@@ -124,6 +133,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^kernel.randomize_va_space=.*"
     line: "kernel.randomize_va_space=2"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -133,6 +143,7 @@
   ansible.builtin.lineinfile:
     path: /etc/security/limits.d/99-phxi.conf
     line: "* hard core 0"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -142,6 +153,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^fs.suid_dumpable = .*"
     line: "fs.suid_dumpable = 0"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -153,6 +165,7 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
     backrefs: false
+    mode: "0644"
     create: true
     # backup: true
   loop:
@@ -173,6 +186,7 @@
     # backup: true
     backrefs: true
     create: true
+    mode: "0644"
   when: ansible_distribution == 'Ubuntu'
 
 ## CIS 1.6 Configure Command Line Warning Banners
@@ -181,6 +195,7 @@
     path: /etc/pam.d/sshd
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -215,6 +230,7 @@
   ansible.builtin.copy:
     src: /etc/update-motd.d/00-header
     dest: /etc/update-motd.d/00-header
+    mode: "0644"
     # backup: true
   when: ansible_distribution == 'Ubuntu'
 
@@ -241,6 +257,7 @@
     path: /etc/chrony/chrony.conf
     regexp: "^user .*"
     line: "user _chrony"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -334,6 +351,7 @@
     path: /etc/default/grub
     regexp: '^GRUB_CMDLINE_LINUX="((?:(?!ipv6.disable=1).)*?)"$'
     line: 'GRUB_CMDLINE_LINUX="\1 ipv6.disable=1"'
+    mode: "0644"
     # backup: true
     backrefs: true
     create: true
@@ -345,6 +363,7 @@
     path: /etc/modprobe.d/99-blacklist-tipc.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -357,6 +376,7 @@
     path: /etc/modprobe.d/99-blacklist-tipc.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -369,6 +389,7 @@
     path: /etc/modprobe.d/99-blacklist-tipc.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -381,6 +402,7 @@
     path: /etc/modprobe.d/99-blacklist-sctp.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -394,6 +416,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^net.ipv4.ip_forward = .*"
     line: "net.ipv4.ip_forward = 0"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -404,6 +427,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -417,6 +441,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^net.ipv4.icmp_ignore_bogus_error_responses = .*"
     line: "net.ipv4.icmp_ignore_bogus_error_responses = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -447,6 +472,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^net.ipv4.icmp_echo_ignore_broadcasts = .*"
     line: "net.ipv4.icmp_echo_ignore_broadcasts = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -457,6 +483,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -470,6 +497,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -483,6 +511,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -496,6 +525,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -509,6 +539,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -522,6 +553,7 @@
     path: /etc/default/ufw
     regexp: "^IPT_SYSCTL=/etc/ufw/sysctl.conf"
     line: "# IPT_SYSCTL=/etc/ufw/sysctl.conf"
+    mode: "0644"
     # backup: true
     backrefs: false
   notify: Reload sysctl values
@@ -532,6 +564,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^net.ipv4.tcp_syncookies = .*"
     line: "net.ipv4.tcp_syncookies = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -542,6 +575,7 @@
     path: /etc/sysctl.d/99-phxi.conf
     regexp: "^net.ipv4.tcp_syncookies = .*"
     line: "net.ipv4.tcp_syncookies = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -615,6 +649,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*AllowGroups .*"
     line: "AllowGroups adm"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -626,6 +661,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*Banner .*"
     line: "# Banner /etc/issue.net"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -636,6 +672,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*Ciphers .*"
     line: "Ciphers aes256-ctr,aes192-ctr,aes128-ctr"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -646,6 +683,7 @@
     path: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -659,6 +697,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*DisableForwarding .*"
     line: "DisableForwarding yes"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -669,6 +708,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*HostbasedAuthentication .*"
     line: "HostbasedAuthentication no"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -679,6 +719,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*IgnoreRhosts .*"
     line: "IgnoreRhosts yes"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -689,6 +730,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*KexAlgorithms .*"
     line: "KexAlgorithms {{ service_ssh_config_kex_algorithms }}"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -699,6 +741,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*LoginGraceTime .*"
     line: "LoginGraceTime 60"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -709,6 +752,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*MACs .*"
     line: "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -719,6 +763,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*MaxAuthTries .*"
     line: "MaxAuthTries 3"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -729,6 +774,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*MaxSessions .*"
     line: "MaxSessions 10"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -739,6 +785,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*MaxStartups .*"
     line: "MaxStartups 10:30:60"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -749,6 +796,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*PermitEmptyPasswords .*"
     line: "PermitEmptyPasswords no"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -759,6 +807,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*PermitRootLogin .*"
     line: "PermitRootLogin no"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -769,6 +818,7 @@
     path: /etc/ssh/sshd_config
     regexp: "^.*PermitUserEnvironment .*"
     line: "PermitUserEnvironment no"
+    mode: "0600"
     # backup: true
     backrefs: false
     create: true
@@ -784,6 +834,7 @@
   ansible.builtin.lineinfile:
     path: /etc/sudoers.d/99-phxi.conf
     line: "Defaults timestamp_timeout=15"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -794,6 +845,7 @@
     regexp: "^.*auth required pam_wheel.so use_uid group={{ system_su_group }}"
     line: "auth required pam_wheel.so use_uid group={{ system_su_group }}"
     insertafter: ^auth\s*sufficient\s*pam_rootok.so
+    mode: "0644"
     # backup: true
     create: true
 
@@ -923,6 +975,7 @@
     regexp: "{{ item.regexp }}"
     backrefs: false
     create: true
+    mode: "0644"
     # backup: true
   loop:
     - { regexp: "^.*deny = *", line: "deny = 5" }
@@ -936,6 +989,7 @@
     regexp: "{{ item.regexp }}"
     backrefs: false
     create: true
+    mode: "0644"
     # backup: true
   loop:
     - { regexp: "^unlock_time = *", line: "unlock_time = 900" }
@@ -957,6 +1011,7 @@
     regexp: "{{ item.regexp }}"
     backrefs: false
     create: true
+    mode: "0644"
     # backup: true
   loop:
     - { regexp: "^.*enforce_for_root.*", line: "enforce_for_root" }
@@ -991,6 +1046,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.3.3.2.1 | Ensure password number of changed characters is configured
   ansible.builtin.lineinfile:
@@ -1000,6 +1056,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.3.3.2.2 | Ensure minimum password length is configured
   ansible.builtin.lineinfile:
@@ -1009,6 +1066,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.3.3.2.3 | Ensure password complexity is configured
   ansible.builtin.lineinfile:
@@ -1018,6 +1076,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
   loop:
     - { regexp: "^.*minclass = .*", line: "minclass = 3" }
     - { regexp: "^.*ocredit = .*", line: "ocredit = -1" }
@@ -1033,6 +1092,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.3.3.2.5 | Ensure password maximum sequential characters is configured
   ansible.builtin.lineinfile:
@@ -1042,12 +1102,14 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.3.3.2.6 | Ensure passwor5d dictionary check is enabled
   ansible.builtin.lineinfile:
     path: /etc/security/pwquality.conf
     regexp: "^.*dictcheck = .*"
     line: "dictcheck = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -1057,6 +1119,7 @@
     path: /etc/security/pwquality.conf
     regexp: "^.*enforcing = .*"
     line: "enforcing = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -1066,6 +1129,7 @@
     path: /etc/security/pwquality.conf
     regexp: "^.*enforce_for_root = .*"
     line: "enforce_for_root = 1"
+    mode: "0644"
     # backup: true
     backrefs: false
     create: true
@@ -1138,6 +1202,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
 
 - name: 5.4.1.5 | Ensure inactive password lock is configured | shadow
   ansible.builtin.shell:
@@ -1155,6 +1220,7 @@
     regexp: "^.*umask.*"
     line: "umask {{ system_filesystem_umask_root }}"
     create: true
+    mode: "0644"
 
 # 12/20/24 - adding since CIS benchmarks use grep on multiple files/paths which returns error code if any
 # files/paths dont exist even if it finds pattern match in existing files/paths
@@ -1184,6 +1250,7 @@
     # backup: true
     backrefs: false
     create: true
+    mode: "0644"
   loop:
     - { regexp: "^.*SystemMaxUse=.*", line: "SystemMaxUse={{ system_logs_size_max }}" }
     - { regexp: "^.*SystemKeepFree=.*", line: "SystemKeepFree=500M" }
@@ -1254,6 +1321,7 @@
     path: /etc/default/grub
     regexp: '^GRUB_CMDLINE_LINUX="((?:(?!audit=1).)*?)"$'
     line: 'GRUB_CMDLINE_LINUX="\1 audit=1"'
+    mode: "0664"
     # backup: true
     backrefs: true
     create: true
@@ -1264,6 +1332,7 @@
     path: /etc/default/grub
     regexp: '^GRUB_CMDLINE_LINUX="((?:(?!audit_backlog_limit=8192).)*?)"$'
     line: 'GRUB_CMDLINE_LINUX="\1 audit_backlog_limit=8192"'
+    mode: "0664"
     # backup: true
     backrefs: true
     create: true
@@ -1277,6 +1346,7 @@
     path: /etc/audit/auditd.conf
     regexp: "^max_log_file = .*"
     line: "max_log_file = {{ service_audit_logs_max_filesize }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1287,6 +1357,7 @@
     path: /etc/audit/auditd.conf
     regexp: "^admin_space_left_action = .*"
     line: "admin_space_left_action = email"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1297,6 +1368,7 @@
     path: /etc/audit/auditd.conf
     regexp: "^space_left_action = .*"
     line: "space_left_action = email"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1306,6 +1378,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1318,6 +1391,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1330,6 +1404,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: -w {{ sudo_log_file }} -p wa -k sudo_log_file
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1339,6 +1414,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1354,6 +1430,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1372,6 +1449,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1386,6 +1464,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1404,6 +1483,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1420,6 +1500,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1432,6 +1513,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1445,6 +1527,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1457,6 +1540,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1469,6 +1553,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1481,6 +1566,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: -a always,exit -F path=/usr/bin/chcon -F perm=x -F auid>={{ system_uid_minimum }} -F auid!=unset -k perm_chng
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1490,6 +1576,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: -a always,exit -F path=/usr/bin/setfacl -F perm=x -F auid>={{ system_uid_minimum }} -F auid!=unset -k perm_chng
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1499,6 +1586,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: -a always,exit -F path=/usr/bin/chacl -F perm=x -F auid>={{ system_uid_minimum }} -F auid!=unset -k perm_chng
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1508,6 +1596,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "-a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>={{ system_uid_minimum }} -F auid!=unset -k usermod"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1517,6 +1606,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1529,6 +1619,7 @@
   ansible.builtin.lineinfile:
     path: /etc/audit/rules.d/phxi.rules
     line: "-e 2"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
@@ -1550,6 +1641,7 @@
   ansible.builtin.lineinfile:
     path: /etc/aide/aide.conf.d/01-phxi.conf
     line: "{{ item.line }}"
+    mode: "0640"
     # backup: true
     backrefs: false
     create: true
