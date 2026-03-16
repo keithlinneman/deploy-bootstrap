@@ -57,6 +57,7 @@ plugins {
         plugin_data {
             access_key_id = ""
             secret_key_id = ""
+            assume_role = "{{ spire_assume_iam_role }}"
             skip_block_device = false
             disable_instance_profile_selectors = false
             partition = "aws"

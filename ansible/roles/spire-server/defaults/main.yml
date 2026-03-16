@@ -15,6 +15,7 @@ spire_db_name: spire
 spire_db_user: spire_server
 spire_db_type: rds
 spire_agent_svid_ttl: 1h
+spire_assume_iam_role: trust-spiffe-spire-server-{{ ansible_ec2_instance_identity_document_region }}
 spire_default_svid_ttl: 1h
 spire_intermediate_cert_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/cert-wbHUYE
 spire_intermediate_key_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/key-av1Icr 
