@@ -5,7 +5,7 @@ export PS4='+ [sub=${BASH_SUBSHELL:-?}] SOURCE:${BASH_SOURCE:-?} LINENO:${LINENO
 trap 'RC=$?; echo "ERROR(rc=$RC) at ${BASH_SOURCE[0]:-?}:${LINENO:-?} in ${FUNCNAME[0]:-MAIN}: ${BASH_COMMAND:-?}" >&2; exit $RC' ERR
 
 localname="$( hostname )"
-localip="$( ip addr show primary scope global | awk '/inet/ { print $2 }' | cut -d "/" -f 1 )"
+localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet / { print $2; exit }' | cut -d "/" -f 1 )"
 
 # Lots of sanity checks - dns is critical
 
