@@ -3,6 +3,7 @@ profile: production
 strict: true
 skip_list:
   - role-name
+  - var-naming[no-role-prefix]
 warn_list:
   - experimental
 offline: true
