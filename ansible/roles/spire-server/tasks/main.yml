@@ -20,6 +20,7 @@
     trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', spire_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region ) }}"
     spiffe_trust_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/trust_domain', region=ansible_ec2_instance_identity_document_region ) }}"
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
+    spire_iam_role_arn: "{{ lookup('amazon.aws.aws_ssm', '/platform/spire/ec2/iam/role/arn', region=ansible_ec2_instance_identity_document_region ) }}"
 
 - name: Set facts from environment variables
   set_fact:
@@ -195,7 +196,13 @@
     dest: "{{ spire_app_dir }}/conf/server.conf"
     mode: 0644
   notify: restart spire service
-  when: ansible_os_family == 'Debian'
+
+- name: Modify spire-server kms key policy configuration file
+  template:
+    src: ../templates/spire/conf/kms-key-policy.json.j2
+    dest: "{{ spire_app_dir }}/conf/kms-key-policy.json"
+    mode: 0644
+  notify: restart spire service
 
 - name: Install RDS CA bundle for postgres tls
   when: spire_db_type == "rds"

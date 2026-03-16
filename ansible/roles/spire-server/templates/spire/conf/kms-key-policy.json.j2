@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Allow full access to the SPIRE Server role",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "{{ spire_iam_role_arn }}"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        },
+        {
+             "Sid": "Allow KMS console to display the key and policy",
+             "Effect": "Allow",
+             "Principal": {
+                 "AWS": "arn:aws:iam::{{ ansible_ec2_instance_identity_document_accountid }}:root"
+             },
+             "Action": [
+                 "kms:*"
+             ],
+             "Resource": "*"
+        }
+    ]
+}
