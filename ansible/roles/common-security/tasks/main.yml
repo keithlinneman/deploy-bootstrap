@@ -1661,10 +1661,9 @@
     - { line: "/usr/sbin/augenrules p+i+n+u+g+s+b+acl+xattrs+sha512" }
   notify: Refresh aide database
 
-# TODO: Takes ~10 minutes to run - this should run on a delay in the background if run at deploy time and not ami generation time
-# just letting the refresh aide database notifier handle this for now
+# Takes ~10 minutes to run - this should run on a delay in the background if run at deploy time and not ami generation time.
+# Letting the refresh aide database notifier handle this for now
 # re-adding and registering variable to prevent duplicate run from handler
-
 - name: 6.3.3 | Ensure crypotographic mechanisms are used to protect the integrity of audit tools | live db
   ansible.builtin.command:
     cmd: aide --init --config {{ aide_config_location }}
