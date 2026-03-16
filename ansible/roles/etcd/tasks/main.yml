@@ -113,7 +113,7 @@
     src: ../templates/etcd/conf/etcd.conf.yml.j2
     dest: /home/{{ etcd_system_user }}/conf/etcd.conf.yml
     mode: "0644"
-  notify: restart etcd service
+  notify: Restart etcd service
   when: ansible_os_family == 'Debian'
 
 # Let handler do this since it will get triggered by conf file write anyway, otherwise daemon_reload wont have run yet

@@ -178,7 +178,7 @@
     mode: "0640"
     owner: "{{ mimir_system_user }}"
     group: "{{ mimir_system_user }}"
-  notify: restart mimir service
+  notify: Restart mimir service
   when: ansible_os_family == 'Debian'
 
 - name: Allow mimir http traffic through firewall

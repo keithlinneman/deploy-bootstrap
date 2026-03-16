@@ -161,7 +161,7 @@
     dest: /home/{{ loki_system_user }}/conf/loki.yml
     mode: "0644"
   when: ansible_os_family == 'Debian'
-  notify: restart loki service
+  notify: Restart loki service
 
 - name: Enable {{ loki_systemd_service_name[loki_role] }} systemd service
   ansible.builtin.service:

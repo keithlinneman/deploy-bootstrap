@@ -143,7 +143,7 @@
     dest: /opt/linnemanlabs-web/server/bin/linnemanlabs-web-server
     mode: get
     overwrite: different
-  notify: restart linnemanlabs-web server service
+  notify: Restart linnemanlabs-web server service
 
 - name: Create sha256 sum file for verification
   ansible.builtin.copy:
@@ -198,7 +198,7 @@
     src: ../templates/etc/systemd/system/{{ linnemanlabs_web_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ linnemanlabs_web_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart linnemanlabs-web server service
+  notify: Restart linnemanlabs-web server service
 
 - name: Enable linnemanlabs-web server systemd service
   ansible.builtin.systemd:

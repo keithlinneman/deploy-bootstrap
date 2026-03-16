@@ -136,7 +136,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/spire-agent" "{{ spire_app_dir }}/bin/spire-agent"
-      notify: restart spire-agent service
+      notify: Restart spire-agent service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -148,7 +148,7 @@
     src: ../templates/spire/conf/agent.conf.j2
     dest: "{{ spire_app_dir }}/conf/agent.conf"
     mode: "0644"
-  notify: restart spire-agent service
+  notify: Restart spire-agent service
   when: ansible_os_family == 'Debian'
 
 - name: Allow spire-agent metrics traffic through firewall
@@ -170,7 +170,7 @@
     src: ../templates/etc/systemd/system/{{ spire_agent_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ spire_agent_systemd_service_name }}.service
     mode: "0644"
-  notify: restart spire-agent service
+  notify: Restart spire-agent service
 
 # flush handlers for service restart, then ensure its started after.
 # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs

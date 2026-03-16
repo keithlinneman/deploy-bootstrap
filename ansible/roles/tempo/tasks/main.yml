@@ -184,7 +184,7 @@
     mode: "0640"
     owner: "{{ tempo_system_user }}"
     group: "{{ tempo_system_user }}"
-  notify: restart tempo service
+  notify: Restart tempo service
   when: ansible_os_family == 'Debian'
 
 - name: Allow tempo http traffic through firewall

@@ -162,7 +162,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/spire-server" "{{ spire_app_dir }}/bin/spire-server"
-      notify: restart spire service
+      notify: Restart spire service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -176,7 +176,7 @@
     dest: "{{ spire_app_dir }}/certs/spire-chain.pem"
     mode: get
     overwrite: different
-  notify: restart spire service
+  notify: Restart spire service
 
 - name: Ensure certificate chain has correct permissions
   ansible.builtin.file:
@@ -190,14 +190,14 @@
     src: ../templates/spire/conf/server.conf.j2
     dest: "{{ spire_app_dir }}/conf/server.conf"
     mode: "0644"
-  notify: restart spire service
+  notify: Restart spire service
 
 - name: Modify spire-server kms key policy configuration file
   ansible.builtin.template:
     src: ../templates/spire/conf/kms-key-policy.json.j2
     dest: "{{ spire_app_dir }}/conf/kms-key-policy.json"
     mode: "0644"
-  notify: restart spire service
+  notify: Restart spire service
 
 - name: Install RDS CA bundle for postgres tls
   when: spire_db_type == "rds"
@@ -220,7 +220,7 @@
     src: ../templates/etc/systemd/system/{{ spire_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ spire_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart spire service
+  notify: Restart spire service
 
 - name: Allow spire-server grpc traffic through firewall
   community.general.ufw:

@@ -128,7 +128,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/fulcio-server" "{{ fulcio_app_dir }}/bin/fulcio-server"
-      notify: restart fulcio service
+      notify: Restart fulcio service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -142,7 +142,7 @@
     dest: "{{ fulcio_app_dir }}/certs/fulcio-ca-chain.pem"
     mode: get
     overwrite: different
-  notify: restart fulcio service
+  notify: Restart fulcio service
 
 - name: Ensure certificate chain has correct permissions
   ansible.builtin.file:
@@ -158,7 +158,7 @@
     dest: "{{ fulcio_app_dir }}/certs/tesseract-checkpoint.pub"
     mode: get
     overwrite: different
-  notify: restart fulcio service
+  notify: Restart fulcio service
 
 - name: Ensure tesseract pubkey has correct permissions
   ansible.builtin.file:
@@ -208,7 +208,7 @@
     src: ../templates/etc/systemd/system/{{ fulcio_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ fulcio_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart fulcio service
+  notify: Restart fulcio service
 
 - name: Allow fulcio http traffic through firewall
   community.general.ufw:
@@ -238,7 +238,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: restart fulcio service
+  notify: Restart fulcio service
 
 # flush handlers for service restart, then ensure its started after.
 # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs

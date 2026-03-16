@@ -134,7 +134,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/rekor-server" "{{ rekor_app_dir }}/bin/rekor-server"
-      notify: restart rekor service
+      notify: Restart rekor service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -182,7 +182,7 @@
     src: ../templates/etc/systemd/system/{{ rekor_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ rekor_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart rekor service
+  notify: Restart rekor service
 
 - name: Install RDS CA bundle for mysql tls
   when: rekor_db_type == "rds"

@@ -172,7 +172,7 @@
     mode: "0640"
     owner: "{{ pyroscope_system_user }}"
     group: "{{ pyroscope_system_user }}"
-  notify: restart pyroscope service
+  notify: Restart pyroscope service
 
 - name: Run handlers immediately to refresh systemd daemon configuration
   ansible.builtin.meta: flush_handlers

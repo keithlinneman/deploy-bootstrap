@@ -126,7 +126,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/tsa-server" "{{ tsa_app_dir }}/bin/tsa-server"
-      notify: restart tsa service
+      notify: Restart tsa service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -140,7 +140,7 @@
     dest: "{{ tsa_app_dir }}/certs/tsa-chain.pem"
     mode: get
     overwrite: different
-  notify: restart tsa service
+  notify: Restart tsa service
 
 - name: Ensure certificate chain has correct permissions
   ansible.builtin.file:
@@ -185,7 +185,7 @@
     src: ../templates/etc/systemd/system/{{ tsa_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ tsa_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart tsa service
+  notify: Restart tsa service
 
 - name: Allow tsa http traffic through firewall
   community.general.ufw:

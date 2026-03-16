@@ -133,7 +133,7 @@
 
     - name: Move verified binary into place
       ansible.builtin.command: mv "{{ staging_dir }}/tesseract-server" "{{ tesseract_app_dir }}/bin/tesseract-server"
-      notify: restart tesseract service
+      notify: Restart tesseract service
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -147,7 +147,7 @@
     dest: "{{ tesseract_app_dir }}/certs/root-ca.crt"
     mode: get
     overwrite: different
-  notify: restart tesseract service
+  notify: Restart tesseract service
 
 - name: Ensure certificate chain has correct permissions
   ansible.builtin.file:
@@ -202,7 +202,7 @@
     src: ../templates/etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ tesseract_server_systemd_service_name }}.service
     mode: "0644"
-  notify: restart tesseract service
+  notify: Restart tesseract service
 
 - name: Allow tesseract http traffic through firewall
   community.general.ufw:

@@ -178,7 +178,7 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart prometheus service
+  notify: Restart prometheus service
 
 - name: Create prometheus node scrape target configurations
   ansible.builtin.template:
@@ -187,7 +187,7 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.scrape.node | default([]) }}"
 
 - name: Create prometheus app scrape target configurations
@@ -197,7 +197,7 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.scrape.apps | default([]) }}"
 
 - name: Create blackbox_exporter scrape job configurations
@@ -207,7 +207,7 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.scrape.blackbox | default([]) }}"
 
 - name: Create blackbox_exporter file_sd target configurations
@@ -217,7 +217,7 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.scrape.blackbox_http | default([]) }}"
 
 - name: Copy recording rules
@@ -227,7 +227,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
     mode: "0640"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.rules.recording | default([]) }}"
 
 - name: Copy alerting rules
@@ -237,7 +237,7 @@
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
     mode: "0640"
-  notify: restart prometheus service
+  notify: Restart prometheus service
   loop: "{{ prometheus.rules.alerting | default([]) }}"
 
 - name: Create prometheus systemd service
@@ -245,7 +245,7 @@
     src: ../templates/etc/systemd/system/{{ prometheus_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ prometheus_systemd_service_name }}.service
     mode: "0644"
-  notify: restart prometheus service
+  notify: Restart prometheus service
 
 - name: Allow prometheus traffic through firewall
   community.general.ufw:
@@ -337,11 +337,11 @@
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
-  notify: restart blackbox_exporter service
+  notify: Restart blackbox_exporter service
 
 - name: Create blackbox_exporter systemd service
   ansible.builtin.template:
     src: ../templates/etc/systemd/system/{{ blackbox_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ blackbox_exporter_systemd_service_name }}.service
     mode: "0644"
-  notify: restart blackbox_exporter service
+  notify: Restart blackbox_exporter service
