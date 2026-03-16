@@ -1,0 +1,25 @@
+name: Ansible Lint
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ansible-lint
+        run: pip install ansible-lint==25.1.4
+
+      - name: Install yamllint
+        run: pip install yamllint==1.38.0
+
+      - name: Run ansible-lint
+        run: ansible-lint
