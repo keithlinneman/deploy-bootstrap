@@ -122,8 +122,8 @@
 - name: 1.5.1 | Ensure address space layout randomization (ASLR) is enabled | sysctl_configured
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^kernel.randomize_va_space=.*'
-    line: 'kernel.randomize_va_space=2'
+    regexp: "^kernel.randomize_va_space=.*"
+    line: "kernel.randomize_va_space=2"
     # backup: true
     backrefs: false
     create: true
@@ -132,7 +132,7 @@
 - name: 1.5.3 | Ensure core dumps are restricted | security/limits.conf
   ansible.builtin.lineinfile:
     path: /etc/security/limits.d/99-phxi.conf
-    line: '* hard core 0'
+    line: "* hard core 0"
     # backup: true
     backrefs: false
     create: true
@@ -140,8 +140,8 @@
 - name: 1.5.3 | Ensure core dumps are restricted | sysctl conf
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^fs.suid_dumpable = .*'
-    line: 'fs.suid_dumpable = 0'
+    regexp: "^fs.suid_dumpable = .*"
+    line: "fs.suid_dumpable = 0"
     # backup: true
     backrefs: false
     create: true
@@ -168,8 +168,8 @@
 - name: 1.5.5 | Ensure Automatic Error Reporting is not enabled | config
   ansible.builtin.lineinfile:
     path: /etc/default/apport
-    regexp: '^enabled=.*'
-    line: 'enabled=0'
+    regexp: "^enabled=.*"
+    line: "enabled=0"
     # backup: true
     backrefs: true
     create: true
@@ -392,8 +392,8 @@
 - name: 3.3.1 | Ensure IP forwarding is disabled | IPv4 config
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^net.ipv4.ip_forward = .*'
-    line: 'net.ipv4.ip_forward = 0'
+    regexp: "^net.ipv4.ip_forward = .*"
+    line: "net.ipv4.ip_forward = 0"
     # backup: true
     backrefs: false
     create: true
@@ -408,15 +408,15 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^net.ipv4.conf.default.send_redirects=.*', line: 'net.ipv4.conf.default.send_redirects=0' }
-    - { regexp: '^net.ipv4.conf.all.send_redirects=.*', line: 'net.ipv4.conf.all.send_redirects=0' }
+    - { regexp: "^net.ipv4.conf.default.send_redirects=.*", line: "net.ipv4.conf.default.send_redirects=0" }
+    - { regexp: "^net.ipv4.conf.all.send_redirects=.*", line: "net.ipv4.conf.all.send_redirects=0" }
   notify: Reload sysctl values
 
 - name: 3.3.3 | Ensure bogus ICMP responses are ignored | ignore bogus icmp conf
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^net.ipv4.icmp_ignore_bogus_error_responses = .*'
-    line: 'net.ipv4.icmp_ignore_bogus_error_responses = 1'
+    regexp: "^net.ipv4.icmp_ignore_bogus_error_responses = .*"
+    line: "net.ipv4.icmp_ignore_bogus_error_responses = 1"
     # backup: true
     backrefs: false
     create: true
@@ -445,8 +445,8 @@
 - name: 3.3.4 | Ensure broadcast ICMP requests are ignored | ipv4 ignore broadcast icmp conf
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^net.ipv4.icmp_echo_ignore_broadcasts = .*'
-    line: 'net.ipv4.icmp_echo_ignore_broadcasts = 1'
+    regexp: "^net.ipv4.icmp_echo_ignore_broadcasts = .*"
+    line: "net.ipv4.icmp_echo_ignore_broadcasts = 1"
     # backup: true
     backrefs: false
     create: true
@@ -461,8 +461,8 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^.*net.ipv4.conf.all.accept_redirects = .*', line: 'net.ipv4.conf.all.accept_redirects = 0' }
-    - { regexp: '^.*net.ipv4.conf.default.accept_redirects = .*', line: 'net.ipv4.conf.default.accept_redirects = 0' }
+    - { regexp: "^.*net.ipv4.conf.all.accept_redirects = .*", line: "net.ipv4.conf.all.accept_redirects = 0" }
+    - { regexp: "^.*net.ipv4.conf.default.accept_redirects = .*", line: "net.ipv4.conf.default.accept_redirects = 0" }
   notify: Reload sysctl values
 
 - name: 3.3.6 | Ensure secure ICMP redirects are not accepted | ipv4 all sec redirects conf
@@ -474,8 +474,8 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^net.ipv4.conf.all.secure_redirects = .*', line: 'net.ipv4.conf.all.secure_redirects = 0' }
-    - { regexp: '^net.ipv4.conf.default.secure_redirects = .*', line: 'net.ipv4.conf.default.secure_redirects = 0' }
+    - { regexp: "^net.ipv4.conf.all.secure_redirects = .*", line: "net.ipv4.conf.all.secure_redirects = 0" }
+    - { regexp: "^net.ipv4.conf.default.secure_redirects = .*", line: "net.ipv4.conf.default.secure_redirects = 0" }
   notify: Reload sysctl values
 
 - name: 3.3.7 | Ensure Reverse Path Filtering is enabled | ipv4 all rp_filter conf
@@ -487,8 +487,8 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^net.ipv4.conf.all.rp_filter = .*', line: 'net.ipv4.conf.all.rp_filter = 1' }
-    - { regexp: '^net.ipv4.conf.default.rp_filter = .*', line: 'net.ipv4.conf.default.rp_filter = 1' }
+    - { regexp: "^net.ipv4.conf.all.rp_filter = .*", line: "net.ipv4.conf.all.rp_filter = 1" }
+    - { regexp: "^net.ipv4.conf.default.rp_filter = .*", line: "net.ipv4.conf.default.rp_filter = 1" }
   notify: Reload sysctl values
 
 - name: 3.3.8 | Ensure source routed packets are not accepted
@@ -500,8 +500,8 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^net.ipv4.conf.default.accept_source_route = .*', line: 'net.ipv4.conf.default.accept_source_route = 0' }
-    - { regexp: '^net.ipv4.conf.all.accept_source_route = .*', line: 'net.ipv4.conf.all.accept_source_route = 0' }
+    - { regexp: "^net.ipv4.conf.default.accept_source_route = .*", line: "net.ipv4.conf.default.accept_source_route = 0" }
+    - { regexp: "^net.ipv4.conf.all.accept_source_route = .*", line: "net.ipv4.conf.all.accept_source_route = 0" }
   notify: Reload sysctl values
 
 - name: 3.3.9 | Ensure suspicious packets are logged | ipv4 all martians conf
@@ -513,15 +513,15 @@
     backrefs: false
     create: true
   loop:
-    - { regexp: '^net.ipv4.conf.all.log_martians = .*', line: 'net.ipv4.conf.all.log_martians = 1' }
-    - { regexp: '^net.ipv4.conf.default.log_martians = .*', line: 'net.ipv4.conf.default.log_martians = 1' }
+    - { regexp: "^net.ipv4.conf.all.log_martians = .*", line: "net.ipv4.conf.all.log_martians = 1" }
+    - { regexp: "^net.ipv4.conf.default.log_martians = .*", line: "net.ipv4.conf.default.log_martians = 1" }
   notify: Reload sysctl values
 
 - name: 3.3.9 | Ensure suspicious packets are logged | disable ufw sysctl conf
   ansible.builtin.lineinfile:
     path: /etc/default/ufw
-    regexp: '^IPT_SYSCTL=/etc/ufw/sysctl.conf'
-    line: '#IPT_SYSCTL=/etc/ufw/sysctl.conf'
+    regexp: "^IPT_SYSCTL=/etc/ufw/sysctl.conf"
+    line: "#IPT_SYSCTL=/etc/ufw/sysctl.conf"
     # backup: true
     backrefs: false
   notify: Reload sysctl values
@@ -530,8 +530,8 @@
 - name: 3.3.10 | Ensure TCP SYN Cookies is enabled | ipv4 syncookies conf
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^net.ipv4.tcp_syncookies = .*'
-    line: 'net.ipv4.tcp_syncookies = 1'
+    regexp: "^net.ipv4.tcp_syncookies = .*"
+    line: "net.ipv4.tcp_syncookies = 1"
     # backup: true
     backrefs: false
     create: true
@@ -540,8 +540,8 @@
 - name: 3.3.10 | Ensure TCP SYN Cookies is enabled | ipv4 syncookies conf
   ansible.builtin.lineinfile:
     path: /etc/sysctl.d/99-phxi.conf
-    regexp: '^net.ipv4.tcp_syncookies = .*'
-    line: 'net.ipv4.tcp_syncookies = 1'
+    regexp: "^net.ipv4.tcp_syncookies = .*"
+    line: "net.ipv4.tcp_syncookies = 1"
     # backup: true
     backrefs: false
     create: true
@@ -613,8 +613,8 @@
 - name: 5.1.4 | Ensure SSH access is configured | AllowGroups
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*AllowGroups .*'
-    line: 'AllowGroups adm'
+    regexp: "^.*AllowGroups .*"
+    line: "AllowGroups adm"
     # backup: true
     backrefs: false
     create: true
@@ -624,8 +624,8 @@
 - name: 5.1.5 | Ensure sshd banner is configured | sshd_config
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*Banner .*'
-    line: '#Banner /etc/issue.net'
+    regexp: "^.*Banner .*"
+    line: "#Banner /etc/issue.net"
     # backup: true
     backrefs: false
     create: true
@@ -634,8 +634,8 @@
 - name: 5.1.6 | Ensure only strong Ciphers are used
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*Ciphers .*'
-    line: 'Ciphers aes256-ctr,aes192-ctr,aes128-ctr'
+    regexp: "^.*Ciphers .*"
+    line: "Ciphers aes256-ctr,aes192-ctr,aes128-ctr"
     # backup: true
     backrefs: false
     create: true
@@ -644,21 +644,21 @@
 - name: 5.1.7 | Ensure sshd ClientAliveInterval and ClientAliveCountMax are configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '{{ item.regexp }}'
-    line: '{{ item.line }}'
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
     # backup: true
     backrefs: false
     create: true
   loop:
-    - { regexp: '^ClientAliveInterval .*', line: 'ClientAliveInterval 300' }
-    - { regexp: '^ClientAliveCountMax .*', line: 'ClientAliveCountMax 3' }
+    - { regexp: "^ClientAliveInterval .*", line: "ClientAliveInterval 300" }
+    - { regexp: "^ClientAliveCountMax .*", line: "ClientAliveCountMax 3" }
   notify: Restart service sshd
 
 - name: 5.1.8 | Ensure sshd DisableForwarding is enabled
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*DisableForwarding .*'
-    line: 'DisableForwarding yes'
+    regexp: "^.*DisableForwarding .*"
+    line: "DisableForwarding yes"
     # backup: true
     backrefs: false
     create: true
@@ -667,8 +667,8 @@
 - name: 5.1.10 | Ensure SSH HostbasedAuthentication is disabled
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*HostbasedAuthentication .*'
-    line: 'HostbasedAuthentication no'
+    regexp: "^.*HostbasedAuthentication .*"
+    line: "HostbasedAuthentication no"
     # backup: true
     backrefs: false
     create: true
@@ -677,8 +677,8 @@
 - name: 5.1.11 | Ensure sshd IgnoreRhosts is enabled
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*IgnoreRhosts .*'
-    line: 'IgnoreRhosts yes'
+    regexp: "^.*IgnoreRhosts .*"
+    line: "IgnoreRhosts yes"
     # backup: true
     backrefs: false
     create: true
@@ -687,7 +687,7 @@
 - name: 5.1.12 | Ensure sshd Kex algorithms is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*KexAlgorithms .*'
+    regexp: "^.*KexAlgorithms .*"
     line: "KexAlgorithms {{ service_ssh_config_kex_algorithms }}"
     # backup: true
     backrefs: false
@@ -697,8 +697,8 @@
 - name: 5.1.13 | Ensure sshd LoginGraceTime is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*LoginGraceTime .*'
-    line: 'LoginGraceTime 60'
+    regexp: "^.*LoginGraceTime .*"
+    line: "LoginGraceTime 60"
     # backup: true
     backrefs: false
     create: true
@@ -707,8 +707,8 @@
 - name: 5.1.15 | Ensure only strong MACs are used
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*MACs .*'
-    line: 'MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256'
+    regexp: "^.*MACs .*"
+    line: "MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256"
     # backup: true
     backrefs: false
     create: true
@@ -717,8 +717,8 @@
 - name: 5.1.16 | Ensure sshd MaxAuthTries is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*MaxAuthTries .*'
-    line: 'MaxAuthTries 3'
+    regexp: "^.*MaxAuthTries .*"
+    line: "MaxAuthTries 3"
     # backup: true
     backrefs: false
     create: true
@@ -727,8 +727,8 @@
 - name: 5.1.17 | Ensure SSH MaxSessions is limited
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*MaxSessions .*'
-    line: 'MaxSessions 10'
+    regexp: "^.*MaxSessions .*"
+    line: "MaxSessions 10"
     # backup: true
     backrefs: false
     create: true
@@ -737,8 +737,8 @@
 - name: 5.1.18 | Ensure SSH MaxStartups is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*MaxStartups .*'
-    line: 'MaxStartups 10:30:60'
+    regexp: "^.*MaxStartups .*"
+    line: "MaxStartups 10:30:60"
     # backup: true
     backrefs: false
     create: true
@@ -747,8 +747,8 @@
 - name: 5.1.19 | Ensure SSH PermitEmptyPasswords is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*PermitEmptyPasswords .*'
-    line: 'PermitEmptyPasswords no'
+    regexp: "^.*PermitEmptyPasswords .*"
+    line: "PermitEmptyPasswords no"
     # backup: true
     backrefs: false
     create: true
@@ -757,8 +757,8 @@
 - name: 5.1.20 | Ensure SSH PermitRootLogin is configured
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*PermitRootLogin .*'
-    line: 'PermitRootLogin no'
+    regexp: "^.*PermitRootLogin .*"
+    line: "PermitRootLogin no"
     # backup: true
     backrefs: false
     create: true
@@ -767,8 +767,8 @@
 - name: 5.1.21 | Ensure SSH PermitUserEnvironment is disabled
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^.*PermitUserEnvironment .*'
-    line: 'PermitUserEnvironment no'
+    regexp: "^.*PermitUserEnvironment .*"
+    line: "PermitUserEnvironment no"
     # backup: true
     backrefs: false
     create: true
@@ -783,7 +783,7 @@
 - name: 5.2.6 | Ensure sudo authentication timeout is configured correctly
   ansible.builtin.lineinfile:
     path: /etc/sudoers.d/99-phxi.conf
-    line: 'Defaults timestamp_timeout=15'
+    line: "Defaults timestamp_timeout=15"
     # backup: true
     backrefs: false
     create: true
@@ -833,7 +833,7 @@
   ansible.builtin.lineinfile:
     path: /etc/pam.d/common-auth
     line: "auth    required                        pam_faillock.so preauth"
-    insertbefore: '^auth\s*[success=1 default=ignore]\s*pam_unix.so.*'
+    insertbefore: "^auth\\s*[success=1 default=ignore]\\s*pam_unix.so.*"
     # backup: true
   when: ansible_os_family == 'Debian'
 
@@ -841,7 +841,7 @@
   ansible.builtin.lineinfile:
     path: /etc/pam.d/common-auth
     line: "auth    [default=die]                   pam_faillock.so authfail"
-    insertafter: '^auth\s*[success=1 default=ignore]\s*pam_unix.so.*'
+    insertafter: "^auth\\s*[success=1 default=ignore]\\s*pam_unix.so.*"
     # backup: true
   when: ansible_os_family == 'Debian'
 
@@ -849,7 +849,7 @@
   ansible.builtin.lineinfile:
     path: /etc/pam.d/common-auth
     line: "auth    sufficient                      pam_faillock.so authsucc"
-    insertafter: '^auth\s*[default=die]\s*pam_faillock.so\s*authfail'
+    insertafter: "^auth\\s*[default=die]\\s*pam_faillock.so\\s*authfail"
     # backup: true
   when: ansible_os_family == 'Debian'
 
@@ -864,15 +864,15 @@
   ansible.builtin.lineinfile:
     path: /etc/pam.d/system-auth
     line: "auth        required      pam_faillock.so preauth silent"
-    insertafter: 'auth\s*required\s*pam_env.so'
+    insertafter: "auth\\s*required\\s*pam_env.so"
     # backup: true
   when: ansible_distribution == 'Amazon'
 
 - name: (Amazon) 5.3.2.2 | Ensure pam_faillock module is enabled | pam.d/system-auth
   ansible.builtin.lineinfile:
     path: /etc/pam.d/system-auth
-    line: 'auth        [default=die] pam_faillock.so authfail'
-    insertafter: '^auth\s*required\s*pam_faillock.so\s*preauth\s*silent'
+    line: "auth        [default=die] pam_faillock.so authfail"
+    insertafter: "^auth\\s*required\\s*pam_faillock.so\\s*preauth\\s*silent"
     # backup: true
   when: ansible_distribution == 'Amazon'
 
@@ -880,23 +880,23 @@
   ansible.builtin.lineinfile:
     path: /etc/pam.d/system-auth
     line: "account     required      pam_faillock.so"
-    insertafter: 'account\s*required\s*pam_unix.so'
+    insertafter: "account\\s*required\\s*pam_unix.so"
     # backup: true
   when: ansible_distribution == 'Amazon'
 
 - name: (Amazon) 5.3.2.2 | Ensure pam_faillock module is enabled | pam.d/password-auth
   ansible.builtin.lineinfile:
     path: /etc/pam.d/password-auth
-    line: 'auth        required      pam_faillock.so preauth silent'
-    insertafter: 'auth\s*required\s*pam_env.so'
+    line: "auth        required      pam_faillock.so preauth silent"
+    insertafter: "auth\\s*required\\s*pam_env.so"
     # backup: true
   when: ansible_distribution == 'Amazon'
 
 - name: (Amazon) 5.3.2.2 | Ensure pam_faillock module is enabled | pam.d/password-auth
   ansible.builtin.lineinfile:
     path: /etc/pam.d/password-auth
-    line: 'auth        [default=die] pam_faillock.so authfail'
-    insertafter: '^auth\s*required\s*pam_faillock.so\s*preauth\s*silent'
+    line: "auth        [default=die] pam_faillock.so authfail"
+    insertafter: "^auth\\s*required\\s*pam_faillock.so\\s*preauth\\s*silent"
     # backup: true
   when: ansible_distribution == 'Amazon'
 

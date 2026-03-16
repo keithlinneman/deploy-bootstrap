@@ -50,7 +50,7 @@
 - name: Create loki user
   ansible.builtin.user:
     name: "{{ loki_system_user }}"
-    password: '*'
+    password: "*"
     umask: "027"
     shell: /usr/sbin/nologin
     system: true

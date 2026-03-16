@@ -23,7 +23,7 @@
 - name: Create etcd user
   ansible.builtin.user:
     name: "{{ etcd_system_user }}"
-    password: '*'
+    password: "*"
     umask: "027"
     shell: /usr/sbin/nologin
     system: true
