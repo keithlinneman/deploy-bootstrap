@@ -34,7 +34,7 @@ plugins {
 
     UpstreamAuthority "awssecret" {
         plugin_data {
-            region = "us-east-2"
+            region = "{{ ansible_ec2_instance_identity_document_region }}"
             cert_file_arn = "{{ spire_intermediate_cert_arn }}"
             key_file_arn = "{{ spire_intermediate_key_arn }}"
             bundle_file_arn = "{{ spire_intermediate_bundle_arn }}"
