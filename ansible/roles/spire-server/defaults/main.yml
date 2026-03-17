@@ -22,7 +22,7 @@ spire_server_metrics_port: 8088
 spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 spire_trust_materials_cert_chain_path: certs/spire-ca-chain.pem
 
-spire_db_endpoint_param: /platform/spire/server/db/endpoint
+spire_db_endpoint_param: /platform/spire/rds/endpoint
 spire_db_type: rds
 spire_intermediate_cert_arn_param: /platform/spire/server/intermediate/cert/arn
 spire_intermediate_key_arn_param: /platform/spire/server/intermediate/key/arn
