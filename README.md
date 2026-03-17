@@ -58,7 +58,8 @@ graph LR
     end
 
     subgraph "Node Identity"
-        J[SPIRE Server] <-->|KMS Upstream CA| L[AWS KMS]
+        J[SPIRE Server] <-->|Upstream CA| SM[AWS Secrets Manager]
+        J[SPIRE Server] <-->|Leaf Signing| L[AWS KMS]
         K[SPIRE Agent] -->|Attest + Fetch SVID| J
         J -->|SVID + Registrations| K
         K -->|Workload SVID| R
