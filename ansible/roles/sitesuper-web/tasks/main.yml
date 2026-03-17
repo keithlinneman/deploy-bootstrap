@@ -194,7 +194,7 @@
 
 - name: Create sitesuper-web systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ sitesuper_web_systemd_service_name }}.service
     mode: "0644"
   notify: Restart sitesuper-web service

@@ -45,7 +45,7 @@
 
 - name: Modify alloy main configuration
   ansible.builtin.template:
-    src: /etc/alloy/config.alloy.j2
+    src: etc/alloy/config.alloy.j2
     dest: /etc/alloy/config.alloy
     mode: "0644"
     owner: root

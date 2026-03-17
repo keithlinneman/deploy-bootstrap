@@ -104,13 +104,13 @@
 
 - name: Create mimir systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/mimir.service.j2
+    src: etc/systemd/system/mimir.service.j2
     dest: /etc/systemd/system/{{ mimir_systemd_service_name[mimir_role] }}.service
     mode: "0644"
 
 - name: Modify mimir main configuration
   ansible.builtin.template:
-    src: /mimir/conf/mimir.yml.j2
+    src: mimir/conf/mimir.yml.j2
     dest: /home/{{ mimir_system_user }}/conf/mimir.yml
     mode: "0640"
     owner: "{{ mimir_system_user }}"

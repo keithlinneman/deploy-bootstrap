@@ -231,7 +231,7 @@
 
 - name: 1.6.2 | Ensure local login warning banner is configured properly
   ansible.builtin.copy:
-    src: /etc/update-motd.d/00-header
+    src: etc/update-motd.d/00-header
     dest: /etc/update-motd.d/00-header
     mode: "0644"
     # backup: true

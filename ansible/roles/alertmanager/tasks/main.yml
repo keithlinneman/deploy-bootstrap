@@ -128,14 +128,14 @@
 
 - name: Create alertmanager systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ alertmanager_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ alertmanager_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ alertmanager_systemd_service_name }}.service
     mode: "0644"
   notify: Restart alertmanager service
 
 - name: Modify alertmanager main configuration
   ansible.builtin.template:
-    src: /alertmanager/conf/alertmanager.yml.j2
+    src: alertmanager/conf/alertmanager.yml.j2
     dest: /home/{{ alertmanager_system_user }}/conf/alertmanager.yml
     mode: "0644"
   notify: Restart alertmanager service
@@ -143,7 +143,7 @@
 
 - name: Modify alertmanager web configuration
   ansible.builtin.template:
-    src: /alertmanager/conf/web-config.yml.j2
+    src: alertmanager/conf/web-config.yml.j2
     dest: /home/{{ alertmanager_system_user }}/conf/web-config.yml
     mode: "0644"
   notify: Restart alertmanager service
@@ -151,7 +151,7 @@
 
 - name: Copy over alertmanager notification templates
   ansible.builtin.copy:
-    src: /alertmanager/templates/
+    src: alertmanager/templates/
     dest: /home/{{ alertmanager_system_user }}/templates/
     owner: "{{ alertmanager_system_user }}"
     group: "{{ alertmanager_system_user }}"

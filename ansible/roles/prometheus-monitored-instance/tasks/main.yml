@@ -108,7 +108,7 @@
 
 - name: Create prometheus node_exporter systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service
     mode: "0644"
   notify:
@@ -184,7 +184,7 @@
 
 - name: Copy custom ebpf modules and configs
   ansible.builtin.copy:
-    src: /ebpf_exporter/modules/{{ ansible_architecture }}/
+    src: ebpf_exporter/modules/{{ ansible_architecture }}/
     dest: "{{ ebpf_exporter_base_directory }}/modules/"
     owner: root
     group: root
@@ -192,7 +192,7 @@
 
 - name: Create ebpf_exporter systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service
     mode: "0644"
   notify:

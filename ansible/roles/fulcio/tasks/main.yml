@@ -208,7 +208,7 @@
 
 - name: Create fulcio systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ fulcio_server_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ fulcio_server_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ fulcio_server_systemd_service_name }}.service
     mode: "0644"
   notify: Restart fulcio service
@@ -236,7 +236,7 @@
 
 - name: Create fulcio configuration file
   ansible.builtin.template:
-    src: /fulcio/config.yaml.j2
+    src: fulcio/config.yaml.j2
     dest: "{{ fulcio_app_dir }}/conf/config.yaml"
     owner: root
     group: root

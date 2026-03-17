@@ -117,21 +117,21 @@
 
 - name: (Debian) Configure apt auto upgrade settings
   ansible.builtin.template:
-    src: /etc/apt/apt.conf.d/20auto-upgrades.j2
+    src: etc/apt/apt.conf.d/20auto-upgrades.j2
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     mode: "0644"
   when: ansible_os_family == 'Debian'
 
 - name: (Debian) Configure apt unattended upgrade
   ansible.builtin.copy:
-    src: /etc/apt/apt.conf.d/50unattended-upgrades
+    src: etc/apt/apt.conf.d/50unattended-upgrades
     dest: /etc/apt/apt.conf.d/50unattended-upgrades
     mode: "0644"
   when: ansible_os_family == 'Debian'
 
 - name: (Debian) Configure apt update timing
   ansible.builtin.template:
-    src: /etc/systemd/system/timers.target.wants/apt-daily.timer.j2
+    src: etc/systemd/system/timers.target.wants/apt-daily.timer.j2
     dest: /lib/systemd/system/apt-daily.timer
     mode: "0644"
   when: ansible_os_family == 'Debian'
@@ -139,7 +139,7 @@
 
 - name: (Debian) Configure apt auto upgrade timing
   ansible.builtin.template:
-    src: /etc/systemd/system/timers.target.wants/apt-daily-upgrade.timer.j2
+    src: etc/systemd/system/timers.target.wants/apt-daily-upgrade.timer.j2
     dest: /lib/systemd/system/apt-daily-upgrade.timer
     mode: "0644"
   when: ansible_os_family == 'Debian'
@@ -197,7 +197,7 @@
 
 - name: Remove extra stuff from login banners
   ansible.builtin.copy:
-    src: /etc/update-motd.d/10-help-text
+    src: etc/update-motd.d/10-help-text
     dest: /etc/update-motd.d/10-help-text
     mode: "0644"
     # backup: true
@@ -226,7 +226,7 @@
 
 - name: Setup our motd
   ansible.builtin.copy:
-    src: /etc/motd
+    src: etc/motd
     dest: /etc/motd
     mode: "0644"
     # backup: true
@@ -281,7 +281,7 @@
 
 - name: Add sysctl swap configuration
   ansible.builtin.copy:
-    src: /etc/sysctl.d/99-swap.conf
+    src: etc/sysctl.d/99-swap.conf
     dest: /etc/sysctl.d/99-swap.conf
     mode: "0644"
   when: ansible_os_family == 'Debian'

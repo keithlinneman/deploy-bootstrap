@@ -102,7 +102,7 @@
 
 - name: Modify grafana main configuration
   ansible.builtin.template:
-    src: /etc/grafana/grafana.ini.j2
+    src: etc/grafana/grafana.ini.j2
     dest: /etc/grafana/grafana.ini
     mode: "0644"
     owner: root

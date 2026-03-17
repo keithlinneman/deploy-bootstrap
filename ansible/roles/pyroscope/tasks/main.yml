@@ -132,13 +132,13 @@
 
 - name: Create pyroscope systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/pyroscope.service.j2
+    src: etc/systemd/system/pyroscope.service.j2
     dest: /etc/systemd/system/{{ pyroscope_systemd_service_name[pyroscope_role] }}.service
     mode: "0644"
 
 - name: Modify pyroscope main configuration
   ansible.builtin.template:
-    src: /pyroscope/conf/pyroscope.yml.j2
+    src: pyroscope/conf/pyroscope.yml.j2
     dest: /home/{{ pyroscope_system_user }}/conf/pyroscope.yml
     mode: "0640"
     owner: "{{ pyroscope_system_user }}"

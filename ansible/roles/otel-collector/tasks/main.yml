@@ -142,14 +142,14 @@
 
 - name: Create otel_collector configuration
   ansible.builtin.template:
-    src: /otel/conf/collector.yaml.j2
+    src: otel/conf/collector.yaml.j2
     dest: /home/{{ otel_system_user }}/conf/collector.yaml
     mode: "0644"
   notify: Restart otel_collector service
 
 - name: Create otel_collector systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ otel_collector_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ otel_collector_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ otel_collector_systemd_service_name }}.service
     owner: "{{ otel_system_user }}"
     group: "{{ otel_system_user }}"

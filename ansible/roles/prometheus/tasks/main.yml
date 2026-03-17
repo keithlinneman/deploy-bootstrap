@@ -117,7 +117,7 @@
 
 - name: Modify prometheus main configuration
   ansible.builtin.template:
-    src: /prometheus/conf/prometheus.yml.j2
+    src: prometheus/conf/prometheus.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/prometheus.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -126,7 +126,7 @@
 
 - name: Create prometheus node scrape target configurations
   ansible.builtin.template:
-    src: /prometheus/conf/scrape.d/node/{{ item }}.yml.j2
+    src: prometheus/conf/scrape.d/node/{{ item }}.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/scrape.d/node/{{ item }}.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -136,7 +136,7 @@
 
 - name: Create prometheus app scrape target configurations
   ansible.builtin.template:
-    src: /prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
+    src: prometheus/conf/scrape.d/apps/{{ item }}.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/scrape.d/apps/{{ item }}.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -146,7 +146,7 @@
 
 - name: Create blackbox_exporter scrape job configurations
   ansible.builtin.template:
-    src: /prometheus/conf/scrape.d/blackbox/{{ item }}.yml.j2
+    src: prometheus/conf/scrape.d/blackbox/{{ item }}.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/scrape.d/blackbox/{{ item }}.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -156,7 +156,7 @@
 
 - name: Create blackbox_exporter file_sd target configurations
   ansible.builtin.template:
-    src: /prometheus/conf/file_sd.d/blackbox-http/{{ item }}.yml.j2
+    src: prometheus/conf/file_sd.d/blackbox-http/{{ item }}.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/file_sd.d/blackbox-http/{{ item }}.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -166,7 +166,7 @@
 
 - name: Copy recording rules
   ansible.builtin.copy:
-    src: /prometheus/conf/rules/{{ item }}.yml
+    src: prometheus/conf/rules/{{ item }}.yml
     dest: /home/{{ prometheus_system_user }}/conf/rules/recording/{{ item }}.yml
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
@@ -176,7 +176,7 @@
 
 - name: Copy alerting rules
   ansible.builtin.copy:
-    src: /prometheus/conf/rules/{{ item }}.yml
+    src: prometheus/conf/rules/{{ item }}.yml
     dest: /home/{{ prometheus_system_user }}/conf/rules/alerting/{{ item }}.yml
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_user }}"
@@ -186,7 +186,7 @@
 
 - name: Create prometheus systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ prometheus_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ prometheus_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ prometheus_systemd_service_name }}.service
     mode: "0644"
   notify: Restart prometheus service
@@ -276,7 +276,7 @@
 
 - name: Modify blackbox_exporter main configuration
   ansible.builtin.template:
-    src: /blackbox_exporter/conf/blackbox.yml.j2
+    src: blackbox_exporter/conf/blackbox.yml.j2
     dest: /home/{{ prometheus_system_user }}/conf/blackbox.yml
     mode: "0644"
     owner: "{{ prometheus_system_user }}"
@@ -285,7 +285,7 @@
 
 - name: Create blackbox_exporter systemd service
   ansible.builtin.template:
-    src: /etc/systemd/system/{{ prometheus_blackbox_exporter_systemd_service_name }}.service.j2
+    src: etc/systemd/system/{{ prometheus_blackbox_exporter_systemd_service_name }}.service.j2
     dest: /etc/systemd/system/{{ prometheus_blackbox_exporter_systemd_service_name }}.service
     mode: "0644"
   notify: Restart blackbox_exporter service
