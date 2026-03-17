@@ -92,35 +92,6 @@
     owner: "{{ loki_system_user }}"
     provider: selfsigned
 
-# running into github api rate limits. moving this to a central system using sbom soon
-#     - name: Get latest Loki release info from github
-#       uri:
-#         url: https://api.github.com/repos/grafana/loki/releases/latest
-#         return_content: yes
-#       register: latest_release_info
-
-#     - name: Set release tag fact
-#       set_fact:
-#         latest_release_tag: "{{ latest_release_info.json.tag_name }}"
-
-#     - name: Warn if a newer Loki version exists
-#       ansible.builtin.debug:
-#         msg: |
-#           #################################################################
-#           # WARNING: New Loki version available                           #
-#           #   Pinned: {{ loki_version }}                                  #
-#           #   Latest: {{ latest_release_tag }}                           #
-#           #################################################################
-#       when: latest_release_tag[1:] is version(loki_version, '>')
-#       run_once: true
-#       changed_when: false
-
-#     - name: Get pinned Loki release info from github
-#       uri:
-#         url: https://github.com/grafana/loki/releases/tag/v{{ loki_version }}
-#         return_content: yes
-#       register: release_info
-
 - name: Set filename based on architecture
   ansible.builtin.set_fact:
     loki_filename: >-

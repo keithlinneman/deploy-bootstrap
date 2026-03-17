@@ -158,26 +158,6 @@
   failed_when: sha_check.rc != 0
   changed_when: false
 
-# verify sha256 sum of binary
-# - name: Verify sha256 sum of sitesuper-web binary
-#   command: >
-#     sha256sum /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
-#   register: sha256sum_result
-#   changed_when: false
-# - name: Exit if sha256 sum verification failed
-#   fail:
-#     msg: "SHA256 sum verification of sitesuper-web binary failed!"
-#   when: sha_check.stdout.split()[0] != sitesuper_web_binary_sha256
-
-# - name: Get sitesuper-web release from s3
-#   amazon.aws.s3_object:
-#     bucket: "{{ artifacts_bucket_name }}"
-#     object: "apps/sitesuper/web/releases/{{ sitesuper_release_id }}/linux/{{ architecture_normalized_name }}/sitesuper-web"
-#     dest: /home/{{ sitesuper_web_system_user }}/bin/sitesuper-web
-#     mode: get
-#     overwrite: different
-#   notify: Restart sitesuper-web service
-
 - name: Ensure sitesuper-web binary has correct permissions
   ansible.builtin.file:
     path: /opt/sitesuper/web/bin/sitesuper-web

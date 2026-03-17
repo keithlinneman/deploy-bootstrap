@@ -231,22 +231,7 @@
     mode: "0644"
     # backup: true
 
-# replacing with aws vpc ntp servers so i can filter egress heavily
-# - name: Configure NTP servers
-#   lineinfile:
-#     path: /etc/chrony/chrony.conf
-#     regexp: "{{ item.regexp }}"
-#     line: "{{ item.line }}"
-#     # backup: true
-#     backrefs: false
-#     create: true
-#   loop:
-#    - { regexp: '^pool\s*ntp.ubuntu.com*.*', line: 'pool 0.us.pool.ntp.org iburst maxsources 4' }
-#    - { regexp: '^pool 0.ubuntu.pool.ntp.org.*', line: '# pool 1.us.pool.ntp.org iburst maxsources 4' }
-#    - { regexp: '^pool 1.ubuntu.pool.ntp.org.*', line: '# pool 2.us.pool.ntp.org iburst maxsources 4' }
-#    - { regexp: '^pool 2.ubuntu.pool.ntp.org.*', line: '# server time.nist.gov iburst' }
-#   notify: Restart service chrony
-
+# Using AWS ntp servers so we can filter egress heavily
 - name: Configure NTP servers (aws vpc timeserver only)
   become: true
   ansible.builtin.lineinfile:

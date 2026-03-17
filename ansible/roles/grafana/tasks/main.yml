@@ -110,16 +110,6 @@
   notify: Restart grafana service
   when: ansible_os_family == 'Debian'
 
-# - name: Configure grafana for prometheus data source
-#  template:
-#    src: /etc/grafana/provisioning/datasources/prometheus.yaml.j2
-#    dest: /etc/grafana/provisioning/datasources/prometheus.yaml
-#    mode: 0644
-#    owner: root
-#    group: grafana
-#  notify: Restart grafana service
-#  when: ansible_os_family == 'Debian'
-
 - name: Enable grafana systemd service
   ansible.builtin.service:
     name: "{{ grafana_systemd_service_name }}"

@@ -101,35 +101,6 @@
     path: /home/{{ pyroscope_system_user }}/bin/pyroscope
   register: pyroscope_binary
 
-# - name: Get latest pyroscope release info from github
-#  uri:
-#    url: https://api.github.com/repos/grafana/pyroscope/releases/latest
-#    return_content: yes
-#  register: pyroscope_release_info
-
-# - name: Set release tag fact
-#  set_fact:
-#    pyroscope_release_tag: "{{ pyroscope_release_info.json.tag_name }}"
-
-# - name: Fail if pyroscope_release_tag asset not found
-#  fail:
-#    msg: "No asset found github latest release response"
-#  when: pyroscope_release_tag is not defined
-
-# - name: Set filename based on architecture
-#  set_fact:
-#    pyroscopecollector_asset_url: >-
-#      {%- if ansible_architecture == "aarch64" -%}
-#      https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_arm64.tar.gz
-#      {%- else -%}
-#      https://github.com/grafana/pyroscope/releases/download/{{ pyroscope_release_tag }}/pyroscope_{{ pyroscope_release_tag[1:] }}_linux_amd64.tar.gz
-#      {%- endif -%}
-
-# - name: Download the latest pyroscope release from github
-#  get_url:
-#    url: "{{ pyroscopecollector_asset_url }}"
-#    dest: /home/{{ pyroscope_system_user }}/pyroscope.tar.gz
-
 - name: Set normalized architecture name
   ansible.builtin.set_fact:
     arch_normalized: >-
