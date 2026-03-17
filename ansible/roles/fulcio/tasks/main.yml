@@ -204,7 +204,7 @@
     mode: "0600"
     content: "{{ fulcio_env_content }}"
   notify:
-    - restart fulcio service
+    - Restart fulcio service
 
 - name: Create fulcio systemd service
   ansible.builtin.template:

@@ -303,7 +303,7 @@
     content: "{{ vigil_env_content }}"
   no_log: true
   notify:
-    - restart vigil service
+    - Restart vigil service
 
 - name: Create vigil systemd service
   ansible.builtin.template:

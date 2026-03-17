@@ -198,7 +198,7 @@
     mode: "0600"
     content: "{{ tesseract_env_content }}"
   notify:
-    - restart tesseract service
+    - Restart tesseract service
 
 - name: Create tesseract systemd service
   ansible.builtin.template:

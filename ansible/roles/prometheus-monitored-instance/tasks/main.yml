@@ -112,7 +112,7 @@
     dest: /etc/systemd/system/{{ prometheus_node_exporter_systemd_service_name }}.service
     mode: "0644"
   notify:
-    - restart prometheus node_exporter systemd service
+    - Restart prometheus node_exporter systemd service
 
 - name: Enable prometheus node_exporter systemd service
   ansible.builtin.systemd:
@@ -196,7 +196,7 @@
     dest: /etc/systemd/system/{{ ebpf_exporter_systemd_service_name }}.service
     mode: "0644"
   notify:
-    - restart ebpf_exporter systemd service
+    - Restart ebpf_exporter systemd service
 
 - name: Enable prometheus ebpf_exporter systemd service
   ansible.builtin.systemd:

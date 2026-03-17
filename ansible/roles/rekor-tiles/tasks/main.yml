@@ -178,7 +178,7 @@
     content: "{{ rekor_env_content }}"
   no_log: true
   notify:
-    - restart rekor service
+    - Restart rekor service
 
 - name: Create rekor systemd service
   ansible.builtin.template:

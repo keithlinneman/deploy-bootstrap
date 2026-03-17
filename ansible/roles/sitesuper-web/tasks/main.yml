@@ -190,7 +190,7 @@
       PYRO_TENANT={{ company_name }}
   no_log: true
   notify:
-    - restart sitesuper-web service
+    - Restart sitesuper-web service
 
 - name: Create sitesuper-web systemd service
   ansible.builtin.template:

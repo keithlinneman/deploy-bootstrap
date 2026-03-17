@@ -191,7 +191,7 @@
       LMLABS_TRUSTED_PROXY_HOPS={{ linnemanlabs_web_server_trusted_proxy_hops }}
   no_log: true
   notify:
-    - restart linnemanlabs-web server service
+    - Restart linnemanlabs-web server service
 
 - name: Create linnemanlabs-web server systemd service
   ansible.builtin.template:
