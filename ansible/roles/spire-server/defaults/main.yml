@@ -9,17 +9,9 @@ spire_ca_subject_country: US
 spire_ca_subject_organization:
   - linnemanlabs.com
 spire_ca_subject_common_name: Linneman Labs Root CA
-spire_db_host: spire-rds.chog2qu22cu2.us-east-2.rds.amazonaws.com
-spire_db_port: 5432
-spire_db_name: spire
-spire_db_user: spire_server
-spire_db_type: rds
 spire_agent_svid_ttl: 1h
 spire_assume_iam_role: trust-spiffe-spire-server-{{ ansible_ec2_instance_identity_document_region }}
 spire_default_svid_ttl: 1h
-spire_intermediate_cert_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/cert-wbHUYE
-spire_intermediate_key_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/key-av1Icr
-spire_intermediate_bundle_arn: arn:aws:secretsmanager:us-east-2:283209027407:secret:app/spire/server/intermediate/bundle-MohJOG
 spire_log_level: INFO
 spire_log_format: json
 spire_log_audit_enabled: true
@@ -29,3 +21,9 @@ spire_server_grpc_port: 8081
 spire_server_metrics_port: 8088
 spire_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 spire_trust_materials_cert_chain_path: certs/spire-ca-chain.pem
+
+spire_db_endpoint_param: /platform/spire/server/db/endpoint
+spire_db_type: rds
+spire_intermediate_cert_arn_param: /platform/spire/server/intermediate/cert/arn
+spire_intermediate_key_arn_param: /platform/spire/server/intermediate/key/arn
+spire_intermediate_bundle_arn_param: /platform/spire/server/intermediate/bundle/arn

@@ -1,6 +1,7 @@
 ---
 - name: Include OS-specific variables
   ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
 - name: Get instance metadata
   amazon.aws.ec2_metadata_facts:
 
@@ -20,6 +21,7 @@
     spiffe_trust_domain: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/spiffe/trust_domain', region=ansible_ec2_instance_identity_document_region) }}"
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
     spire_iam_role_arn: "{{ lookup('amazon.aws.aws_ssm', '/platform/spire/ec2/iam/role/arn', region=ansible_ec2_instance_identity_document_region) }}"
+    spire_db_config: "{{ lookup('amazon.aws.ssm_parameter', spire_db_endpoint_param, region=ansible_ec2_instance_identity_document_region) | from_json }}"
 
 - name: Set facts from environment variables
   ansible.builtin.set_fact:
@@ -43,10 +45,10 @@
     - hosted_zone_name
     - platform_env
     - trust_materials_bucket_name
-    - spire_db_host
-    - spire_db_port
-    - spire_db_name
-    - spire_db_user
+    - spire_db_config.host
+    - spire_db_config.port
+    - spire_db_config.user
+    - spire_db_config.dbname
     - spire_intermediate_cert_arn
     - spire_intermediate_key_arn
     - spire_intermediate_bundle_arn
