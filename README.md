@@ -24,15 +24,91 @@ These were mostly written for Ubuntu. The core roles support any Debian, Amazon 
 
 These are run locally on the node being configured as part of either golden image creation or initial bootstrapping of a production instance.
 
-They are idempotent, but not designed for repeated runs as part of ongoing updates as the intended use-case (would cache downloads, parameterize more vars, separate playbooks into install/configure, etc).
+They are idempotent, but not designed for repeated runs as part of ongoing updates as the intended use-case (would cache downloads, parameterize more vars, separate tasks into install/configure, etc).
 
 All nodes are designed for ephemeral local storage. State is stored in RDS, S3, SecretsManager, SSM, etc - no role depends on local disk persistence.
+
+## Architecture
+
+### Supply Chain & Trust
+
+Binaries are built in GitHub Actions using our [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by our YubiKey-backed root CA.
+
+```mermaid
+graph LR
+    subgraph "Build & Sign"
+        A[GitHub Push] --> B[GitHub Actions]
+        B -->|OIDC Token| M[Fulcio]
+        M -->|Ephemeral Cert| B
+        M -->|Certificate Log| CT[TesseraCT]
+        B --> C[Cosign Sign via KMS]
+        C -->|Request Timestamp| N[Timestamp Authority]
+        N -->|RFC 3161 Token| C
+        C --> D[Attestation → Rekor]
+        C -->|Binary + Bundle| S3[S3]
+        D -->|Transparency| O[Tessera/S3]
+        CT -->|Transparency| O
+    end
+
+    subgraph "Deploy & Verify"
+        F[Node Bootstrap] <-->|Fetch| S3
+        F --> G[Cosign Verify + SHA256]
+        G --> H[Atomic Deploy]
+        H --> R[Running Workload]
+    end
+
+    subgraph "Node Identity"
+        J[SPIRE Server] <-->|KMS Upstream CA| L[AWS KMS]
+        K[SPIRE Agent] -->|Attest + Fetch SVID| J
+        J -->|SVID + Registrations| K
+        K -->|Workload SVID| R
+    end
+```
+
+### Observability & Alerting
+Metrics are scraped by per-account Prometheus instances and remote-written to Mimir for long-term storage. Logs and traces flow through OTel Collector to Loki and Tempo. Alloy handles continuous profiling to Pyroscope and also forwards instrumented application profiles. Tempo generates RED metrics from traces back to Mimir. Alerts route through Alertmanager to both Slack and [Vigil](https://github.com/linnemanlabs/vigil), which uses the Claude API to query Prometheus, Loki, and AWS at alert time and post AI-assisted triage to Slack.
+
+```mermaid
+graph LR
+    subgraph "Collection"
+        R[Workloads] -->|metrics| NE[Node Exporter]
+        R -->|metrics| EB[eBPF Exporter]
+        R -->|profiles| AL[Alloy]
+        R -->|logs/traces| OT[OTel Collector]
+    end
+
+    subgraph "Aggregation"
+        NE <--> P[Prometheus]
+        EB <--> P
+    end
+
+    subgraph "Storage & Query"
+        P -->|remote write| MI[Mimir]
+        OT -->|logs| LO[Loki]
+        OT -->|traces| TE[Tempo]
+        AL -->|profiles| PY[Pyroscope]
+        TE -->|metrics-generator| MI
+    end
+
+    subgraph "Visualization & Alerting"
+        GR[Grafana] --> MI
+        GR --> LO
+        GR --> TE
+        GR --> PY
+        P --> AM[Alertmanager]
+        AM --> VI[Vigil]
+        VI -->|Claude API| AI[AI Triage]
+        AI --> SL[Slack]
+        AM --> SL[Slack]
+    end
+```
 
 ## Roles
 
 ### System
 - `common` - Base OS setup, package management, timezone, swap, services, MOTD
 - `common-security` - CIS benchmark hardening (SSH, PAM, auditd, AIDE, sysctl, kernel modules, cron, firewall, password policy, AppArmor)
+- `bastion` - Bastion/jump host configuration
 
 ### Observability
 - `prometheus` - Prometheus server, blackbox exporter, scrape configs, recording and alerting rules
