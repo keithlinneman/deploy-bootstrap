@@ -22,6 +22,9 @@
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
     spire_iam_role_arn: "{{ lookup('amazon.aws.aws_ssm', '/platform/spire/ec2/iam/role/arn', region=ansible_ec2_instance_identity_document_region) }}"
     spire_db_config: "{{ lookup('amazon.aws.ssm_parameter', spire_db_endpoint_param, region=ansible_ec2_instance_identity_document_region) | from_json }}"
+    spire_intermediate_cert_arn: "{{ lookup('amazon.aws.aws_ssm', spire_intermediate_cert_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
+    spire_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', spire_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
+    spire_intermediate_bundle_arn: "{{ lookup('amazon.aws.aws_ssm', spire_intermediate_bundle_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
 
 - name: Set facts from environment variables
   ansible.builtin.set_fact:
