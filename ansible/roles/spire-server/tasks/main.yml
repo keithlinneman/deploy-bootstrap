@@ -45,10 +45,7 @@
     - hosted_zone_name
     - platform_env
     - trust_materials_bucket_name
-    - spire_db_config.host
-    - spire_db_config.port
-    - spire_db_config.user
-    - spire_db_config.dbname
+    - spire_db_config
     - spire_intermediate_cert_arn
     - spire_intermediate_key_arn
     - spire_intermediate_bundle_arn
