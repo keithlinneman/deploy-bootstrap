@@ -14,7 +14,7 @@
     artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
     company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
     hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
-    trust_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/dns/internal/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_domain_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/domain/name', region=ansible_ec2_instance_identity_document_region) }}"
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', tesseract_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region) }}"
     tesseract_s3_bucket: "{{ lookup('amazon.aws.aws_ssm', '/platform/tesseract/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
@@ -54,7 +54,7 @@
     - trust_materials_bucket_name
     - tesseract_config_checkpoint_key_location
     - tesseract_config_checkpoint_pubkey_location
-    - trust_zone_name
+    - trust_domain_name
     - tesseract_s3_bucket
 
 - name: Create tesseract user

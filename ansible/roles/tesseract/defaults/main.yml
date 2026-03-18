@@ -2,17 +2,18 @@
 tesseract_version: 0.1.1
 tesseract_binary_sha256: cb180c564fffabf812b4dce93d81bc2af9dc644260be5a10b906d47d7eadabb7
 
-tesseract_checkpoint_key_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tesseract/signing/checkpoint/signing/key"
-tesseract_checkpoint_pubkey_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tesseract/signing/checkpoint/signing/pubkey"
 tesseract_db_name: tesseract
 tesseract_db_max_open_conns: 20
 tesseract_db_max_idle_conns: 2
 tesseract_log_to_stderr: true
 tesseract_log_verbosity: 0
-tesseract_origin: tesseract.{{ trust_zone_name }}
+tesseract_origin: tesseract.{{ trust_domain_name }}
 tesseract_publication_awaiter: true
 tesseract_reject_expired: true
 tesseract_server_address: 0.0.0.0
 tesseract_server_port: 6962
 tesseract_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 tesseract_trust_materials_cert_chain_path: certs/fulcio-ca.crt
+
+tesseract_checkpoint_key_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tesseract/signing/checkpoint/signing/key"
+tesseract_checkpoint_pubkey_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tesseract/signing/checkpoint/signing/pubkey"
