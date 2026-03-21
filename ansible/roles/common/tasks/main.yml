@@ -299,10 +299,15 @@
 - name: Install the grafana gpg key
   ansible.builtin.get_url:
     url: https://apt.grafana.com/gpg.key
-    dest: /usr/share/keyrings/grafana-archive-keyring.gpg
+    dest: /root/grafana-archive-keyring.gpg
     mode: "0644"
     owner: root
     group: root
+
+- name: Dearmor grafana gpg key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/grafana-archive-keyring.gpg /root/grafana-archive-keyring.gpg
+    creates: /usr/share/keyrings/grafana-archive-keyring.gpg
 
 - name: Ensure grafana gpg key is 644 not 640 or apt breaks
   ansible.builtin.file:
