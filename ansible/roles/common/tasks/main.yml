@@ -48,6 +48,7 @@
   failed_when:
     - service_result is failed
     - "'does not exist' not in service_result.msg"
+    - "'Could not find the requested service' not in service_result.msg"
 
 - name: (Debian) Disable multicast name resolution (listens on all addresses publicly)
   community.general.ini_file:
