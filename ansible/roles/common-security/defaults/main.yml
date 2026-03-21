@@ -13,7 +13,7 @@ system_filesystem_umask_default: "027"
 system_filesystem_umask_root: "0027"
 sudo_log_file: "/var/log/sudo.log"
 service_audit_logs_max_filesize: 50
-system_logs_size_max: "10G"
+system_logs_size_max: "1G"
 service_ssh_config_kex_algorithms: "diffie-hellman-group18-sha512,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp521,ecdh-sha2-nistp256"
 # su disabled
 system_su_group: "nosugroup"
