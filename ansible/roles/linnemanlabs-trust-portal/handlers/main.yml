@@ -1,5 +1,5 @@
 ---
-- name: Restart linnemanlabs-trust-portal server service
+- name: Restart trustportal server service
   ansible.builtin.systemd:
     name: "{{ trustportal_systemd_service_name }}"
     state: restarted
