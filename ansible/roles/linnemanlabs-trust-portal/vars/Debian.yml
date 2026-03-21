@@ -1,0 +1,3 @@
+---
+trustportal_system_user: linnemanlabs-web
+trustportal_systemd_service_name: linnemanlabs-web-server

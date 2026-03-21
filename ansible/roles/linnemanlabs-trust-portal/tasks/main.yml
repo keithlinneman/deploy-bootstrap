@@ -1,0 +1,234 @@
+---
+- name: Include OS variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  amazon.aws.ec2_metadata_facts:
+
+- name: Set environment variables from SSM and Secrets Manager that require ec2 env first
+  ansible.builtin.set_fact:
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
+    trustportal_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-trust-portal/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region) }}"
+    security_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/security/account/id', region=ansible_ec2_instance_identity_document_region) }}"
+
+- name: Set security account signing key arn ssm param path
+  ansible.builtin.set_fact:
+    signing_key_arn_ssm_parameter: "arn:aws:ssm:{{ ansible_ec2_instance_identity_document_region }}:{{ security_account_id }}:parameter/app/trustportal/signing/kms/arn"
+
+- name: Get application signing key arn from security account
+  ansible.builtin.set_fact:
+    app_signing_key_arn: "{{ lookup('amazon.aws.aws_ssm', signing_key_arn_ssm_parameter, region=ansible_ec2_instance_identity_document_region) }}"
+
+- name: Set cosign key URL
+  ansible.builtin.set_fact:
+    cosign_key_url: "awskms:///{{ app_signing_key_arn }}"
+
+- name: Set base application directory
+  ansible.builtin.set_fact:
+    trustportal_app_dir: "/opt/trustportal/server"
+
+- name: Print all environment vars for debugging
+  ansible.builtin.debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Ensure required variables are defined
+  ansible.builtin.assert:
+    that:
+      - company_name is defined
+      - platform_env is defined
+      - artifacts_bucket_name is defined
+      - otlp_profiles_endpoint is defined
+      - trustportal_release_id is defined
+      - trustportal_app_dir is defined
+      - cosign_key_url is defined
+      - cosign_trusted_root_path is defined
+
+- name: Create linnemanlabs-trust-portal user
+  ansible.builtin.user:
+    name: "{{ trustportal_system_user }}"
+    password: "*"
+    umask: "027"
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Create linnemanlabs-trust-portal directories
+  ansible.builtin.file:
+    path: "{{ trustportal_app_dir }}/{{ item }}"
+    owner: "root"
+    group: "{{ trustportal_system_user }}"
+    mode: "0750"
+    state: directory
+  loop:
+    - server
+    - server/bin
+
+- name: Set architecture format based on normalized naming
+  ansible.builtin.set_fact:
+    architecture_normalized_name: >-
+      {%- if ansible_architecture == "aarch64" -%} arm64{%- else -%} amd64{%- endif -%}
+
+# download release index and signature
+- name: Get trustportal server release.json index and both keyless+kms bundle.sigstore.json from s3
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/trustportal/server/releases/{{ trustportal_release_id }}/{{ item }}"
+    dest: "{{ trustportal_app_dir }}{{ item }}"
+    mode: get
+    overwrite: different
+  loop:
+    - release.json
+    - release.json.kms.bundle.sigstore.json
+    - release.json.keyless.bundle.sigstore.json
+
+# verify kms signature
+- name: Verify trustportal server release index signature using kms bundle
+  ansible.builtin.command: >
+    cosign verify-blob
+    --key="{{ cosign_key_url }}"
+    --bundle={{ trustportal_app_dir }}/release.json.kms.bundle.sigstore.json
+    --trusted-root={{ cosign_trusted_root_path }}
+    {{ trustportal_app_dir }}release.json
+  environment:
+    AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
+  register: cosign_verify_result
+  failed_when: cosign_verify_result.rc != 0
+  changed_when: false
+
+# verify keyless signature
+- name: Verify trustportal server release index signature using keyless bundle
+  ansible.builtin.command: >
+    cosign verify-blob
+    --bundle={{ trustportal_app_dir }}/release.json.keyless.bundle.sigstore.json
+    --trusted-root={{ cosign_trusted_root_path }}
+    {{ trustportal_app_dir }}release.json
+  environment:
+    AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
+  register: cosign_verify_result
+  failed_when: cosign_verify_result.rc != 0
+  changed_when: false
+
+# load release index
+- name: Load release index
+  ansible.builtin.set_fact:
+    release_index: "{{ lookup('file', '{{ trustportal_app_dir }}release.json') | from_json }}"
+
+# find binary path for our architecture
+- name: Set trustportal server binary path from release index
+  ansible.builtin.set_fact:
+    trustportal_binary_path: >-
+      {{ release_index.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.path')
+        | first }}
+
+# find sha256 sum for our architecture
+- name: Find sha256 sum for trustportal server binary
+  ansible.builtin.set_fact:
+    trustportal_binary_sha256: >-
+      {{ release_index.artifacts
+        | selectattr('os','equalto','linux')
+        | selectattr('arch','equalto',architecture_normalized_name)
+        | map(attribute='binary.sha256')
+        | first }}
+
+- name: Ensure release index contains an artifact for this os/arch
+  ansible.builtin.fail:
+    msg: "No artifact found in release.json for server linux/{{ architecture_normalized_name }}"
+  when: trustportal_binary_path | default('') == ''
+
+- name: Ensure release index contains an sha256 sum for this artifact
+  ansible.builtin.fail:
+    msg: "No sha256 sum found in release.json for server linux/{{ architecture_normalized_name }}"
+  when: trustportal_binary_sha256 | default('') == ''
+
+# download binary
+- name: Download trustportal server binary for our architecture
+  amazon.aws.s3_object:
+    bucket: "{{ artifacts_bucket_name }}"
+    object: "apps/trustportal/server/releases/{{ trustportal_release_id }}/{{ trustportal_binary_path }}"
+    dest: "{{ trustportal_app_dir }}bin/trustportal-server"
+    mode: get
+    overwrite: different
+  notify: Restart trustportal server service
+
+- name: Create sha256 sum file for verification
+  ansible.builtin.copy:
+    dest: "{{ trustportal_app_dir }}bin/trustportal-server.sha256.expected"
+    content: "{{ trustportal_binary_sha256 }}  {{ trustportal_app_dir }}bin/trustportal-server\n"
+    mode: "0644"
+
+- name: Verify sha256 sum using sha256sum
+  ansible.builtin.command: "sha256sum -c {{ trustportal_app_dir }}bin/trustportal-server.sha256.expected"
+  register: sha_check
+  failed_when: sha_check.rc != 0
+  changed_when: false
+
+- name: Ensure trustportal server binary has correct permissions
+  ansible.builtin.file:
+    path: "{{ trustportal_app_dir }}bin/trustportal-server"
+    owner: "root"
+    group: "{{ trustportal_system_user }}"
+    mode: "0750"
+
+- name: Ensure /etc/trustportal directory exists
+  ansible.builtin.file:
+    path: /etc/trustportal
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write trustportal server environment file
+  ansible.builtin.copy:
+    dest: /etc/trustportal/trustportal-server.env
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
+      LMLABS_ENABLE_TRACING=true
+      LMLABS_OTLP_ENDPOINT=127.0.0.1:4317
+      LMLABS_ENABLE_PYROSCOPE=true
+      LMLABS_PYRO_SERVER={{ otlp_profiles_endpoint }}
+      LMLABS_PYRO_TENANT={{ company_name }}
+      LMLABS_TRUSTED_PROXY_HOPS={{ trustportal_trusted_proxy_hops }}
+  no_log: true
+  notify:
+    - Restart trustportal server service
+
+- name: Create trustportal server systemd service
+  ansible.builtin.template:
+    src: etc/systemd/system/{{ trustportal_systemd_service_name }}.service.j2
+    dest: /etc/systemd/system/{{ trustportal_systemd_service_name }}.service
+    mode: "0644"
+  notify: Restart trustportal server service
+
+- name: Enable trustportal server systemd service
+  ansible.builtin.systemd:
+    name: "{{ trustportal_systemd_service_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Allow trustportal server traffic through firewall
+  community.general.ufw:
+    port: "{{ trustportal_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow trustportal server admin port traffic through firewall
+  community.general.ufw:
+    port: "{{ trustportal_admin_tcp_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'

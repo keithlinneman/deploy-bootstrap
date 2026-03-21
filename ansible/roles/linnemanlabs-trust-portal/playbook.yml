@@ -1,0 +1,6 @@
+---
+- name: Linnemanlabs-trust-portal playbook
+  hosts: all
+  become: true
+  roles:
+    - role: "{{ playbook_dir }}"

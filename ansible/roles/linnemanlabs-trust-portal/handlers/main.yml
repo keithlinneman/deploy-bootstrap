@@ -1,0 +1,7 @@
+---
+- name: Restart linnemanlabs-trust-portal server service
+  ansible.builtin.systemd:
+    name: "{{ linnemanlabs_trust_portal_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
