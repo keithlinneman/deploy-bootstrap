@@ -15,7 +15,7 @@
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
     otlp_profiles_endpoint: "{{ lookup('amazon.aws.aws_ssm', '/platform/obs/profiles/push/endpoint', region=ansible_ec2_instance_identity_document_region) }}"
-    trustportal_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/linnemanlabs-trust-portal/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region) }}"
+    trustportal_release_id: "{{ lookup('amazon.aws.aws_ssm', '/app/trustportal/server/deploy/stable/release/id', region=ansible_ec2_instance_identity_document_region) }}"
     security_account_id: "{{ lookup('amazon.aws.aws_ssm', '/platform/security/account/id', region=ansible_ec2_instance_identity_document_region) }}"
 
 - name: Set security account signing key arn ssm param path
@@ -95,7 +95,7 @@
     --key="{{ cosign_key_url }}"
     --bundle={{ trustportal_app_dir }}/release.json.kms.bundle.sigstore.json
     --trusted-root={{ cosign_trusted_root_path }}
-    {{ trustportal_app_dir }}release.json
+    {{ trustportal_app_dir }}/release.json
   environment:
     AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
   register: cosign_verify_result
@@ -108,7 +108,7 @@
     cosign verify-blob
     --bundle={{ trustportal_app_dir }}/release.json.keyless.bundle.sigstore.json
     --trusted-root={{ cosign_trusted_root_path }}
-    {{ trustportal_app_dir }}release.json
+    {{ trustportal_app_dir }}/release.json
   environment:
     AWS_REGION: "{{ ansible_ec2_instance_identity_document_region }}"
   register: cosign_verify_result
@@ -118,7 +118,7 @@
 # load release index
 - name: Load release index
   ansible.builtin.set_fact:
-    release_index: "{{ lookup('file', '{{ trustportal_app_dir }}release.json') | from_json }}"
+    release_index: "{{ lookup('file', '{{ trustportal_app_dir }}/release.json') | from_json }}"
 
 # find binary path for our architecture
 - name: Set trustportal server binary path from release index
