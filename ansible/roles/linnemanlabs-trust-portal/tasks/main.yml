@@ -178,7 +178,7 @@
     - name: Download trustportal binary to staging
       amazon.aws.s3_object:
         bucket: "{{ artifacts_bucket_name }}"
-        object: "apps/trustportal/server/releases/{{ trustportal_server_release_id }}/{{ trustportal_binary_path }}"
+        object: "apps/trustportal/server/releases/{{ trustportal_release_id }}/{{ trustportal_binary_path }}"
         dest: "{{ staging_dir }}/trustportal-server"
         mode: get
         overwrite: always
@@ -209,7 +209,7 @@
         cmd: mv "{{ staging_dir }}/trustportal-server" "{{ trustportal_app_dir }}/bin/trustportal-server"
         removes: "{{ staging_dir }}/trustportal-server"
         creates: "{{ trustportal_app_dir }}/bin/trustportal-server"
-      notify: Restart trustportal service
+      notify: Restart trustportal serverservice
 
     - name: Clean staging directory
       ansible.builtin.file:
@@ -246,8 +246,7 @@
       LMLABS_PYRO_TENANT={{ company_name }}
       LMLABS_TRUSTED_PROXY_HOPS={{ trustportal_trusted_proxy_hops }}
   no_log: true
-  notify:
-    - Restart trustportal server service
+  notify: Restart trustportal server service
 
 - name: Create trustportal server systemd service
   ansible.builtin.template:
