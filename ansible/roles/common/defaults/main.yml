@@ -1,9 +1,9 @@
 ---
 common_cosign_version:
-  arm64: "3.0.3"
+  arm64: "3.0.5"
 
 common_cosign_sha256:
-  arm64: "81398231362031e3c7afd6a7508c57049460cd7e02736f1ebe89a452102253e5"
+  arm64: "d098f3168ae4b3aa70b4ca78947329b953272b487727d1722cb3cb098a1a20ab"
 
 common_swap_file_enabled: true
 common_swap_file_path: /swapfile
