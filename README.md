@@ -32,7 +32,7 @@ All nodes are designed for ephemeral local storage. State is stored in RDS, S3, 
 
 ### Supply Chain & Trust
 
-Binaries are built in GitHub Actions using our [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by our YubiKey-backed root CA.
+Binaries are built in GitHub Actions using my [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by a YubiKey-backed root CA.
 
 ```mermaid
 graph LR
@@ -125,7 +125,7 @@ graph LR
 - `vigil` - AI-Powered alert analysis and triage. [Vigil sourcecode on GitHub](https://github.com/linnemanlabs/vigil)
 
 ### Trust & Transparency
-- `spire-server` - SPIFFE/SPIRE server with KMS-backed upstream authority and PostgreSQL datastore
+- `spire-server` - SPIFFE/SPIRE server with KMS-backed leaf signing and PostgreSQL datastore
 - `spire-agent` - SPIRE agent with workload attestation
 - `fulcio` - Sigstore Fulcio certificate authority for keyless code signing
 - `rekor-tiles` - Sigstore Rekor transparency log (v2/Tessera backend)
