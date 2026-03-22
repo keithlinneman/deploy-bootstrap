@@ -294,12 +294,15 @@
       TRUSTPORTAL_TLS_KEY_FILE={{ trustportal_tls_key_path }}
       {% endif %}
       TRUSTPORTAL_ADMIN_PORT={{ trustportal_admin_tcp_port }}
+      TRUSTPORTAL_HTTP_PORT={{ trustportal_tcp_port }}
       TRUSTPORTAL_ENABLE_TRACING=true
       TRUSTPORTAL_OTLP_ENDPOINT=127.0.0.1:4317
+      TRUSTPORTAL_OTLP_INSECURE=true
       TRUSTPORTAL_ENABLE_PYROSCOPE=true
       TRUSTPORTAL_PYRO_SERVER={{ otlp_profiles_endpoint }}
       TRUSTPORTAL_PYRO_TENANT={{ company_name }}
       TRUSTPORTAL_TRUSTED_PROXY_HOPS={{ trustportal_trusted_proxy_hops }}
+      TRUSTPORTAL_LOG_LEVEL={{ trustportal_log_level }}
   no_log: true
   notify: Restart trustportal server service
 
