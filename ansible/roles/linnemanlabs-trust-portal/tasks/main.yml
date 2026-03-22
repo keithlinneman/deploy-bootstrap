@@ -231,6 +231,55 @@
     group: root
     mode: "0755"
 
+
+- name: Generate self-signed TLS certificates for trustportal server
+  when: trustportal_tls_enabled and trustportal_tls_self_signed
+  block:
+    - name: Set ssl directory path
+      ansible.builtin.set_fact:
+        ssl_dir: "{{ trustportal_app_dir }}/conf/ssl"
+
+    - name: Set trustportal TLS cert and key paths
+      ansible.builtin.set_fact:
+        trustportal_tls_cert_path: "{{ ssl_dir }}/cert.pem"
+        trustportal_tls_key_path: "{{ ssl_dir }}/cert.key"
+
+    - name: Create ssl directories
+      ansible.builtin.file:
+        path: "{{ ssl_dir }}"
+        owner: "root"
+        group: "{{ trustportal_server_system_user }}"
+        mode: "0750"
+        state: directory
+
+    - name: Check if ssl cert already exists
+      ansible.builtin.stat:
+        path: "{{ trustportal_tls_cert_path }}"
+      register: trustportal_cert
+
+    - name: Generate private key for local self signed ssl cert
+      community.crypto.openssl_privatekey:
+        path: "{{ trustportal_tls_key_path }}"
+        owner: "{{ trustportal_server_system_user }}"
+      when: not trustportal_cert.stat.exists
+
+    - name: Generate CSR for self-signed certificate for local https listener
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ trustportal_tls_key_path }}"
+        common_name: "{{ ansible_nodename }}"
+      register: csr
+      when: not trustportal_cert.stat.exists
+
+    - name: Generate self-signed certificate for local https listener
+      community.crypto.x509_certificate:
+        path: "{{ trustportal_tls_cert_path }}"
+        csr_content: "{{ csr.csr }}"
+        privatekey_path: "{{ trustportal_tls_key_path }}"
+        owner: "{{ trustportal_server_system_user }}"
+        provider: selfsigned
+      when: not trustportal_cert.stat.exists
+      notify: Restart trustportal service
+
 - name: Write trustportal server environment file
   ansible.builtin.copy:
     dest: /etc/trustportal/trustportal-server.env
@@ -239,12 +288,18 @@
     mode: "0600"
     content: |
       AWS_REGION={{ ansible_ec2_instance_identity_document_region }}
-      LMLABS_ENABLE_TRACING=true
-      LMLABS_OTLP_ENDPOINT=127.0.0.1:4317
-      LMLABS_ENABLE_PYROSCOPE=true
-      LMLABS_PYRO_SERVER={{ otlp_profiles_endpoint }}
-      LMLABS_PYRO_TENANT={{ company_name }}
-      LMLABS_TRUSTED_PROXY_HOPS={{ trustportal_trusted_proxy_hops }}
+      {% if trustportal_tls_enabled | default(false) %}
+      TRUSTPORTAL_ENABLE_TLS=true
+      TRUSTPORTAL_TLS_CERT_FILE={{ trustportal_tls_cert_path }}
+      TRUSTPORTAL_TLS_KEY_FILE={{ trustportal_tls_key_path }}
+      {% endif %}
+      TRUSTPORTAL_ADMIN_PORT={{ trustportal_admin_tcp_port }}
+      TRUSTPORTAL_ENABLE_TRACING=true
+      TRUSTPORTAL_OTLP_ENDPOINT=127.0.0.1:4317
+      TRUSTPORTAL_ENABLE_PYROSCOPE=true
+      TRUSTPORTAL_PYRO_SERVER={{ otlp_profiles_endpoint }}
+      TRUSTPORTAL_PYRO_TENANT={{ company_name }}
+      TRUSTPORTAL_TRUSTED_PROXY_HOPS={{ trustportal_trusted_proxy_hops }}
   no_log: true
   notify: Restart trustportal server service
 
