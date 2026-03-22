@@ -248,7 +248,7 @@
       ansible.builtin.file:
         path: "{{ ssl_dir }}"
         owner: "root"
-        group: "{{ trustportal_server_system_user }}"
+        group: "{{ trustportal_system_user }}"
         mode: "0750"
         state: directory
 
@@ -260,7 +260,7 @@
     - name: Generate private key for local self signed ssl cert
       community.crypto.openssl_privatekey:
         path: "{{ trustportal_tls_key_path }}"
-        owner: "{{ trustportal_server_system_user }}"
+        owner: "{{ trustportal_system_user }}"
       when: not trustportal_cert.stat.exists
 
     - name: Generate CSR for self-signed certificate for local https listener
@@ -275,7 +275,7 @@
         path: "{{ trustportal_tls_cert_path }}"
         csr_content: "{{ csr.csr }}"
         privatekey_path: "{{ trustportal_tls_key_path }}"
-        owner: "{{ trustportal_server_system_user }}"
+        owner: "{{ trustportal_system_user }}"
         provider: selfsigned
       when: not trustportal_cert.stat.exists
       notify: Restart trustportal service
