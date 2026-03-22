@@ -278,7 +278,7 @@
         owner: "{{ trustportal_system_user }}"
         provider: selfsigned
       when: not trustportal_cert.stat.exists
-      notify: Restart trustportal service
+      notify: Restart trustportal server service
 
 - name: Write trustportal server environment file
   ansible.builtin.copy:
