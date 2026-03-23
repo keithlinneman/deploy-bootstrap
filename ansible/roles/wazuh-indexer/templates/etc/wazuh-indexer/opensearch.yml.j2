@@ -1,6 +1,6 @@
 cluster.name: {{ wazuh_cluster_name }}
 
-node.name: {{ wazuh_node_name }}
+node.name: {{ host_nounique }}
 node.roles: {{ wazuh_indexer_roles | to_json }}
 
 network.host: {{ wazuh_listen_address }}

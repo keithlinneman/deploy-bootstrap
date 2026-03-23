@@ -16,7 +16,7 @@
     artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
     trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
     company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
     wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
