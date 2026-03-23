@@ -1,22 +1,22 @@
-cluster.name: "{{ wazuh_cluster_name }}"
+cluster.name: {{ wazuh_cluster_name }}
 
-node.name: "{{ wazuh_node_name }}"
-node.roles: "{{ wazuh_indexer_roles | to_json }}"
+node.name: {{ wazuh_node_name }}
+node.roles: {{ wazuh_indexer_roles | to_json }}
 
-network.host: "{{ wazuh_listen_address }}"
+network.host: {{ wazuh_listen_address }}
 # network.publish_host: _ec2:privateIpv4_
-network.publish_host: "{{ wazuh_publish_address }}"
+network.publish_host: {{ wazuh_publish_address }}
 
-http.port: "{{ wazuh_listen_http_port }}"
-transport.port: "{{ wazuh_listen_transport_port }}"
+http.port: {{ wazuh_listen_http_port }}
+transport.port: {{ wazuh_listen_transport_port }}
 
-discovery.seed_hosts: "{{ wazuh_cluster_discovery_seed_hosts | to_json }}"
-cluster.initial_cluster_manager_nodes: "{{ wazuh_cluster_initial_manager_nodes | to_json }}"
+discovery.seed_hosts: {{ wazuh_cluster_discovery_seed_hosts | to_json }}
+cluster.initial_cluster_manager_nodes: {{ wazuh_cluster_initial_manager_nodes | to_json }}
 
 
-path.data: "{{ wazuh_indexer_path_data }}"
-path.logs: "{{ wazuh_indexer_path_logs }}"
-node.max_local_storage_nodes: "{{ wazuh_max_local_storage_nodes }}"
+path.data: {{ wazuh_indexer_path_data }}
+path.logs: {{ wazuh_indexer_path_logs }}
+node.max_local_storage_nodes: {{ wazuh_max_local_storage_nodes }}
 cluster.remote_store.state.enabled: {{ wazuh_cluster_remote_store_state_enabled | lower }}
 
 {% if wazuh_cluster_remote_store_state_enabled %}
@@ -40,20 +40,20 @@ node.attr.remote_store.repository.wazuh-state.settings.base_path: {{ wazuh_index
 node.attr.remote_store.repository.wazuh-state.settings.region: {{ ansible_ec2_instance_identity_document_region }}
 {% endif %}
 
-plugins.security.ssl.transport.pemcert_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
-plugins.security.ssl.transport.pemkey_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
-plugins.security.ssl.transport.pemtrustedcas_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem"
-plugins.security.ssl.transport.enforce_hostname_verification: true
-plugins.security.ssl.transport.resolve_hostname: false
+plugins.security.ssl.transport.pemcert_filepath: {{ wazuh_indexer_ssl_transport_cert_path }}
+plugins.security.ssl.transport.pemkey_filepath: {{ wazuh_indexer_ssl_transport_key_path }}
+plugins.security.ssl.transport.pemtrustedcas_filepath: {{ wazuh_indexer_ssl_transport_ca_path }}
+plugins.security.ssl.transport.enforce_hostname_verification: {{ wazuh_security_transport_enforce_hostname_verification }}
+plugins.security.ssl.transport.resolve_hostname: {{ wazuh_security_transport_resolve_hostname | lower }}
 
 plugins.security.ssl.http.enabled: true
-plugins.security.ssl.http.pemcert_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
-plugins.security.ssl.http.pemkey_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
-plugins.security.ssl.http.pemtrustedcas_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem"
+plugins.security.ssl.http.pemcert_filepath: {{ wazuh_indexer_ssl_transport_cert_path }}
+plugins.security.ssl.http.pemkey_filepath: {{ wazuh_indexer_ssl_transport_key_path }}
+plugins.security.ssl.http.pemtrustedcas_filepath: {{ wazuh_indexer_ssl_http_ca_path }}
 
 plugins.security.allow_default_init_securityindex: true
-plugins.security.authcz.admin_dn: "{{ wazuh_security_authcz_admin_dn | to_json }}"
-plugins.security.nodes_dn: "{{ wazuh_security_nodes_dn | to_json }}"
+plugins.security.authcz.admin_dn: {{ wazuh_security_authcz_admin_dn | to_json }}
+plugins.security.nodes_dn: {{ wazuh_security_nodes_dn | to_json }}
 
 plugins.security.audit.type: {{ wazuh_security_audit_type }}
 plugins.security.restapi.roles_enabled: {{ wazuh_security_restapi_roles_enabled | to_json }}

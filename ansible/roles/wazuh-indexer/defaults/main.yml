@@ -30,17 +30,21 @@ wazuh_indexer_s3_segments_prefix: segments
 wazuh_indexer_s3_translog_prefix: translog
 wazuh_indexer_s3_state_prefix: state
 
+wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
 wazuh_indexer_ssl_organization_name: linnemanlabs.com
 wazuh_component_ssl_cert_validity_days: 28
 wazuh_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
 
 wazuh_indexer_ssl_transport_cert_path: /etc/wazuh-indexer/ssl/node.crt
 wazuh_indexer_ssl_transport_key_path: /etc/wazuh-indexer/ssl/node.key
-wazuh_indexer_ssl_transport_ca_path: /etc/wazuh-indexer/ssl/component-ca.crt
+wazuh_indexer_ssl_transport_ca_path: /etc/wazuh-indexer/ssl/wazuh-component-ca.crt
 
 wazuh_indexer_ssl_http_cert_path: /etc/wazuh-indexer/ssl/node.crt
 wazuh_indexer_ssl_http_key_path: /etc/wazuh-indexer/ssl/node.key
-wazuh_indexer_ssl_http_ca_path: /etc/wazuh-indexer/ssl/component-ca.crt
+wazuh_indexer_ssl_http_ca_path: /etc/wazuh-indexer/ssl/wazuh-component-ca.crt
+
+wazuh_security_transport_enforce_hostname_verification: true
+wazuh_security_transport_resolve_hostname: false
 
 wazuh_security_allow_default_init_securityindex: true
 wazuh_security_authcz_admin_dn: CN=wazuh-admin,O=linnemanlabs.com

@@ -14,10 +14,10 @@
   ansible.builtin.set_fact:
     account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
     artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
     company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
-    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
-    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region) }}"
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
     wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
     host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
@@ -48,15 +48,13 @@
     - wazuh_components_intermediate_key_arn
 
 - name: Add wazuh apt repository GPG key
-  ansible.builtin.command:
-    copy:
-      # dearmored from source: https://packages.wazuh.com/key/GPG-KEY-WAZUH
-      src: wazuh/wazuh-apt.gpg
-      dst: /usr/share/keyrings/wazuh.gpg
-      owner: root
-      group: root
-      mode: "0644"
-    creates: /usr/share/keyrings/wazuh.gpg
+  ansible.builtin.copy:
+    # dearmored from source: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    src: wazuh/wazuh-apt.gpg
+    dest: /usr/share/keyrings/wazuh.gpg
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Add the wazuh apt repository
   ansible.builtin.apt_repository:
