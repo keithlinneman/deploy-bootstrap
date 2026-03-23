@@ -209,17 +209,17 @@
     cmd: >-
       {{ kms_csr_tool_base_path }}/kms-csr-tool sign
         {{ wazuh_components_intermediate_key_arn }}
-        {{ wazuh_indexer_ssl_http_ca_path }}
-        {{ wazuh_indexer_ssl_http_csr_path }}
-        {{ wazuh_indexer_ssl_http_cert_path }}
+        {{ wazuh_indexer_ssl_transport_ca_path }}
+        {{ wazuh_indexer_ssl_transport_csr_path }}
+        {{ wazuh_indexer_ssl_transport_cert_path }}
         {{ wazuh_component_ssl_cert_validity_days }}
         --san DNS:{{ host_nounique }}.{{ hosted_zone_name }},IP:{{ ansible_default_ipv4.address }}
-    creates: "{{ wazuh_indexer_ssl_http_cert_path }}"
+    creates: "{{ wazuh_indexer_ssl_transport_cert_path }}"
   notify: Restart wazuh-indexer service
 
 - name: Ensure node certificate has correct permissions
   ansible.builtin.file:
-    path: "{{ wazuh_indexer_ssl_http_cert_path }}"
+    path: "{{ wazuh_indexer_ssl_transport_cert_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
