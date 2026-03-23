@@ -247,6 +247,14 @@
   notify: Restart wazuh-indexer service
   when: ansible_distribution == 'Ubuntu'
 
+- name: Set JVM heap
+  ansible.builtin.template:
+    src: etc/wazuh-indexer/jvm.options.d/heap.options.j2
+    dest: /etc/wazuh-indexer/jvm.options.d/heap.options
+    owner: wazuh-indexer
+    group: wazuh-indexer
+    mode: '0640'
+
 - name: Allow wazuh-indexer http traffic through firewall
   community.general.ufw:
     port: "{{ wazuh_listen_http_port }}"
