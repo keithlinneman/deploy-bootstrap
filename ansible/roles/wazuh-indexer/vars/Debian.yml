@@ -6,3 +6,5 @@ wazuh_indexer_config_base_path: /etc/wazuh-indexer
 wazuh_indexer_path_data: /var/lib/wazuh-indexer/data
 wazuh_indexer_path_logs: /var/lib/wazuh-indexer/logs
 kms_csr_tool_base_path: /usr/local/sbin
+wazuh_indexer_opensearch_plugin_binary_path: /usr/share/wazuh-indexer/bin/opensearch-plugin
+wazuh_indexer_opensearch_plugin_list_path: /usr/share/wazuh-indexer/plugins

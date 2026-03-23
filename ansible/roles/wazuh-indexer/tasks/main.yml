@@ -254,6 +254,14 @@
     owner: wazuh-indexer
     group: wazuh-indexer
     mode: '0640'
+  notify: Restart wazuh-indexer service
+
+- name: Install opensearch repository-s3 plugin
+  ansible.builtin.command:
+    cmd: "{{ wazuh_indexer_opensearch_plugin_binary_path }} install --batch repository-s3"
+    creates: "{{ wazuh_indexer_opensearch_plugin_list_path }}/repository-s3"
+  notify: Restart wazuh-indexer service
+  when: wazuh_cluster_remote_store_state_enabled and wazuh_cluster_remote_store_backend == 's3'
 
 - name: Allow wazuh-indexer http traffic through firewall
   community.general.ufw:
