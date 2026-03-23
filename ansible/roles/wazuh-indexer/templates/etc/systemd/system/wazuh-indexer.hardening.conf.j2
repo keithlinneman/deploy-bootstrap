@@ -18,7 +18,8 @@ RestrictSUIDSGID=yes
 ProtectProc=invisible
 ProcSubset=pid
 LockPersonality=yes
-MemoryDenyWriteExecute=yes
+# not compatible with java JIT compiler
+# MemoryDenyWriteExecute=yes
 RestrictNamespaces=yes
 RestrictRealtime=yes
 SystemCallArchitectures=native
@@ -28,7 +29,8 @@ ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
 StateDirectory={{ wazuh_indexer_system_user }}
-ReadWritePaths=/var/lib/{{ wazuh_indexer_system_user }} /run
+# opensearch writes to the config directory so it needs to be here
+ReadWritePaths=/var/lib/{{ wazuh_indexer_package_name }} /var/log/{{ wazuh_indexer_package_name }} {{ wazuh_indexer_config_base_path }} /run 
 
 # kernel/mem hardening
 ProtectKernelTunables=yes

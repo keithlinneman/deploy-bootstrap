@@ -169,6 +169,7 @@
     type: ECC
     curve: secp384r1
     size: 384
+    format: pkcs8
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0600"
