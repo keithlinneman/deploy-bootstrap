@@ -82,7 +82,7 @@
     mode: "0750"
     state: directory
   loop:
-    - conf/ssl
+    - ssl
 
 - name: Check current kms-csr-tool hash
   ansible.builtin.stat:
@@ -145,18 +145,18 @@
         path: "{{ kms_csr_tool_staging_dir }}"
         state: absent
 
-- name: Copy wazuh component intemediate CA cert from ssm
+- name: Copy wazuh component intemediate CA cert from s3
   amazon.aws.s3_object:
     bucket: "{{ trust_materials_bucket_name }}"
     object: "{{ wazuh_trust_materials_cert_chain_path }}"
     dest: "{{ wazuh_indexer_ssl_http_ca_path }}"
     mode: get
     overwrite: different
-  notify: Restart wazuh service
+  notify: Restart wazuh-indexer service
 
 - name: Ensure node component CA intermediate has correct permissions
   ansible.builtin.file:
-    path: "{{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem"
+    path: "{{ wazuh_indexer_ssl_http_ca_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
@@ -198,25 +198,25 @@
     cmd: >-
       {{ kms_csr_tool_base_path }}/kms-csr-tool sign
         {{ wazuh_components_intermediate_key_arn }}
-        {{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem
-        {{ wazuh_indexer_config_base_path }}/ssl/node.csr
-        {{ wazuh_indexer_config_base_path }}/ssl/node.pem
+        {{ wazuh_indexer_ssl_http_ca_path }}
+        {{ wazuh_indexer_ssl_http_csr_path }}
+        {{ wazuh_indexer_ssl_http_cert_path }}
         {{ wazuh_component_ssl_cert_validity_days }}"
         --san DNS:{{ host_nounique }}.{{ hosted_zone_name }},IP:{{ ansible_default_ipv4.address }}
-    creates: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
-  notify: Restart wazuh service
+    creates: "{{ wazuh_indexer_ssl_http_cert_path }}"
+  notify: Restart wazuh-indexer service
 
 # ensure key/cert/chain have correct ownership/permisions
 - name: Ensure node private key has correct permissions
   ansible.builtin.file:
-    path: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
+    path: "{{ wazuh_indexer_ssl_http_key_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0600"
 
 - name: Ensure node certificate has correct permissions
   ansible.builtin.file:
-    path: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
+    path: "{{ wazuh_indexer_ssl_http_cert_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
@@ -228,7 +228,7 @@
     mode: "0660"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
-  notify: Restart wazuh service
+  notify: Restart wazuh-indexer service
 
 - name: Create systemd override directory
   ansible.builtin.file:
@@ -242,7 +242,7 @@
     src: etc/systemd/system/{{ wazuh_indexer_systemd_service_name }}.hardening.conf.j2
     dest: /etc/systemd/system/{{ wazuh_indexer_systemd_service_name }}.service.d/hardening.conf
     mode: "0644"
-  notify: Restart wazuh service
+  notify: Restart wazuh-indexer service
   when: ansible_distribution == 'Ubuntu'
 
 - name: Allow wazuh-indexer http traffic through firewall
