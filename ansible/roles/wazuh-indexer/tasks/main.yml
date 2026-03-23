@@ -202,16 +202,6 @@
       - "DNS:{{ host_nounique }}.{{ hosted_zone_name }}"
       - "IP:{{ ansible_default_ipv4.address }}"
 
-- name: Sanity check - verify new transport cert is signed by the component CA
-  ansible.builtin.command:
-    cmd: >-
-      openssl verify -CAfile {{ wazuh_indexer_ssl_transport_ca_path }}
-      -partial_chain {{ wazuh_indexer_ssl_transport_cert_path }}
-  changed_when: false
-  failed_when: cert_verify.rc != 0
-  register: cert_verify
-
-
 # Sign component CSR with the component intermediate KMS key
 # kms-csr-tool sign <ca-key-arn> <ca-cert.pem> <input.csr> <output.pem> <days> [--san DNS:x,IP:y,...]
 - name: Sign node CSR with KMS intermediate key using kms-csr-tool
@@ -234,11 +224,14 @@
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
 
-- name: Ensure node certificate passes validation
-  community.crypto.openssl_certificate:
-    path: "{{ wazuh_indexer_ssl_http_cert_path }}"
-    ca_path: "{{ wazuh_indexer_ssl_http_ca_path }}"
-    validate_certs: true
+- name: Sanity check - verify new transport cert is signed by the component CA
+  ansible.builtin.command:
+    cmd: >-
+      openssl verify -CAfile {{ wazuh_indexer_ssl_transport_ca_path }}
+      -partial_chain {{ wazuh_indexer_ssl_transport_cert_path }}
+  changed_when: false
+  failed_when: cert_verify.rc != 0
+  register: cert_verify
 
 - name: Modify wazuh-indexer configuration file
   ansible.builtin.template:
