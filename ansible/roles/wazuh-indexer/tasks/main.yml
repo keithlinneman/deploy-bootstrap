@@ -166,7 +166,8 @@
 - name: Generate private key for node certificate signing request
   community.crypto.openssl_privatekey:
     path: "{{ wazuh_indexer_ssl_http_key_path }}"
-    type: EC
+    type: ECC
+    curve: secp384r1
     size: 384
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
@@ -201,7 +202,7 @@
         {{ wazuh_indexer_ssl_http_ca_path }}
         {{ wazuh_indexer_ssl_http_csr_path }}
         {{ wazuh_indexer_ssl_http_cert_path }}
-        {{ wazuh_component_ssl_cert_validity_days }}"
+        {{ wazuh_component_ssl_cert_validity_days }}
         --san DNS:{{ host_nounique }}.{{ hosted_zone_name }},IP:{{ ansible_default_ipv4.address }}
     creates: "{{ wazuh_indexer_ssl_http_cert_path }}"
   notify: Restart wazuh-indexer service
