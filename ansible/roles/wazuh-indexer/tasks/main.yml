@@ -149,23 +149,32 @@
   amazon.aws.s3_object:
     bucket: "{{ trust_materials_bucket_name }}"
     object: "{{ wazuh_trust_materials_cert_chain_path }}"
-    dest: "{{ wazuh_indexer_ssl_http_ca_path }}"
+    dest: "{{ wazuh_indexer_ssl_transport_ca_path }}"
     mode: get
     overwrite: different
   notify: Restart wazuh-indexer service
 
 - name: Ensure node component CA intermediate has correct permissions
   ansible.builtin.file:
-    path: "{{ wazuh_indexer_ssl_http_ca_path }}"
+    path: "{{ wazuh_indexer_ssl_transport_ca_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
 
+- name: Verify component CA is signed by our CA root
+  ansible.builtin.command:
+    cmd: >-
+      openssl verify -CAfile {{ trust_root_ca_path }}
+      {{ wazuh_indexer_ssl_transport_ca_path }}
+  changed_when: false
+  failed_when: cert_verify.rc != 0
+  register: cert_verify
+
 # Generate private key used for node certificate signing request
-# Gets signed by our intermediate CA TLS between wazuh components and clients and cluster traffic
+# Gets signed by our intermediate CA TLS between wazuh components and cluster traffic (and currently also client traffic)
 - name: Generate private key for node certificate signing request
   community.crypto.openssl_privatekey:
-    path: "{{ wazuh_indexer_ssl_http_key_path }}"
+    path: "{{ wazuh_indexer_ssl_transport_key_path }}"
     type: ECC
     curve: secp384r1
     size: 384
@@ -176,8 +185,8 @@
 
 - name: Generate CSR for node certificate
   community.crypto.openssl_csr:
-    path: "{{ wazuh_indexer_ssl_http_csr_path }}"
-    privatekey_path: "{{ wazuh_indexer_ssl_http_key_path }}"
+    path: "{{ wazuh_indexer_ssl_transport_csr_path }}"
+    privatekey_path: "{{ wazuh_indexer_ssl_transport_key_path }}"
     common_name: "{{ host_nounique }}.{{ hosted_zone_name }}"
     organization_name: "{{ wazuh_indexer_ssl_organization_name }}"
     basic_constraints:
@@ -192,6 +201,16 @@
     subject_alt_name:
       - "DNS:{{ host_nounique }}.{{ hosted_zone_name }}"
       - "IP:{{ ansible_default_ipv4.address }}"
+
+- name: Sanity check - verify new transport cert is signed by the component CA
+  ansible.builtin.command:
+    cmd: >-
+      openssl verify -CAfile {{ wazuh_indexer_ssl_transport_ca_path }}
+      -partial_chain {{ wazuh_indexer_ssl_transport_cert_path }}
+  changed_when: false
+  failed_when: cert_verify.rc != 0
+  register: cert_verify
+
 
 # Sign component CSR with the component intermediate KMS key
 # kms-csr-tool sign <ca-key-arn> <ca-cert.pem> <input.csr> <output.pem> <days> [--san DNS:x,IP:y,...]
@@ -208,20 +227,18 @@
     creates: "{{ wazuh_indexer_ssl_http_cert_path }}"
   notify: Restart wazuh-indexer service
 
-# ensure key/cert/chain have correct ownership/permisions
-- name: Ensure node private key has correct permissions
-  ansible.builtin.file:
-    path: "{{ wazuh_indexer_ssl_http_key_path }}"
-    owner: "{{ wazuh_indexer_system_user }}"
-    group: "{{ wazuh_indexer_system_user }}"
-    mode: "0600"
-
 - name: Ensure node certificate has correct permissions
   ansible.builtin.file:
     path: "{{ wazuh_indexer_ssl_http_cert_path }}"
     owner: "{{ wazuh_indexer_system_user }}"
     group: "{{ wazuh_indexer_system_user }}"
     mode: "0644"
+
+- name: Ensure node certificate passes validation
+  community.crypto.openssl_certificate:
+    path: "{{ wazuh_indexer_ssl_http_cert_path }}"
+    ca_path: "{{ wazuh_indexer_ssl_http_ca_path }}"
+    validate_certs: true
 
 - name: Modify wazuh-indexer configuration file
   ansible.builtin.template:
