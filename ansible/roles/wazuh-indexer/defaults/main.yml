@@ -39,6 +39,7 @@ wazuh_indexer_ssl_transport_cert_path: /etc/wazuh-indexer/ssl/node.crt
 wazuh_indexer_ssl_transport_key_path: /etc/wazuh-indexer/ssl/node.key
 wazuh_indexer_ssl_transport_ca_path: /etc/wazuh-indexer/ssl/wazuh-component-ca.crt
 
+wazuh_indexer_ssl_http_csr_path: /etc/wazuh-indexer/ssl/node.csr
 wazuh_indexer_ssl_http_cert_path: /etc/wazuh-indexer/ssl/node.crt
 wazuh_indexer_ssl_http_key_path: /etc/wazuh-indexer/ssl/node.key
 wazuh_indexer_ssl_http_ca_path: /etc/wazuh-indexer/ssl/wazuh-component-ca.crt

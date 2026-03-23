@@ -149,7 +149,7 @@
   amazon.aws.s3_object:
     bucket: "{{ trust_materials_bucket_name }}"
     object: "{{ wazuh_trust_materials_cert_chain_path }}"
-    dest: "{{ wazuh_app_dir }}/ssl/component-ca.pem"
+    dest: "{{ wazuh_indexer_ssl_http_ca_path }}"
     mode: get
     overwrite: different
   notify: Restart wazuh service
@@ -165,7 +165,7 @@
 # Gets signed by our intermediate CA TLS between wazuh components and clients and cluster traffic
 - name: Generate private key for node certificate signing request
   community.crypto.openssl_privatekey:
-    path: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
+    path: "{{ wazuh_indexer_ssl_http_key_path }}"
     type: EC
     size: 384
     owner: "{{ wazuh_indexer_system_user }}"
@@ -174,8 +174,8 @@
 
 - name: Generate CSR for node certificate
   community.crypto.openssl_csr:
-    path: "{{ wazuh_indexer_config_base_path }}/ssl/node.csr"
-    privatekey_path: "{{ wazuh_indexer_config_base_path }}/ssl/node-key.pem"
+    path: "{{ wazuh_indexer_ssl_http_csr_path }}"
+    privatekey_path: "{{ wazuh_indexer_ssl_http_key_path }}"
     common_name: "{{ host_nounique }}.{{ hosted_zone_name }}"
     organization_name: "{{ wazuh_indexer_ssl_organization_name }}"
     basic_constraints:
