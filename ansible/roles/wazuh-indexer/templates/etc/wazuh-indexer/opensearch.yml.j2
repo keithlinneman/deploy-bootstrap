@@ -1,0 +1,68 @@
+cluster.name: "{{ wazuh_cluster_name }}"
+
+node.name: "{{ wazuh_node_name }}"
+node.roles: "{{ wazuh_indexer_roles | to_json }}"
+
+network.host: "{{ wazuh_listen_address }}"
+# network.publish_host: _ec2:privateIpv4_
+network.publish_host: "{{ wazuh_publish_address }}"
+
+http.port: "{{ wazuh_listen_http_port }}"
+transport.port: "{{ wazuh_listen_transport_port }}"
+
+discovery.seed_hosts: "{{ wazuh_cluster_discovery_seed_hosts | to_json }}"
+cluster.initial_cluster_manager_nodes: "{{ wazuh_cluster_initial_manager_nodes | to_json }}"
+
+
+path.data: "{{ wazuh_indexer_path_data }}"
+path.logs: "{{ wazuh_indexer_path_logs }}"
+node.max_local_storage_nodes: "{{ wazuh_max_local_storage_nodes }}"
+cluster.remote_store.state.enabled: {{ wazuh_cluster_remote_store_state_enabled | lower }}
+
+{% if wazuh_cluster_remote_store_state_enabled %}
+node.attr.remote_store.segment.repository: wazuh-segments
+node.attr.remote_store.translog.repository: wazuh-translog
+node.attr.remote_store.state.repository: wazuh-state
+
+node.attr.remote_store.repository.wazuh-segments.type: {{ wazuh_cluster_remote_store_backend }}
+node.attr.remote_store.repository.wazuh-segments.settings.bucket: {{ wazuh_indexer_s3_bucket_name }}
+node.attr.remote_store.repository.wazuh-segments.settings.base_path: {{ wazuh_indexer_s3_segment_prefix }}
+node.attr.remote_store.repository.wazuh-segments.settings.region: {{ ansible_ec2_instance_identity_document_region }}
+
+node.attr.remote_store.repository.wazuh-translog.type: {{ wazuh_cluster_remote_store_backend }}
+node.attr.remote_store.repository.wazuh-translog.settings.bucket: {{ wazuh_indexer_s3_bucket_name }}
+node.attr.remote_store.repository.wazuh-translog.settings.base_path: {{ wazuh_indexer_s3_translog_prefix }}
+node.attr.remote_store.repository.wazuh-translog.settings.region: {{ ansible_ec2_instance_identity_document_region }}
+
+node.attr.remote_store.repository.wazuh-state.type: {{ wazuh_cluster_remote_store_backend }}
+node.attr.remote_store.repository.wazuh-state.settings.bucket: {{ wazuh_indexer_s3_bucket_name }}
+node.attr.remote_store.repository.wazuh-state.settings.base_path: {{ wazuh_indexer_s3_state_prefix }}
+node.attr.remote_store.repository.wazuh-state.settings.region: {{ ansible_ec2_instance_identity_document_region }}
+{% endif %}
+
+plugins.security.ssl.transport.pemcert_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
+plugins.security.ssl.transport.pemkey_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
+plugins.security.ssl.transport.pemtrustedcas_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem"
+plugins.security.ssl.transport.enforce_hostname_verification: true
+plugins.security.ssl.transport.resolve_hostname: false
+
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.pem"
+plugins.security.ssl.http.pemkey_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/node.key"
+plugins.security.ssl.http.pemtrustedcas_filepath: "{{ wazuh_indexer_config_base_path }}/ssl/wazuh-component-ca.pem"
+
+plugins.security.allow_default_init_securityindex: true
+plugins.security.authcz.admin_dn: "{{ wazuh_security_authcz_admin_dn | to_json }}"
+plugins.security.nodes_dn: "{{ wazuh_security_nodes_dn | to_json }}"
+
+plugins.security.audit.type: {{ wazuh_security_audit_type }}
+plugins.security.restapi.roles_enabled: {{ wazuh_security_restapi_roles_enabled | to_json }}
+
+plugins.security.check_snapshot_restore_write_privileges: {{wazuh_security_check_snapshot_restore_write_privileges | lower }} 
+plugins.security.enable_snapshot_restore_privilege: {{ wazuh_security_enable_snapshot_restore_privilege | lower }}
+
+plugins.security.system_indices.enabled: {{ wazuh_security_system_indices_enabled | lower }}
+plugins.security.system_indices.indices: {{ wazuh_security_system_indices | to_json }}
+
+### Option to allow Filebeat-oss 7.10.2 to work ###
+compatibility.override_main_response_version: {{ wazuh_compatibility_override_main_response_version | lower }}

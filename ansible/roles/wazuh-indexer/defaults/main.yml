@@ -1,0 +1,74 @@
+---
+wazuh_version: 4.14.4-1
+
+wazuh_cluster_name: wazuh-indexer
+wazuh_cluster_discovery_seed_hosts:
+  - wazuh-indexer-2a.{{ hosted_zone_name }}
+  - wazuh-indexer-2b.{{ hosted_zone_name }}
+  - wazuh-indexer-2c.{{ hosted_zone_name }}
+wazuh_cluster_initial_manager_nodes:
+  - wazuh-indexer-2a
+  - wazuh-indexer-2b
+  - wazuh-indexer-2c
+
+wazuh_node_name: "{{ ansible_fqdn }}"
+wazuh_indexer_roles:
+  - cluster_manager
+  - data
+  - ingest
+wazuh_max_local_storage_nodes: 1
+
+wazuh_listen_address: 0.0.0.0
+wazuh_listen_http_port: 9200
+wazuh_listen_transport_port: 9300
+wazuh_publish_address: "{{ ansible_default_ipv4.address }}"
+
+wazuh_cluster_remote_store_state_enabled: true
+wazuh_cluster_remote_store_backend: s3
+wazuh_indexer_s3_bucket_param: /platform/wazuh/indexer/s3/bucket/name
+wazuh_indexer_s3_segments_prefix: segments
+wazuh_indexer_s3_translog_prefix: translog
+wazuh_indexer_s3_state_prefix: state
+
+wazuh_indexer_ssl_organization_name: linnemanlabs.com
+wazuh_component_ssl_cert_validity_days: 28
+wazuh_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
+
+wazuh_indexer_ssl_transport_cert_path: /etc/wazuh-indexer/ssl/node.crt
+wazuh_indexer_ssl_transport_key_path: /etc/wazuh-indexer/ssl/node.key
+wazuh_indexer_ssl_transport_ca_path: /etc/wazuh-indexer/ssl/component-ca.crt
+
+wazuh_indexer_ssl_http_cert_path: /etc/wazuh-indexer/ssl/node.crt
+wazuh_indexer_ssl_http_key_path: /etc/wazuh-indexer/ssl/node.key
+wazuh_indexer_ssl_http_ca_path: /etc/wazuh-indexer/ssl/component-ca.crt
+
+wazuh_security_allow_default_init_securityindex: true
+wazuh_security_authcz_admin_dn: CN=wazuh-admin,O=linnemanlabs.com
+wazuh_security_nodes_dn: CN=wazuh-indexer-*,O=linnemanlabs.com
+wazuh_security_audit_type: internal_opensearch
+wazuh_security_restapi_roles_enabled:
+  - all_access
+  - security_rest_api_access
+wazuh_security_check_snapshot_restore_write_privileges: true
+wazuh_security_enable_snapshot_restore_privilege: true
+wazuh_security_system_indices_enabled: true
+wazuh_security_system_indices:
+  - .plugins-ml-model
+  - .plugins-ml-task
+  - .opendistro-alerting-config
+  - .opendistro-alerting-alert*
+  - .opendistro-anomaly-results*
+  - .opendistro-anomaly-detector*
+  - .opendistro-anomaly-checkpoints*
+  - .opendistro-anomaly-detection-state*
+  - .opendistro-reports-*
+  - .opensearch-notifications-*
+  - .opensearch-notebooks*
+  - .opensearch-observability*
+  - .opendistro-asynchronous-search-response*
+  - .replication-metadata-store*
+
+wazuh_compatibility_override_main_response_version: true
+
+kms_csr_tool_version: v0.0.1-a
+kms_csr_tool_sha256: 06473f2d04835edb5a59de1f9cdad005f35c904267a79835e2799bc24c462cc0

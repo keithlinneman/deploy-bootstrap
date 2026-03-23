@@ -1,0 +1,7 @@
+---
+- name: Restart wazuh-indexer service
+  ansible.builtin.systemd:
+    name: "{{ wazuh_indexer_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
