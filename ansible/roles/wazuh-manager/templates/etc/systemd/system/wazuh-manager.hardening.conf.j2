@@ -8,11 +8,14 @@ RestartSec=5s
 
 UMask=0077
 
+WorkingDirectory=/var/ossec
+
 # process hardening
 NoNewPrivileges=true
 PrivateDevices=yes
 DevicePolicy=closed
-CapabilityBoundingSet=
+CapabilityBoundingSet=~
+#CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_READ_SEARCH CAP_SYS_PTRACE CAP_CHOWN CAP_FOWNER
 AmbientCapabilities=
 RestrictSUIDSGID=yes
 # python framework uses psutil which needs access to /proc, so we set ProtectProc to default instead of strict and subset to all instead of pid
