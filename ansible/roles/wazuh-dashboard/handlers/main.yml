@@ -1,0 +1,7 @@
+---
+- name: Restart wazuh-dashboard service
+  ansible.builtin.systemd:
+    name: "{{ wazuh_dashboard_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

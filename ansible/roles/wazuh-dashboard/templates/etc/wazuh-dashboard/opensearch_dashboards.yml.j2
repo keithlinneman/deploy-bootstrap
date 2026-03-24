@@ -1,0 +1,18 @@
+server.host: {{ wazuh_dashboard_listen_address }}
+server.port: {{ wazuh_dashboard_listen_port }}
+opensearch.hosts: {{ wazuh_dashboard_opensearch_hosts | to_json }}
+opensearch.ssl.verificationMode: {{ wazuh_dashboard_opensearch_ssl_verification_mode }}
+opensearch.username: {{ wazuh_dashboard_indexer_credentials.username }}
+opensearch.password: {{ wazuh_dashboard_indexer_credentials.password }}
+opensearch.requestHeadersAllowlist: ["securitytenant","Authorization"]
+opensearch_security.multitenancy.enabled: false
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+server.ssl.enabled: {{ wazuh_dashboard_server_ssl_enabled }}
+server.ssl.key: "{{ wazuh_dashboard_server_ssl_key }}"
+server.ssl.certificate: "{{ wazuh_dashboard_server_ssl_certificate }}"
+opensearch.ssl.certificateAuthorities: ["{{ wazuh_dashboard_opensearch_ssl_certificateauthority }}"]
+uiSettings.overrides.defaultRoute: {{ wazuh_dashboard_uisettings_overrides_default_route }}
+# Session expiration settings
+opensearch_security.cookie.ttl: {{ wazuh_dashboard_opensearch_security_cookie_ttl }}
+opensearch_security.session.ttl: {{ wazuh_dashboard_opensearch_security_session_ttl }}
+opensearch_security.session.keepalive: {{ wazuh_dashboard_opensearch_security_session_keepalive }}

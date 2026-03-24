@@ -1,0 +1,35 @@
+---
+trust_root_ca_path: /etc/phxi/trust/root-ca.crt
+wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
+
+kms_csr_tool_version: v0.0.1-a
+kms_csr_tool_sha256: 06473f2d04835edb5a59de1f9cdad005f35c904267a79835e2799bc24c462cc0
+
+wazuh_dashboard_listen_address: 0.0.0.0
+wazuh_dashboard_listen_port: 5601
+wazuh_dashboard_publish_address: "{{ ansible_default_ipv4.address }}"
+
+wazuh_dashboard_component_ssl_organization_name: linnemanlabs.com
+wazuh_dashboard_component_ssl_cert_validity_days: 28
+wazuh_dashboard_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
+
+wazuh_dashboard_opensearch_ssl_certificateauthority: /etc/wazuh-dashboard/ssl/wazuh-component-ca.pem
+
+wazuh_dashboard_server_ssl_enabled: true
+wazuh_dashboard_server_ssl_key: /etc/wazuh-dashboard/ssl/wazuh-dashboard.key
+wazuh_dashboard_server_ssl_certificate: /etc/wazuh-dashboard/ssl/wazuh-dashboard.crt
+wazuh_dashboard_server_ssl_csr: /etc/wazuh-dashboard/ssl/wazuh-dashboard.csr
+wazuh_dashboard_server_ssl_ca: /etc/wazuh-dashboard/ssl/wazuh-component-ca.pem
+
+wazuh_dashboard_opensearch_hosts:
+  - https://wazuh-indexer-2a.{{ hosted_zone_name }}:9200
+  - https://wazuh-indexer-2b.{{ hosted_zone_name }}:9200
+  - https://wazuh-indexer-2c.{{ hosted_zone_name }}:9200
+wazuh_dashboard_opensearch_ssl_verification_mode: certificate
+wazuh_dashboard_indexer_credentials_secret_name: app/wazuh/dashboard/indexer/credentials
+
+wazuh_dashboard_uisettings_overrides_default_route: /app/wz-home
+
+wazuh_dashboard_opensearch_security_cookie_ttl: 900000
+wazuh_dashboard_opensearch_security_session_ttl: 900000
+wazuh_dashboard_opensearch_security_session_keepalive: true
