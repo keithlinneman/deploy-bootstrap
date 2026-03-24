@@ -21,9 +21,8 @@
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
     availability_zone_short: "{{ ansible_ec2_placement_availability_zone[-2:] }}"
     host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
-    wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_manager_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_dashboard_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_dashboard_indexer_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_dashboard_indexer_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
-
   no_log: true
 
 - name: Set facts from environment variables
@@ -239,7 +238,7 @@
 - name: Modify wazuh-dashboard configuration file
   ansible.builtin.template:
     src: etc/wazuh-dashboard/opensearch_dashboards.yml.j2
-    dest: "{{ wazuh_dashboard_ossec_config_base_path }}/opensearch_dashboards.yml"
+    dest: "{{ wazuh_dashboard_config_base_path }}/opensearch_dashboards.yml"
     mode: "0660"
     owner: "{{ wazuh_dashboard_system_user }}"
     group: "{{ wazuh_dashboard_system_user }}"
