@@ -1,7 +1,7 @@
 ---
 wazuh_manager_package_name: wazuh-manager
 wazuh_manager_systemd_service_name: wazuh-manager
-wazuh_manager_system_user: wazuh-manager
+wazuh_manager_system_user: wazuh
 wazuh_manager_ossec_base_path: /var/ossec
 wazuh_manager_ossec_config_base_path: "{{ wazuh_manager_ossec_base_path }}/etc"
 wazuh_manager_ossec_config_ssl_path: "{{ wazuh_manager_ossec_config_base_path }}/ssl"

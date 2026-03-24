@@ -1,5 +1,6 @@
 ---
 trust_root_ca_path: /etc/phxi/trust/root-ca.crt
+wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
 
 wazuh_manager_version: 4.14.4-1
 
@@ -9,7 +10,6 @@ kms_csr_tool_sha256: 06473f2d04835edb5a59de1f9cdad005f35c904267a79835e2799bc24c4
 wazuh_manager_component_ssl_organization_name: linnemanlabs.com
 wazuh_manager_component_ssl_cert_validity_days: 28
 wazuh_manager_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
-
 wazuh_manager_ossec_cluster_name: wazuh-cluster
 wazuh_manager_ossec_cluster_master_az: "2a"
 wazuh_manager_ossec_cluster_node_name: "{{ host_nounique }}"

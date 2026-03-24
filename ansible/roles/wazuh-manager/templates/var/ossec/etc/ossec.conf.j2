@@ -298,7 +298,7 @@
   <cluster>
     <name>{{ wazuh_manager_ossec_cluster_name }}</name>
     <node_name>{{ wazuh_manager_ossec_cluster_node_name }}</node_name>
-    <node_type>{% if availability_zone == wazuh_manager_ossec_cluster_master_az %}master{% else %}worker{% endif %}</node_type>
+    <node_type>{% if availability_zone_short == wazuh_manager_ossec_cluster_master_az %}master{% else %}worker{% endif %}</node_type>
     <key>{{ wazuh_manager_ossec_cluster_key }}</key>
     <port>{{ wazuh_manager_ossec_cluster_port }}</port>
     <bind_addr>{{ wazuh_manager_ossec_cluster_bind_addr }}</bind_addr>
