@@ -1,7 +1,8 @@
 [Service]
 StandardOutput=journal
 StandardError=journal
-# KillMode=mixed
+KillMode=control-group
+TimeoutStopSec=30
 LimitNOFILE=100000
 Restart=on-failure
 RestartSec=5s
