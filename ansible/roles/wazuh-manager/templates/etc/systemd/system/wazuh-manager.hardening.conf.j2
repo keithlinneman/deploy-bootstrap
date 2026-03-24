@@ -15,8 +15,9 @@ DevicePolicy=closed
 CapabilityBoundingSet=
 AmbientCapabilities=
 RestrictSUIDSGID=yes
-ProtectProc=invisible
-ProcSubset=pid
+# python framework uses psutil which needs access to /proc, so we set ProtectProc to default instead of strict and subset to all instead of pid
+ProtectProc=default
+ProcSubset=all
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
 RestrictNamespaces=yes
@@ -27,8 +28,8 @@ SystemCallArchitectures=native
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
-StateDirectory={{ wazuh_manager_system_user }}
-ReadWritePaths=/var/lib/{{ wazuh_manager_package_name }} /var/log/{{ wazuh_manager_package_name }} /run 
+# StateDirectory={{ wazuh_manager_system_user }}
+ReadWritePaths=/var/ossec /run 
 
 # kernel/mem hardening
 ProtectKernelTunables=yes
