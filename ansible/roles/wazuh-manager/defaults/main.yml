@@ -5,6 +5,9 @@ wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
 kms_csr_tool_version: v0.0.1-a
 kms_csr_tool_sha256: 06473f2d04835edb5a59de1f9cdad005f35c904267a79835e2799bc24c462cc0
 
+wazuh_manager_filebeat_module_s3_key: thirdparty/wazuh/filebeat/v4.x/wazuh-filebeat-0.4.tar.gz
+wazuh_manager_filebeat_module_sha256: b0683f1d5d7c5d076ea3a565b0aa7ca92e6483f8a14e8b96799e6ee632da2284
+
 wazuh_manager_component_ssl_organization_name: linnemanlabs.com
 wazuh_manager_component_ssl_cert_validity_days: 28
 wazuh_manager_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
