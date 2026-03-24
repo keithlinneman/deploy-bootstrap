@@ -101,6 +101,7 @@
     dest: /usr/share/filebeat/module
     remote_src: yes
     creates: /usr/share/filebeat/module/wazuh
+  notify: Restart filebeat service
 
 - name: Configure filebeat
   ansible.builtin.template:
