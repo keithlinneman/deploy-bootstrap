@@ -20,16 +20,16 @@ wazuh_manager_ossec_cluster_nodes:
   - wazuh-manager-2a.{{ hosted_zone_name }}
   - wazuh-manager-2b.{{ hosted_zone_name }}
   - wazuh-manager-2c.{{ hosted_zone_name }}
-wazuh_manager_ossec_cluster_hidden: no
-wazuh_manager_ossec_cluster_disabled: no
+wazuh_manager_ossec_cluster_hidden: "no"
+wazuh_manager_ossec_cluster_disabled: "no"
 
-wazuh_manager_ossec_global_alerts_log: yes
-wazuh_manager_ossec_global_logall: no
-wazuh_manager_ossec_global_logall_json: no
-wazuh_manager_ossec_global_email_notification: no
+wazuh_manager_ossec_global_alerts_log: "yes"
+wazuh_manager_ossec_global_logall: "no"
+wazuh_manager_ossec_global_logall_json: "no"
+wazuh_manager_ossec_global_email_notification: "no"
 wazuh_manager_ossec_global_agents_disconnection_time: 15m
 wazuh_manager_ossec_global_agents_disconnection_alert_time: 300
-wazuh_manager_ossec_global_update_check: no
+wazuh_manager_ossec_global_update_check: "no"
 
 wazuh_manager_ossec_alerts_email_maxperhour: 12
 wazuh_manager_ossec_alerts_log_alert_level: 3
@@ -40,60 +40,60 @@ wazuh_manager_ossec_remote_port: 1514
 wazuh_manager_ossec_remote_protocol: tcp
 wazuh_manager_ossec_remote_queue_size: 131072
 
-wazuh_manager_ossec_rootcheck_disabled: no
-wazuh_manager_ossec_rootcheck_check_files: yes
-wazuh_manager_ossec_rootcheck_check_trojans: yes
-wazuh_manager_ossec_rootcheck_check_dev: yes
-wazuh_manager_ossec_rootcheck_check_sys: yes
-wazuh_manager_ossec_rootcheck_check_pids: yes
-wazuh_manager_ossec_rootcheck_check_ports: yes
-wazuh_manager_ossec_rootcheck_check_if: yes
+wazuh_manager_ossec_rootcheck_disabled: "no"
+wazuh_manager_ossec_rootcheck_check_files: "yes"
+wazuh_manager_ossec_rootcheck_check_trojans: "yes"
+wazuh_manager_ossec_rootcheck_check_dev: "yes"
+wazuh_manager_ossec_rootcheck_check_sys: "yes"
+wazuh_manager_ossec_rootcheck_check_pids: "yes"
+wazuh_manager_ossec_rootcheck_check_ports: "yes"
+wazuh_manager_ossec_rootcheck_check_if: "yes"
 wazuh_manager_ossec_rootcheck_frequency: 43200
-wazuh_manager_ossec_rootcheck_skip_nfs: yes
+wazuh_manager_ossec_rootcheck_skip_nfs: "yes"
 
-wazuh_manager_ossec_wodle_osquery_disabled: no
-wazuh_manager_ossec_wodle_osquery_run_daemon: yes
+wazuh_manager_ossec_wodle_osquery_disabled: "no"
+wazuh_manager_ossec_wodle_osquery_run_daemon: "yes"
 wazuh_manager_ossec_wodle_osquery_log_path: /var/log/osquery/osqueryd.results.log
 wazuh_manager_ossec_wodle_osquery_config_path: /var/ossec/etc/shared/osquery/osquery.conf
-wazuh_manager_ossec_wodle_osquery_add_labels: yes
+wazuh_manager_ossec_wodle_osquery_add_labels: "yes"
 
-wazuh_manager_ossec_wodle_syscollector_disabled: no
+wazuh_manager_ossec_wodle_syscollector_disabled: "no"
 wazuh_manager_ossec_wodle_syscollector_interval: 1h
-wazuh_manager_ossec_wodle_syscollector_scan_on_start: yes
-wazuh_manager_ossec_wodle_syscollector_hardware: yes
-wazuh_manager_ossec_wodle_syscollector_os: yes
-wazuh_manager_ossec_wodle_syscollector_network: yes
-wazuh_manager_ossec_wodle_syscollector_packages: yes
-wazuh_manager_ossec_wodle_syscollector_ports_all: yes
-wazuh_manager_ossec_wodle_syscollector_processes: yes
-wazuh_manager_ossec_wodle_syscollector_users: yes
-wazuh_manager_ossec_wodle_syscollector_groups: yes
-wazuh_manager_ossec_wodle_syscollector_service: yes
-wazuh_manager_ossec_wodle_syscollector_browser_extensions: yes
-wazuh_manager_ossec_wodle_syscollector_synchronization_enabled: yes
+wazuh_manager_ossec_wodle_syscollector_scan_on_start: "yes"
+wazuh_manager_ossec_wodle_syscollector_hardware: "yes"
+wazuh_manager_ossec_wodle_syscollector_os: "yes"
+wazuh_manager_ossec_wodle_syscollector_network: "yes"
+wazuh_manager_ossec_wodle_syscollector_packages: "yes"
+wazuh_manager_ossec_wodle_syscollector_ports_all: "yes"
+wazuh_manager_ossec_wodle_syscollector_processes: "yes"
+wazuh_manager_ossec_wodle_syscollector_users: "yes"
+wazuh_manager_ossec_wodle_syscollector_groups: "yes"
+wazuh_manager_ossec_wodle_syscollector_service: "yes"
+wazuh_manager_ossec_wodle_syscollector_browser_extensions: "yes"
+wazuh_manager_ossec_wodle_syscollector_synchronization_enabled: "yes"
 wazuh_manager_ossec_wodle_syscollector_synchronization_interval: 5m
 wazuh_manager_ossec_wodle_syscollector_synchronization_max_eps: 10
 
-wazuh_manager_ossec_sca_enabled: yes
-wazuh_manager_ossec_sca_scan_on_start: yes
+wazuh_manager_ossec_sca_enabled: "yes"
+wazuh_manager_ossec_sca_scan_on_start: "yes"
 wazuh_manager_ossec_sca_interval: 1h
-wazuh_manager_ossec_sca_skip_nfs: yes
+wazuh_manager_ossec_sca_skip_nfs: "yes"
 
-wazuh_manager_ossec_vulnerability_detection_enabled: yes
-wazuh_manager_ossec_vulnerability_detection_index_status: yes
+wazuh_manager_ossec_vulnerability_detection_enabled: "yes"
+wazuh_manager_ossec_vulnerability_detection_index_status: "yes"
 wazuh_manager_ossec_vulnerability_detection_feed_update_interval: 60m
 
-wazuh_manager_ossec_indexer_enabled: yes
+wazuh_manager_ossec_indexer_enabled: "yes"
 wazuh_manager_ossec_indexer_hosts:
   - https://wazuh-indexer.use2.secops.prod.phxi.net:9200
 wazuh_manager_ossec_indexer_ssl_certificate_authorities_ca: "{{ wazuh_manager_ossec_config_ssl_path }}/wazuh-component-ca.pem"
 wazuh_manager_ossec_indexer_ssl_certificate: "{{ wazuh_manager_ossec_config_ssl_path }}/node.crt"
 wazuh_manager_ossec_indexer_ssl_key: "{{ wazuh_manager_ossec_config_ssl_path }}/node.key"
 
-wazuh_manager_ossec_syscheck_disabled: no
+wazuh_manager_ossec_syscheck_disabled: "no"
 wazuh_manager_ossec_syscheck_frequency: 43200
-wazuh_manager_ossec_syscheck_scan_on_start: yes
-wazuh_manager_ossec_syscheck_alert_new_files: yes
+wazuh_manager_ossec_syscheck_scan_on_start: "yes"
+wazuh_manager_ossec_syscheck_alert_new_files: "yes"
 wazuh_manager_ossec_syscheck_auto_ignore:
   - { frequency: 10, timeframe: 3600 }
 wazuh_manager_ossec_syscheck_directories:
@@ -124,28 +124,28 @@ wazuh_manager_ossec_syscheck_nodiff_files:
   - /var/ossec/etc/ssl/sslmanager.key
   - /var/ossec/etc/ossec.conf
 wazuh_manager_ossec_syscheck_nodiff_paths: []
-wazuh_manager_ossec_syscheck_skip_nfs: yes
-wazuh_manager_ossec_syscheck_skip_dev: yes
-wazuh_manager_ossec_syscheck_skip_proc: yes
-wazuh_manager_ossec_syscheck_skip_sys: yes
+wazuh_manager_ossec_syscheck_skip_nfs: "yes"
+wazuh_manager_ossec_syscheck_skip_dev: "yes"
+wazuh_manager_ossec_syscheck_skip_proc: "yes"
+wazuh_manager_ossec_syscheck_skip_sys: "yes"
 wazuh_manager_ossec_syscheck_process_priority: 10
 wazuh_manager_ossec_syscheck_max_eps: 50
-wazuh_manager_ossec_syscheck_synchronization_enabled: yes
+wazuh_manager_ossec_syscheck_synchronization_enabled: "yes"
 wazuh_manager_ossec_syscheck_synchronization_interval: 5m
 wazuh_manager_ossec_syscheck_synchronization_max_eps: 10
 
-wazuh_manager_ossec_auth_disabled: no
+wazuh_manager_ossec_auth_disabled: "no"
 wazuh_manager_ossec_auth_port: 1515
-wazuh_manager_ossec_auth_use_source_ip: no
-wazuh_manager_ossec_auth_purge: yes
-wazuh_manager_ossec_auth_use_password: no
+wazuh_manager_ossec_auth_use_source_ip: "no"
+wazuh_manager_ossec_auth_purge: "yes"
+wazuh_manager_ossec_auth_use_password: "no"
 wazuh_manager_ossec_auth_ciphers: HIGH:!ADH:!EXP:!MD5:!RC4:!3DES:!CAMELLIA:@STRENGTH
 wazuh_manager_ossec_auth_ssl_agent_ca: ""
-wazuh_manager_ossec_auth_ssl_verify_host: no
+wazuh_manager_ossec_auth_ssl_verify_host: "no"
 wazuh_manager_ossec_auth_ssl_manager_cert: "{{ wazuh_manager_ossec_config_ssl_path }}/node.crt"
 wazuh_manager_ossec_auth_ssl_manager_key: "{{ wazuh_manager_ossec_config_ssl_path }}/node.key"
 wazuh_manager_ossec_auth_ssl_manager_csr: "{{ wazuh_manager_ossec_config_ssl_path }}/node.csr"
 wazuh_manager_ossec_auth_ssl_manager_ca: "{{ wazuh_manager_ossec_config_ssl_path }}/wazuh-component-ca.pem"
-wazuh_manager_ossec_auth_ssl_auto_negotiate: no
+wazuh_manager_ossec_auth_ssl_auto_negotiate: "no"
 
 wazuh_manager_api_port: 55000
