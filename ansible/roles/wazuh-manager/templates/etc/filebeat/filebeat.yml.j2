@@ -1,0 +1,22 @@
+output.elasticsearch:
+  hosts:
+    - wazuh-indexer-2a.{{ hosted_zone_name }}:9200
+    - wazuh-indexer-2b.{{ hosted_zone_name }}:9200
+    - wazuh-indexer-2c.{{ hosted_zone_name }}:9200
+  protocol: https
+  username: {{ wazuh_manager_filebeat_indexer_credentials.username }}
+  password: {{ wazuh_manager_filebeat_indexer_credentials.password }}
+  ssl.certificate_authorities: {{ wazuh_manager_ossec_indexer_ssl_certificate_authorities_ca | to_json }}
+  ssl.certificate: {{ wazuh_manager_ossec_indexer_ssl_certificate }}
+  ssl.key: {{ wazuh_manager_ossec_indexer_ssl_key }}
+
+setup.template.json.enabled: false
+setup.ilm.overwrite: true
+setup.ilm.enabled: false
+
+filebeat.modules:
+  - module: wazuh
+    alerts:
+      enabled: true
+    archives:
+      enabled: false

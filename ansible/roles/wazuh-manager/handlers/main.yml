@@ -5,3 +5,10 @@
     state: restarted
     enabled: true
     daemon_reload: true
+
+- name: Restart filebeat service
+  ansible.builtin.systemd:
+    name: "{{ filebeat_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
