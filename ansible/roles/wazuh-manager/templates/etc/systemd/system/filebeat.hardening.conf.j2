@@ -1,0 +1,43 @@
+[Service]
+StandardOutput=journal
+StandardError=journal
+# KillMode=mixed
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+# filebeat wants to monitor its own /proc/meminfo so we set ProtectProc to default instead of strict and subset to all instead of pid
+ProtectProc=default
+ProcSubset=all
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ }}
+ReadOnlyPaths=/var/ossec/logs /var/ossec/etc/ssl
+ReadWritePaths=/run
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
