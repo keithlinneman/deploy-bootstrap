@@ -1,0 +1,10 @@
+---
+wazuh_manager_package_name: wazuh-manager
+wazuh_manager_systemd_service_name: wazuh-manager
+wazuh_manager_system_user: wazuh-manager
+wazuh_manager_ossec_base_path: /var/ossec
+wazuh_manager_ossec_config_base_path: "{{ wazuh_manager_ossec_base_path }}/etc"
+wazuh_manager_ossec_config_ssl_path: "{{ wazuh_manager_ossec_config_base_path }}/ssl"
+# wazuh_manager_path_data: "{{ wazuh_manager_ossec_base_path }}/data"
+# wazuh_manager_path_logs: "{{ wazuh_manager_ossec_base_path }}/logs"
+kms_csr_tool_base_path: /usr/local/sbin

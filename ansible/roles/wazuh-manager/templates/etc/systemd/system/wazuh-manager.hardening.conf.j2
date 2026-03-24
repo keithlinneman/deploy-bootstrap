@@ -1,0 +1,45 @@
+[Service]
+StandardOutput=journal
+StandardError=journal
+# KillMode=mixed
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+
+UMask=0077
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+ProtectProc=invisible
+# opensearch seems to read /proc/self/mountinfo so needs ProcSubet=all instead of ProcSubset=pid
+ProcSubset=all
+LockPersonality=yes
+# not compatible with java JIT compiler
+# MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StateDirectory={{ wazuh_indexer_system_user }}
+# opensearch writes to the config directory so it needs to be here
+ReadWritePaths=/var/lib/{{ wazuh_indexer_package_name }} /var/log/{{ wazuh_indexer_package_name }} {{ wazuh_indexer_config_base_path }} /run 
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

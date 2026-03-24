@@ -1,0 +1,294 @@
+---
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  amazon.aws.ec2_metadata_facts:
+
+- name: Print all environment vars for debugging
+  ansible.builtin.debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Set facts from ssm here since they require ec2 metadata to lookup region
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
+    host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
+    wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_manager_s3_bucket_name: "{{ lookup('amazon.aws.aws_ssm', wazuh_manager_s3_bucket_param, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_manager_ossec_cluster_key: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_ossec_cluster_key_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
+  no_log: true
+
+- name: Set facts from environment variables
+  ansible.builtin.set_fact:
+    service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+    service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+    project: "{{ ansible_env.PROJECT | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+
+- name: Ensure required variables are defined
+  ansible.builtin.fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value"
+  when: (lookup('vars', item, default=None)) is none
+  loop:
+    - account_name
+    - artifacts_bucket_name
+    - company_name
+    - hosted_zone_name
+    - platform_env
+    - service_name
+    - service_component
+    - project
+    - service_namespace
+    - wazuh_manager_ossec_config_base_path
+    - wazuh_components_intermediate_key_arn
+    - wazuh_manager_ossec_cluster_key
+
+- name: Add wazuh apt repository GPG key
+  ansible.builtin.copy:
+    # dearmored from source: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    src: wazuh/wazuh-apt.gpg
+    dest: /usr/share/keyrings/wazuh.gpg
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the wazuh apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main"
+    state: present
+    filename: wazuh
+    update_cache: true
+
+- name: Install the wazuh-manager package
+  ansible.builtin.package:
+    name: "{{ wazuh_manager_package_name }}"
+    state: present
+
+- name: Create wazuh config directories
+  ansible.builtin.file:
+    path: "{{ wazuh_manager_ossec_config_base_path }}/{{ item }}"
+    owner: "root"
+    group: "{{ wazuh_manager_system_user }}"
+    mode: "0750"
+    state: directory
+  loop:
+    - ssl
+
+- name: Check current kms-csr-tool hash
+  ansible.builtin.stat:
+    path: "{{ kms_csr_tool_base_path }}/kms-csr-tool"
+    checksum_algorithm: sha256
+    get_checksum: true
+  register: current_kms_csr_tool_binary
+  ignore_errors: true
+
+- name: Install kms-csr-tool binary from s3
+  when: current_kms_csr_tool_binary.stat.checksum | default('') != kms_csr_tool_sha256
+  block:
+    - name: Set kms-csr-tool binary staging directory path
+      ansible.builtin.set_fact:
+        kms_csr_tool_staging_dir: "{{ kms_csr_tool_base_path }}/.staging"
+
+    - name: Create kms-csr-tool binary staging directory
+      ansible.builtin.file:
+        path: "{{ kms_csr_tool_staging_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Get pinned kms-csr-tool from s3 artifacts bucket
+      amazon.aws.s3_object:
+        bucket: "{{ artifacts_bucket_name }}"
+        object: "apps/kms-csr-tool/{{ kms_csr_tool_version }}/kms-csr-tool"
+        dest: "{{ kms_csr_tool_staging_dir }}/kms-csr-tool"
+        mode: get
+        overwrite: always
+
+    - name: Compute sha256 of downloaded kms-csr-tool binary
+      ansible.builtin.stat:
+        path: "{{ kms_csr_tool_staging_dir }}/kms-csr-tool"
+        checksum_algorithm: sha256
+        get_checksum: true
+      register: staged_kms_csr_tool_binary
+
+    - name: Verify kms-csr-tool sha256 matches release index
+      ansible.builtin.fail:
+        msg: >-
+          SHA256 mismatch: expected {{ kms_csr_tool_sha256 }},
+          got {{ staged_kms_csr_tool_binary.stat.checksum }}
+      when: staged_kms_csr_tool_binary.stat.checksum != kms_csr_tool_sha256
+
+    - name: Ensure kms-csr-tool binary has correct permissions
+      ansible.builtin.file:
+        path: "{{ kms_csr_tool_staging_dir }}/kms-csr-tool"
+        mode: "0755"
+        owner: root
+        group: root
+
+    - name: Move verified kms-csr-tool binary into place
+      ansible.builtin.command:
+        cmd: mv "{{ kms_csr_tool_staging_dir }}/kms-csr-tool" "{{ kms_csr_tool_base_path }}/kms-csr-tool"
+        removes: "{{ kms_csr_tool_staging_dir }}/kms-csr-tool"
+        creates: "{{ kms_csr_tool_base_path }}/kms-csr-tool"
+
+    - name: Clean kms-csr-tool staging directory
+      ansible.builtin.file:
+        path: "{{ kms_csr_tool_staging_dir }}"
+        state: absent
+
+- name: Copy wazuh component intemediate CA cert from s3
+  amazon.aws.s3_object:
+    bucket: "{{ trust_materials_bucket_name }}"
+    object: "{{ wazuh_trust_materials_cert_chain_path }}"
+    dest: "{{ wazuh_manager_ossec_auth_ssl_manager_ca }}"
+    mode: get
+    overwrite: different
+  notify: Restart wazuh-manager service
+
+- name: Ensure component CA intermediate has correct permissions
+  ansible.builtin.file:
+    path: "{{ wazuh_manager_ossec_auth_ssl_manager_ca }}"
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+    mode: "0644"
+
+- name: Verify component CA is signed by our CA root
+  ansible.builtin.command:
+    cmd: >-
+      openssl verify -CAfile {{ trust_root_ca_path }}
+      {{ wazuh_manager_ossec_auth_ssl_manager_ca }}
+  changed_when: false
+  failed_when: cert_verify.rc != 0
+  register: cert_verify
+
+# Generate private key used for node certificate signing request
+# Gets signed by our intermediate CA TLS between wazuh components and cluster traffic (and currently also client traffic)
+- name: Generate private key for node certificate signing request
+  community.crypto.openssl_privatekey:
+    path: "{{ wazuh_manager_ossec_auth_ssl_manager_key }}"
+    type: ECC
+    curve: secp384r1
+    size: 384
+    format: pkcs8
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+    mode: "0600"
+
+- name: Generate CSR for node certificate
+  community.crypto.openssl_csr:
+    path: "{{ wazuh_manager_ossec_auth_ssl_manager_csr }}"
+    privatekey_path: "{{ wazuh_manager_ossec_auth_ssl_manager_key }}"
+    common_name: "{{ host_nounique }}.{{ hosted_zone_name }}"
+    organization_name: "{{ wazuh_manager_component_ssl_organization_name }}"
+    basic_constraints:
+      - "CA:FALSE"
+    basic_constraints_critical: true
+    key_usage:
+      - digitalSignature
+      - nonRepudiation
+      - keyEncipherment
+      - dataEncipherment
+    key_usage_critical: true
+    subject_alt_name:
+      - "DNS:{{ host_nounique }}.{{ hosted_zone_name }}"
+      - "IP:{{ ansible_default_ipv4.address }}"
+
+# Sign component CSR with the component intermediate KMS key
+# kms-csr-tool sign <ca-key-arn> <ca-cert.pem> <input.csr> <output.pem> <days> [--san DNS:x,IP:y,...]
+- name: Sign node CSR with KMS intermediate key using kms-csr-tool
+  ansible.builtin.command:
+    cmd: >-
+      {{ kms_csr_tool_base_path }}/kms-csr-tool sign
+        {{ wazuh_components_intermediate_key_arn }}
+        {{ wazuh_manager_ossec_auth_ssl_manager_ca }}
+        {{ wazuh_manager_ossec_auth_ssl_manager_csr }}
+        {{ wazuh_manager_ossec_auth_ssl_manager_cert }}
+        {{ wazuh_manager_component_ssl_cert_validity_days }}
+        --san DNS:{{ host_nounique }}.{{ hosted_zone_name }},IP:{{ ansible_default_ipv4.address }}
+    creates: "{{ wazuh_manager_ossec_auth_ssl_manager_cert }}"
+  notify: Restart wazuh-manager service
+
+- name: Ensure node certificate has correct permissions
+  ansible.builtin.file:
+    path: "{{ wazuh_manager_ossec_auth_ssl_manager_cert }}"
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+    mode: "0644"
+
+- name: Sanity check - verify new manager cert is signed by the component CA
+  ansible.builtin.command:
+    cmd: >-
+      openssl verify -CAfile {{ wazuh_manager_ossec_auth_ssl_manager_ca }}
+      -partial_chain {{ wazuh_manager_ossec_auth_ssl_manager_cert }}
+  changed_when: false
+  failed_when: cert_verify.rc != 0
+  register: cert_verify
+
+- name: Modify wazuh-manager configuration file
+  ansible.builtin.template:
+    src: var/ossec/etc/ossec.conf.j2
+    dest: "{{ wazuh_manager_ossec_config_base_path }}/ossec.conf"
+    mode: "0660"
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+  notify: Restart wazuh-manager service
+
+- name: Create systemd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/{{ wazuh_manager_systemd_service_name }}.service.d
+    state: directory
+    mode: '0755'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Create wazuh systemd service overrides for hardening
+  ansible.builtin.template:
+    src: etc/systemd/system/{{ wazuh_manager_systemd_service_name }}.hardening.conf.j2
+    dest: /etc/systemd/system/{{ wazuh_manager_systemd_service_name }}.service.d/hardening.conf
+    mode: "0644"
+  notify: Restart wazuh-manager service
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow wazuh-manager cluster traffic through firewall
+  community.general.ufw:
+    port: "{{ wazuh_manager_ossec_cluster_port }}"
+    proto: tcp
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow wazuh-manager agent communication traffic through firewall
+  community.general.ufw:
+    port: "{{ wazuh_manager_ossec_remote_port }}"
+    proto: "tcp"
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow wazuh-manager auth traffic through firewall
+  community.general.ufw:
+    port: "{{ wazuh_manager_ossec_auth_port }}"
+    proto: "tcp"
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Allow wazuh-manager API traffic through firewall
+  community.general.ufw:
+    port: "{{ wazuh_manager_api_port }}"
+    proto: "tcp"
+    rule: allow
+  when: ansible_distribution == 'Ubuntu'
+
+# flush handlers for service restart, then ensure its started after.
+# prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
+- name: Flush pending handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable wazuh-manager systemd service
+  ansible.builtin.service:
+    name: "{{ wazuh_manager_systemd_service_name }}"
+    enabled: true
+    state: started

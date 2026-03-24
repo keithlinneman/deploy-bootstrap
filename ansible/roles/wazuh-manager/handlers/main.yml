@@ -1,0 +1,7 @@
+---
+- name: Restart wazuh-manager service
+  ansible.builtin.systemd:
+    name: "{{ wazuh_manager_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

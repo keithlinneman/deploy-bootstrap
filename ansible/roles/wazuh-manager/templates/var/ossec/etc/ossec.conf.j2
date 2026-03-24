@@ -1,0 +1,337 @@
+<ossec_config>
+  <global>
+    <jsonout_output>yes</jsonout_output>
+    <alerts_log>{{ wazuh_manager_ossec_global_alerts_log }}</alerts_log>
+    <logall>{{ wazuh_manager_ossec_global_logall }}</logall>
+    <logall_json>{{ wazuh_manager_ossec_global_logall_json }}</logall_json>
+    <email_notification>{{ wazuh_manager_ossec_global_email_notification }}</email_notification>
+    <smtp_server>smtp.example.wazuh.com</smtp_server>
+    <email_from>wazuh@example.wazuh.com</email_from>
+    <email_to>recipient@example.wazuh.com</email_to>
+    <email_maxperhour>12</email_maxperhour>
+    <email_log_source>alerts.log</email_log_source>
+    <agents_disconnection_time>{{ wazuh_manager_ossec_global_agents_disconnection_time }}</agents_disconnection_time>
+    <agents_disconnection_alert_time>{{ wazuh_manager_ossec_global_agents_disconnection_alert_time }}</agents_disconnection_alert_time>
+    <update_check>{{ wazuh_manager_ossec_global_update_check }}</update_check>
+  </global>
+
+  <alerts>
+    <log_alert_level>{{ wazuh_manager_ossec_alerts_log_alert_level }}</log_alert_level>
+    <email_alert_level>{{ wazuh_manager_ossec_alerts_email_maxperhour }}</email_alert_level>
+  </alerts>
+
+  <!-- Choose between "plain", "json", or "plain,json" for the format of internal logs -->
+  <logging>
+    <log_format>{{ wazuh_manager_ossec_logging_log_format }}</log_format>
+  </logging>
+
+  <remote>
+    <connection>secure</connection>
+    <port>{{ wazuh_manager_ossec_remote_port }}</port>
+    <protocol>{{ wazuh_manager_ossec_remote_protocol }}</protocol>
+    <queue_size>{{ wazuh_manager_ossec_remote_queue_size }}</queue_size>
+  </remote>
+
+  <!-- Policy monitoring -->
+  <rootcheck>
+    <disabled>{{ wazuh_manager_ossec_rootcheck_disabled }}</disabled>
+    <check_files>{{ wazuh_manager_ossec_rootcheck_check_files }}</check_files>
+    <check_trojans>{{ wazuh_manager_ossec_rootcheck_check_trojans }}</check_trojans>
+    <check_dev>{{ wazuh_manager_ossec_rootcheck_check_dev }}</check_dev>
+    <check_sys>{{ wazuh_manager_ossec_rootcheck_check_sys }}</check_sys>
+    <check_pids>{{ wazuh_manager_ossec_rootcheck_check_pids }}</check_pids>
+    <check_ports>{{ wazuh_manager_ossec_rootcheck_check_ports }}</check_ports>
+    <check_if>{{ wazuh_manager_ossec_rootcheck_check_if }}</check_if>
+
+    <!-- Frequency that rootcheck is executed - every 12 hours -->
+    <frequency>{{ wazuh_manager_ossec_rootcheck_frequency }}</frequency>
+
+    <rootkit_files>etc/rootcheck/rootkit_files.txt</rootkit_files>
+    <rootkit_trojans>etc/rootcheck/rootkit_trojans.txt</rootkit_trojans>
+
+    <skip_nfs>{{ wazuh_manager_ossec_rootcheck_skip_nfs }}</skip_nfs>
+
+    <ignore>/var/lib/containerd</ignore>
+    <ignore>/var/lib/docker/overlay2</ignore>
+  </rootcheck>
+
+  <wodle name="cis-cat">
+    <disabled>yes</disabled>
+    <timeout>1800</timeout>
+    <interval>1d</interval>
+    <scan-on-start>yes</scan-on-start>
+
+    <java_path>wodles/java</java_path>
+    <ciscat_path>wodles/ciscat</ciscat_path>
+  </wodle>
+
+  <!-- Osquery integration -->
+  <wodle name="osquery">
+    <disabled>{{ wazuh_manager_ossec_wodle_osquery_disabled }}</disabled>
+    <run_daemon>{{ wazuh_manager_ossec_wodle_osquery_run_daemon }}</run_daemon>
+    <log_path>{{ wazuh_manager_ossec_wodle_osquery_log_path }}</log_path>
+    <config_path>{{ wazuh_manager_ossec_wodle_osquery_config_path }}</config_path>
+    <add_labels>{{ wazuh_manager_ossec_wodle_osquery_add_labels }}</add_labels>
+  </wodle>
+
+  <!-- System inventory -->
+  <wodle name="syscollector">
+    <disabled>{{ wazuh_manager_ossec_wodle_syscollector_disabled }}</disabled>
+    <interval>{{ wazuh_manager_ossec_wodle_syscollector_interval }}</interval>
+    <scan_on_start>{{ wazuh_manager_ossec_wodle_syscollector_scan_on_start }}</scan_on_start>
+    <hardware>{{ wazuh_manager_ossec_wodle_syscollector_hardware }}</hardware>
+    <os>{{ wazuh_manager_ossec_wodle_syscollector_os }}</os>
+    <network>{{ wazuh_manager_ossec_wodle_syscollector_network }}</network>
+    <packages>{{ wazuh_manager_ossec_wodle_syscollector_packages }}</packages>
+    <ports all="yes">{{ wazuh_manager_ossec_wodle_syscollector_ports_all }}</ports>
+    <processes>{{ wazuh_manager_ossec_wodle_syscollector_processes }}</processes>
+    <users>{{ wazuh_manager_ossec_wodle_syscollector_users }}</users>
+    <groups>{{ wazuh_manager_ossec_wodle_syscollector_groups }}</groups>
+    <services>{{ wazuh_manager_ossec_wodle_syscollector_service }}</services>
+    <browser_extensions>{{ wazuh_manager_ossec_wodle_syscollector_browser_extensions }}</browser_extensions>
+
+    <!-- Database synchronization settings -->
+    <synchronization>
+      <max_eps>{{ wazuh_manager_ossec_wodle_syscollector_synchronization_max_eps }}</max_eps>
+    </synchronization>
+  </wodle>
+
+  <sca>
+    <enabled>{{ wazuh_manager_ossec_sca_enabled }}</enabled>
+    <scan_on_start>{{ wazuh_manager_ossec_sca_scan_on_start }}</scan_on_start>
+    <interval>{{ wazuh_manager_ossec_sca_interval }}</interval>
+    <skip_nfs>{{ wazuh_manager_ossec_sca_skip_nfs }}</skip_nfs>
+  </sca>
+
+  <vulnerability-detection>
+    <enabled>{{ wazuh_manager_ossec_vulnerability_detection_enabled }}</enabled>
+    <index-status>{{ wazuh_manager_ossec_vulnerability_detection_index_status }}</index-status>
+    <feed-update-interval>{{ wazuh_manager_ossec_vulnerability_detection_feed_update_interval }}</feed-update-interval>
+  </vulnerability-detection>
+
+  <indexer>
+    <enabled>{{ wazuh_manager_ossec_indexer_enabled }}</enabled>
+    <hosts>
+{% for host in wazuh_manager_ossec_indexer_hosts %}
+      <host>{{ host }}</host>
+{% endfor %}
+    </hosts>
+    <ssl>
+      <certificate_authorities>
+        <ca>{{ wazuh_manager_ossec_indexer_ssl_certificate_authorities_ca }}</ca>
+      </certificate_authorities>
+      <certificate>{{ wazuh_manager_ossec_indexer_ssl_certificate }}</certificate>
+      <key>{{ wazuh_manager_ossec_indexer_ssl_key }}</key>
+    </ssl>
+  </indexer>
+
+  <!-- File integrity monitoring -->
+  <syscheck>
+    <disabled>{{ wazuh_manager_ossec_syscheck_disabled }}</disabled>
+
+    <!-- Frequency that syscheck is executed default every 12 hours -->
+    <frequency>{{ wazuh_manager_ossec_syscheck_frequency }}</frequency>
+
+    <scan_on_start>{{ wazuh_manager_ossec_syscheck_scan_on_start }}</scan_on_start>
+
+    <!-- Generate alert when new file detected -->
+    <alert_new_files>{{ wazuh_manager_ossec_syscheck_alert_new_files }}</alert_new_files>
+
+    <!-- Don't ignore files that change more than 'frequency' times -->
+{% for autoignore in wazuh_manager_ossec_syscheck_auto_ignore %}
+    <auto_ignore frequency="{{ autoignore.frequency }}" timeframe="{{ autoignore.timeframe }}">no</auto_ignore>
+{% endfor %}
+
+    <!-- Directories to check  (perform all possible verifications) -->
+    <directories>{{ wazuh_manager_ossec_syscheck_directories | join(',') }}</directories>
+
+    <!-- Files/directories to ignore -->
+{% for path in wazuh_manager_ossec_syscheck_ignore_path %}
+      <ignore>{{ path }}</ignore>
+{% endfor %}
+
+    <!-- File types to ignore -->
+    <ignore type="sregex">{{ wazuh_manager_ossec_syscheck_ignore_types | join('|') }}</ignore>
+
+    <!-- Check the file, but never compute the diff -->
+{% for nodiff_file in wazuh_manager_ossec_syscheck_nodiff_files %}
+    <nodiff>{{ nodiff_file }}</nodiff>
+{% endfor %}
+{% for nodiff_path in wazuh_manager_ossec_syscheck_nodiff_paths %}
+    <nodiff type="{{ nodiff_path.type }}">{{ nodiff_path.path }}</nodiff>
+{% endfor %}
+
+    <skip_nfs>{{ wazuh_manager_ossec_syscheck_skip_nfs }}</skip_nfs>
+    <skip_dev>{{ wazuh_manager_ossec_syscheck_skip_dev }}</skip_dev>
+    <skip_proc>{{ wazuh_manager_ossec_syscheck_skip_proc }}</skip_proc>
+    <skip_sys>{{ wazuh_manager_ossec_syscheck_skip_sys }}</skip_sys>
+
+    <!-- Nice value for Syscheck process -->
+    <process_priority>{{ wazuh_manager_ossec_syscheck_process_priority }}</process_priority>
+
+    <!-- Maximum output throughput -->
+    <max_eps>{{ wazuh_manager_ossec_syscheck_max_eps }}</max_eps>
+
+    <!-- Database synchronization settings -->
+    <synchronization>
+      <enabled>{{ wazuh_manager_ossec_syscheck_synchronization_enabled }}</enabled>
+      <interval>{{ wazuh_manager_ossec_syscheck_synchronization_interval }}</interval>
+      <max_eps>{{ wazuh_manager_ossec_syscheck_synchronization_max_eps }}</max_eps>
+    </synchronization>
+  </syscheck>
+
+  <!-- Active response -->
+  <global>
+    <white_list>127.0.0.1</white_list>
+    <white_list>^localhost.localdomain$</white_list>
+    <white_list>127.0.0.53</white_list>
+  </global>
+
+  <command>
+    <name>disable-account</name>
+    <executable>disable-account</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <command>
+    <name>restart-wazuh</name>
+    <executable>restart-wazuh</executable>
+  </command>
+
+  <command>
+    <name>firewall-drop</name>
+    <executable>firewall-drop</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <command>
+    <name>host-deny</name>
+    <executable>host-deny</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <command>
+    <name>route-null</name>
+    <executable>route-null</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <command>
+    <name>win_route-null</name>
+    <executable>route-null.exe</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <command>
+    <name>netsh</name>
+    <executable>netsh.exe</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <!--
+  <active-response>
+    active-response options here
+  </active-response>
+  -->
+
+  <!-- Log analysis -->
+  <localfile>
+    <log_format>command</log_format>
+    <command>df -P</command>
+    <frequency>360</frequency>
+  </localfile>
+
+  <localfile>
+    <log_format>full_command</log_format>
+    <command>netstat -tulpn | sed 's/\([[:alnum:]]\+\)\ \+[[:digit:]]\+\ \+[[:digit:]]\+\ \+\(.*\):\([[:digit:]]*\)\ \+\([0-9\.\:\*]\+\).\+\ \([[:digit:]]*\/[[:alnum:]\-]*\).*/\1 \2 == \3 == \4 \5/' | sort -k 4 -g | sed 's/ == \(.*\) ==/:\1/' | sed 1,2d</command>
+    <alias>netstat listening ports</alias>
+    <frequency>360</frequency>
+  </localfile>
+
+  <localfile>
+    <log_format>full_command</log_format>
+    <command>last -n 20</command>
+    <frequency>360</frequency>
+  </localfile>
+
+  <ruleset>
+    <!-- Default ruleset -->
+    <decoder_dir>ruleset/decoders</decoder_dir>
+    <rule_dir>ruleset/rules</rule_dir>
+    <rule_exclude>0215-policy_rules.xml</rule_exclude>
+    <list>etc/lists/audit-keys</list>
+    <list>etc/lists/amazon/aws-eventnames</list>
+    <list>etc/lists/security-eventchannel</list>
+    <list>etc/lists/malicious-ioc/malware-hashes</list>
+    <list>etc/lists/malicious-ioc/malicious-ip</list>
+    <list>etc/lists/malicious-ioc/malicious-domains</list>
+
+    <!-- User-defined ruleset -->
+    <decoder_dir>etc/decoders</decoder_dir>
+    <rule_dir>etc/rules</rule_dir>
+  </ruleset>
+
+  <rule_test>
+    <enabled>yes</enabled>
+    <threads>1</threads>
+    <max_sessions>64</max_sessions>
+    <session_timeout>15m</session_timeout>
+  </rule_test>
+
+  <!-- Configuration for wazuh-authd -->
+  <auth>
+    <disabled>{{ wazuh_manager_ossec_auth_disabled }}</disabled>
+    <port>{{ wazuh_manager_ossec_auth_port }}</port>
+    <use_source_ip>{{ wazuh_manager_ossec_auth_use_source_ip }}</use_source_ip>
+    <purge>{{ wazuh_manager_ossec_auth_purge }}</purge>
+    <use_password>{{ wazuh_manager_ossec_auth_use_password }}</use_password>
+    <ciphers>{{ wazuh_manager_ossec_auth_ciphers }}</ciphers>
+{% if wazuh_manager_ossec_auth_ssl_agent_ca %}
+    <ssl_agent_ca>{{ wazuh_manager_ossec_auth_ssl_agent_ca }}</ssl_agent_ca>
+{% endif %}
+    <ssl_verify_host>{{ wazuh_manager_ossec_auth_ssl_verify_host }}</ssl_verify_host>
+    <ssl_manager_cert>{{ wazuh_manager_ossec_auth_ssl_manager_cert }}</ssl_manager_cert>
+    <ssl_manager_key>{{ wazuh_manager_ossec_auth_ssl_manager_key }}</ssl_manager_key>
+    <ssl_auto_negotiate>{{ wazuh_manager_ossec_auth_ssl_auto_negotiate }}</ssl_auto_negotiate>
+  </auth>
+
+  <cluster>
+    <name>{{ wazuh_manager_ossec_cluster_name }}</name>
+    <node_name>{{ wazuh_manager_ossec_cluster_node_name }}</node_name>
+    <node_type>{% if availability_zone == wazuh_manager_ossec_cluster_master_az %}master{% else %}worker{% endif %}</node_type>
+    <key>{{ wazuh_manager_ossec_cluster_key }}</key>
+    <port>{{ wazuh_manager_ossec_cluster_port }}</port>
+    <bind_addr>{{ wazuh_manager_ossec_cluster_bind_addr }}</bind_addr>
+    <nodes>
+{% for manager_node in wazuh_manager_ossec_cluster_nodes %}
+        <node>{{ manager_node }}</node>
+{% endfor %}
+    </nodes>
+    <hidden>{{ wazuh_manager_ossec_cluster_hidden }}</hidden>
+    <disabled>{{ wazuh_manager_ossec_cluster_disabled }}</disabled>
+  </cluster>
+
+</ossec_config>
+
+<ossec_config>
+  <localfile>
+    <log_format>journald</log_format>
+    <location>journald</location>
+  </localfile>
+
+  <localfile>
+    <log_format>audit</log_format>
+    <location>/var/log/audit/audit.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/ossec/logs/active-responses.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/dpkg.log</location>
+  </localfile>
+
+</ossec_config>
