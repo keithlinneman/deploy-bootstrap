@@ -19,6 +19,7 @@
     hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
+    availability_zone_short: "{{ ansible_ec2_placement_availability_zone[-2:] }}"
     host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
     wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_manager_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_manager_ossec_cluster_key: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_ossec_cluster_key_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
@@ -67,7 +68,7 @@
 
 - name: Install the wazuh-manager package
   ansible.builtin.package:
-    name: "{{ wazuh_manager_package_name }}-{{ wazuh_manager_version }}"
+    name: "{{ wazuh_manager_package_name }}={{ wazuh_manager_version }}"
     state: present
 
 - name: Hold wazuh-manager version
