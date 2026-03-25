@@ -81,13 +81,14 @@
 
 - name: Create wazuh config directories
   ansible.builtin.file:
-    path: "{{ wazuh_dashboard_server_config_base_path }}/{{ item }}"
+    path: "{{ item }}"
     owner: "root"
     group: "{{ wazuh_dashboard_system_user }}"
-    mode: "0750"
+    mode: "0700"
     state: directory
   loop:
-    - ssl
+    - "{{ wazuh_dashboard_server_config_base_path }}/ssl"
+    - "{{ wazuh_dashboard_app_config_base_path }}"
 
 - name: Check current kms-csr-tool hash
   ansible.builtin.stat:
