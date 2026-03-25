@@ -172,6 +172,6 @@ hosts:
   - default:
       url: https://wazuh-manager.{{ hosted_zone_name }}
       port: 55000
-      username: wazuh-wui
-      password: wazuh-wui
+      username: "{{ wazuh_dashboard_manager_credentials.username }}"
+      password: "{{ wazuh_dashboard_manager_credentials.password }}"
       run_as: true

@@ -30,6 +30,7 @@ wazuh_dashboard_opensearch_hosts:
   - https://wazuh-indexer-2c.{{ hosted_zone_name }}:9200
 wazuh_dashboard_opensearch_ssl_verification_mode: certificate
 wazuh_dashboard_indexer_credentials_secret_name: app/wazuh/dashboard/indexer/credentials
+wazuh_dashboard_manager_credentials_secret_name: app/wazuh/dashboard/manager/credentials
 
 wazuh_dashboard_uisettings_overrides_default_route: /app/wz-home
 

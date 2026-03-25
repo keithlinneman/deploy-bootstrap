@@ -23,6 +23,7 @@
     host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
     wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_dashboard_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_dashboard_indexer_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_dashboard_indexer_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_dashboard_manager_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_dashboard_manager_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
   no_log: true
 
 - name: Set facts from environment variables
@@ -50,6 +51,7 @@
     - wazuh_dashboard_app_config_base_path
     - wazuh_components_intermediate_key_arn
     - wazuh_dashboard_indexer_credentials
+    - wazuh_dashboard_manager_credentials
 
 - name: Add wazuh apt repository GPG key
   ansible.builtin.copy:
