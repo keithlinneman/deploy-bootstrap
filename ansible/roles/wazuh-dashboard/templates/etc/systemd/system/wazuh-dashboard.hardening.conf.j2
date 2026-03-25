@@ -18,7 +18,8 @@ RestrictSUIDSGID=yes
 ProtectProc=invisible
 ProcSubset=pid
 LockPersonality=yes
-MemoryDenyWriteExecute=yes
+# node.js JIT needs RWX memory so we cant set this to yes
+MemoryDenyWriteExecute=auto
 RestrictNamespaces=yes
 RestrictRealtime=yes
 SystemCallArchitectures=native
@@ -28,7 +29,7 @@ ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
 # StateDirectory={{ wazuh_dashboard_system_user }}
-ReadWritePaths=/run 
+ReadWritePaths=/run {{ wazuh_dashboard_data_path }}
 
 # kernel/mem hardening
 ProtectKernelTunables=yes
