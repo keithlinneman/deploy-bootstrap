@@ -46,7 +46,8 @@
     - service_component
     - project
     - service_namespace
-    - wazuh_dashboard_config_base_path
+    - wazuh_dashboard_server_config_base_path
+    - wazuh_dashboard_app_config_base_path
     - wazuh_components_intermediate_key_arn
     - wazuh_dashboard_indexer_credentials
 
@@ -78,7 +79,7 @@
 
 - name: Create wazuh config directories
   ansible.builtin.file:
-    path: "{{ wazuh_dashboard_config_base_path }}/{{ item }}"
+    path: "{{ wazuh_dashboard_server_config_base_path }}/{{ item }}"
     owner: "root"
     group: "{{ wazuh_dashboard_system_user }}"
     mode: "0750"
@@ -235,10 +236,19 @@
   failed_when: cert_verify.rc != 0
   register: cert_verify
 
-- name: Modify wazuh-dashboard configuration file
+- name: Modify wazuh-dashboard server configuration file
   ansible.builtin.template:
     src: etc/wazuh-dashboard/opensearch_dashboards.yml.j2
-    dest: "{{ wazuh_dashboard_config_base_path }}/opensearch_dashboards.yml"
+    dest: "{{ wazuh_dashboard_server_config_base_path }}/opensearch_dashboards.yml"
+    mode: "0660"
+    owner: "{{ wazuh_dashboard_system_user }}"
+    group: "{{ wazuh_dashboard_system_user }}"
+  notify: Restart wazuh-dashboard service
+
+- name: Modify wazuh-dashboard app configuration file
+  ansible.builtin.template:
+    src: usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml.j2
+    dest: "{{ wazuh_dashboard_app_config_base_path }}/wazuh.yml"
     mode: "0660"
     owner: "{{ wazuh_dashboard_system_user }}"
     group: "{{ wazuh_dashboard_system_user }}"

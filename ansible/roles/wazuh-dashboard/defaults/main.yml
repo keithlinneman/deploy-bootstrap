@@ -13,8 +13,9 @@ wazuh_dashboard_component_ssl_organization_name: linnemanlabs.com
 wazuh_dashboard_component_ssl_cert_validity_days: 28
 wazuh_dashboard_components_intermediate_key_arn_param: arn:aws:ssm:us-east-2:987020212918:parameter/app/wazuh/component/signing/intermediate/arn
 
+wazuh_dashboard_opensearch_ssl_certificateauthority: /etc/wazuh-dashboard/ssl/wazuh-component-ca.pem
 wazuh_dashboard_opensearch_ssl_certificateauthorities:
-  - /etc/wazuh-dashboard/ssl/wazuh-component-ca.pem
+  - "{{ wazuh_dashboard_opensearch_ssl_certificateauthority }}"
   - "{{ trust_root_ca_path }}"
 
 wazuh_dashboard_server_ssl_enabled: true

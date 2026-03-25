@@ -2,9 +2,10 @@
 wazuh_dashboard_package_name: wazuh-dashboard
 wazuh_dashboard_package_version: 4.14.4-1
 
-wazuh_dashboard_config_base_path: /etc/wazuh-dashboard
+wazuh_dashboard_data_path: /usr/share/wazuh-dashboard/data
+wazuh_dashboard_server_config_base_path: /etc/wazuh-dashboard
+wazuh_dashboard_app_config_base_path: "{{ wazuh_dashboard_data_path }}/wazuh/config"
 wazuh_dashboard_systemd_service_name: wazuh-dashboard
 wazuh_dashboard_system_user: wazuh-dashboard
-wazuh_dashboard_data_path: /usr/share/wazuh-dashboard/data
 
 kms_csr_tool_base_path: /usr/local/sbin
