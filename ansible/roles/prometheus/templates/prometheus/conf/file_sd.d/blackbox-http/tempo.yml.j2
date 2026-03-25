@@ -13,18 +13,17 @@
     phxi_account_label: {{ account_name }}-{{ platform_env }}
     severity: page
 
-
-- targets:
-    - https://tempo-distributor.{{ hosted_zone_name }}/ready
-  labels:
-    check_type: readiness
-    probe_kind: endpoint
-    deployment_environment_name: {{ platform_env }}
-    cloud_region: {{ ansible_ec2_instance_identity_document_region }}
-    service_namespace: observability
-    service_name: tempo-distributor
-    phxi_service_name: tempo
-    phxi_service_component: distributor
-    phxi_account_name: {{ account_name }}
-    phxi_account_label: {{ account_name }}-{{ platform_env }}
-    severity: page
+# - targets:
+#     - https://tempo-distributor.{{ hosted_zone_name }}/ready
+#   labels:
+#     check_type: readiness
+#     probe_kind: endpoint
+#     deployment_environment_name: {{ platform_env }}
+#     cloud_region: {{ ansible_ec2_instance_identity_document_region }}
+#     service_namespace: observability
+#     service_name: tempo-distributor
+#     phxi_service_name: tempo
+#     phxi_service_component: distributor
+#     phxi_account_name: {{ account_name }}
+#     phxi_account_label: {{ account_name }}-{{ platform_env }}
+#     severity: page

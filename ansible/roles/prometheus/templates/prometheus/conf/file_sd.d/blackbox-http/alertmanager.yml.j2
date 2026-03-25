@@ -1,6 +1,5 @@
 - targets:
-    - https://alertmanager.{{ hosted_zone_name }}/healthz
-    - https://alertmanager.{{ hosted_zone_name }}/api/health
+    - https://alertmanager.{{ hosted_zone_name }}/-/healthy
   labels:
     check_type: health
     probe_kind: endpoint
