@@ -152,3 +152,4 @@ wazuh_manager_ossec_auth_ssl_auto_negotiate: "no"
 wazuh_manager_api_port: 55000
 
 wazuh_manager_filebeat_indexer_credentials_secret_name: app/wazuh/manager/filebeat/indexer/credentials
+wazuh_manager_api_jwt_secret_name: app/wazuh/manager/api/jwt/keys

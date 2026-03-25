@@ -24,6 +24,7 @@
     wazuh_components_intermediate_key_arn: "{{ lookup('amazon.aws.aws_ssm', wazuh_manager_components_intermediate_key_arn_param, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_manager_ossec_cluster_key: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_ossec_cluster_key_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_manager_filebeat_indexer_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_filebeat_indexer_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_manager_api_jwt_keys: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_api_jwt_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
   no_log: true
 
 - name: Set facts from environment variables
@@ -50,6 +51,7 @@
     - wazuh_manager_ossec_config_base_path
     - wazuh_components_intermediate_key_arn
     - wazuh_manager_ossec_cluster_key
+    - wazuh_manager_api_jwt_keys
 
 - name: Add wazuh apt repository GPG key
   ansible.builtin.copy:
@@ -278,6 +280,24 @@
     mode: "0660"
     owner: "{{ wazuh_manager_system_user }}"
     group: "{{ wazuh_manager_system_user }}"
+  notify: Restart wazuh-manager service
+
+- name: Write API JWT private key
+  ansible.builtin.copy:
+    content: "{{ (wazuh_manager_api_jwt_keys | from_json).privatekey | b64decode }}"
+    dest: /var/ossec/api/configuration/security/private_key.pem
+    owner: wazuh
+    group: wazuh
+    mode: "0640"
+  notify: Restart wazuh-manager service
+
+- name: Write API JWT public key
+  ansible.builtin.copy:
+    content: "{{ (wazuh_manager_api_jwt_keys | from_json).publickey | b64decode }}"
+    dest: /var/ossec/api/configuration/security/public_key.pem
+    owner: wazuh
+    group: wazuh
+    mode: "0640"
   notify: Restart wazuh-manager service
 
 - name: Create systemd override directory
