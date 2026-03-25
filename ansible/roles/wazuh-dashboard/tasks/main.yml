@@ -82,7 +82,7 @@
 - name: Create wazuh config directories
   ansible.builtin.file:
     path: "{{ item }}"
-    owner: "root"
+    owner: "{{ wazuh_dashboard_system_user }}"
     group: "{{ wazuh_dashboard_system_user }}"
     mode: "0700"
     state: directory
