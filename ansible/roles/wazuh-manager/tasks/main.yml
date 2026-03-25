@@ -284,7 +284,7 @@
 
 - name: Write API JWT private key
   ansible.builtin.copy:
-    content: "{{ (wazuh_manager_api_jwt_keys | from_json).privatekey | b64decode }}"
+    content: "{{ wazuh_manager_api_jwt_keys.privatekey | b64decode }}"
     dest: /var/ossec/api/configuration/security/private_key.pem
     owner: wazuh
     group: wazuh
@@ -293,7 +293,7 @@
 
 - name: Write API JWT public key
   ansible.builtin.copy:
-    content: "{{ (wazuh_manager_api_jwt_keys | from_json).publickey | b64decode }}"
+    content: "{{ wazuh_manager_api_jwt_keys.publickey | b64decode }}"
     dest: /var/ossec/api/configuration/security/public_key.pem
     owner: wazuh
     group: wazuh
