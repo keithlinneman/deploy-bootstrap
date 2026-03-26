@@ -32,8 +32,8 @@ SystemCallArchitectures=native
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
-# StateDirectory=wazuh
-ReadWritePaths=/run /var/osquery /var/log/osquery
+# StateDirectory={{ osquery_systemd_service_name }}
+ReadWritePaths=/run {{ osquery_data_path }} {{ osquery_log_path }}
 
 # kernel/mem hardening
 # osquery BPF event monitoring requires access to /proc/kallsyms for probe attachment

@@ -71,10 +71,19 @@
     name: "{{ osquery_package_name }}"
     selection: hold
 
-- name: Modify osquery configuration file
+- name: Modify osquery main configuration file
   ansible.builtin.template:
     src: etc/osquery/osquery.conf.j2
     dest: "{{ osquery_config_base_path }}/osquery.conf"
+    mode: "0660"
+    owner: "{{ osquery_system_user }}"
+    group: "{{ osquery_system_user }}"
+  notify: Restart osquery service
+
+- name: Modify osquery flags configuration file
+  ansible.builtin.template:
+    src: etc/osquery/osquery.flags.j2
+    dest: "{{ osquery_config_base_path }}/osquery.flags"
     mode: "0660"
     owner: "{{ osquery_system_user }}"
     group: "{{ osquery_system_user }}"

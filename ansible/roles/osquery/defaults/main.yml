@@ -1,1 +1,17 @@
 ---
+osquery_config_plugin: filesystem
+osquery_config_path: "{{ osquery_config_base_path }}/osquery.conf"
+osquery_logger_plugin: filesystem
+osquery_logger_path: "{{ osquery_log_path }}"
+osquery_logger_event_type: true
+osquery_logger_snapshot_event_type: false
+osquery_host_identifier: uuid
+osquery_database_path: "{{ osquery_data_path }}/osquery.db"
+osquery_disable_events: false
+osquery_enable_bpf_events: true
+osquery_events_expiry: 300
+osquery_events_max: 50000
+osquery_watchdog_level: 0
+osquery_verbose: false
+osquery_extensions_socket: "{{ osquery_data_path }}/osquery.sock"
+osquery_disable_extensions: false
