@@ -2,7 +2,7 @@
 # trust_root_ca_path: /etc/phxi/trust/root-ca.crt
 # wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
 
-wazuh_agent_ossec_client_server_address: wazuh-agent.{{ hosted_zone_name }}
+wazuh_agent_ossec_client_server_address: wazuh-agent.{{ region_short }}.secops.prod.phxi.net
 wazuh_agent_ossec_client_server_port: 1514
 wazuh_agent_ossec_client_server_protocol: tcp
 
