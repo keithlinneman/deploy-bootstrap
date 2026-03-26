@@ -14,9 +14,7 @@ WorkingDirectory=/var/ossec
 NoNewPrivileges=true
 PrivateDevices=yes
 DevicePolicy=closed
-# working through what capabilities agents will need
-CapabilityBoundingSet=~
-# CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_READ_SEARCH CAP_SYS_PTRACE CAP_CHOWN CAP_FOWNER
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_OVERRIDE CAP_DAC_READ_SEARCH CAP_SYS_PTRACE CAP_CHOWN CAP_FOWNER CAP_NET_RAW CAP_NET_ADMIN CAP_KILL
 AmbientCapabilities=
 RestrictSUIDSGID=yes
 # rootcheck and syscollector need access to /proc for process scanning, port monitoring, and hardware inventory
@@ -41,7 +39,8 @@ ProtectKernelModules=yes
 ProtectControlGroups=yes
 
 # network hardening
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# syscollector needs AF_NETLINK to query network interfaces
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 
 [Install]
 WantedBy=multi-user.target
