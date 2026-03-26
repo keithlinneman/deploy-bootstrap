@@ -1,0 +1,7 @@
+---
+- name: Restart osquery service
+  ansible.builtin.systemd:
+    name: "{{ osquery_systemd_service_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

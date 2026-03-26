@@ -1,0 +1,49 @@
+[Service]
+StandardOutput=journal
+StandardError=journal
+KillMode=control-group
+TimeoutStopSec=30
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+LimitMEMLOCK=infinity
+
+UMask=0077
+WorkingDirectory=/var/ossec
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+# osquery needs access to ebpf and perf events for its monitoring capabilities
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+# osquery needs access to /proc for its work and also for /proc/kallsyms for eBPF monitoring
+ProtectProc=default
+ProcSubset=all
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# StateDirectory=wazuh
+ReadWritePaths=/run /var/osquery /var/log/osquery
+
+# kernel/mem hardening
+# osquery BPF event monitoring requires access to /proc/kallsyms for probe attachment
+ProtectKernelTunables=no
+# ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target

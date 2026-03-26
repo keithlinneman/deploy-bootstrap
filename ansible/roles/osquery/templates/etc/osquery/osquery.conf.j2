@@ -1,0 +1,69 @@
+{
+  "options": {
+    "utc": "true",
+    "schedule_splay_percent": "10"
+  },
+  "decorators": {
+    "load": [
+      "SELECT uuid AS host_uuid FROM system_info;",
+      "SELECT hostname FROM system_info;",
+      "SELECT version AS osquery_version FROM osquery_info;"
+    ]
+  },
+  "schedule": {
+    "bpf_process_events": {
+      "query": "SELECT * FROM bpf_process_events;",
+      "interval": 60,
+      "removed": false
+    },
+    "user_events": {
+      "query": "SELECT * FROM user_events;",
+      "interval": 60,
+      "removed": false
+    },
+    "deleted_binaries": {
+      "query": "SELECT pid, parent, name, path, cmdline FROM processes WHERE on_disk = 0;",
+      "interval": 300,
+      "removed": false
+    },
+    "listening_ports_snapshot": {
+      "query": "SELECT DISTINCT p.name, p.path, p.cmdline, lp.address, lp.port, p.pid FROM listening_ports lp JOIN processes p USING (pid);",
+      "interval": 900,
+      "snapshot": true
+    },
+    "users_snapshot": {
+      "query": "SELECT * FROM users;",
+      "interval": 3600,
+      "snapshot": true
+    },
+    "groups_snapshot": {
+      "query": "SELECT * FROM groups;",
+      "interval": 3600,
+      "snapshot": true
+    },
+    "kernel_modules_snapshot": {
+      "query": "SELECT name, size, used_by, status FROM kernel_modules;",
+      "interval": 3600,
+      "snapshot": true
+    },
+    "authorized_keys": {
+      "query": "SELECT ak.*, u.username FROM users u JOIN authorized_keys ak USING (uid);",
+      "interval": 3600,
+      "snapshot": true
+    },
+    "crontab": {
+      "query": "SELECT * FROM crontab;",
+      "interval": 3600,
+      "snapshot": true
+    },
+    "suid_bin": {
+      "query": "SELECT * FROM suid_bin;",
+      "interval": 3600,
+      "snapshot": true
+    }
+  },
+  "packs": {
+    "osquery-monitoring": "{{ osquery_packs_path }}/osquery-monitoring.conf",
+    "incident-response": "{{ osquery_packs_path }}/incident-response.conf"
+  }
+}
