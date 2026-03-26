@@ -41,7 +41,7 @@ groups:
           severity: warn
         annotations:
           summary: "High swap-out activity on {{ $labels.node }}"
-          description: "More than 100 pages/s being swapped out for 5m; host is actively paging."
+          description: "More than 100 pages/s being swapped out for 15m; host is actively paging."
 
       - alert: MajorPageFaults
         expr: rate(node_vmstat_pgmajfault[5m]) > 10
