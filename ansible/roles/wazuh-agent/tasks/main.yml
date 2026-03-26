@@ -95,6 +95,27 @@
   notify: Restart wazuh-agent service
   when: ansible_distribution == 'Ubuntu'
 
+- name: Add osquery apt repository GPG key
+  ansible.builtin.copy:
+    # dearmored from source: https://pkg.osquery.io/deb/pubkey.gpg
+    src: osquery/osquery-apt.gpg
+    dest: /usr/share/keyrings/osquery.gpg
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the osquery apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/osquery.gpg] https://pkg.osquery.io/deb deb main"
+    state: present
+    filename: osquery
+    update_cache: true
+
+- name: Install the osquery package
+  ansible.builtin.package:
+    name: "{{ osquery_package_name }}"
+    state: present
+
 # flush handlers for service restart, then ensure its started after.
 # prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
 - name: Flush pending handlers
