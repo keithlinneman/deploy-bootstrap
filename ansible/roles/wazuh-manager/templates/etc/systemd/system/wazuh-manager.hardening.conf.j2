@@ -33,7 +33,7 @@ ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
 # StateDirectory={{ wazuh_manager_system_user }}
-ReadWritePaths=/var/ossec /run 
+ReadWritePaths={{ wazuh_manager_ossec_base_path }} /run 
 
 # kernel/mem hardening
 ProtectKernelTunables=yes

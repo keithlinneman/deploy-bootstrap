@@ -71,8 +71,6 @@ wazuh_manager_ossec_wodle_syscollector_users: "yes"
 wazuh_manager_ossec_wodle_syscollector_groups: "yes"
 wazuh_manager_ossec_wodle_syscollector_service: "yes"
 wazuh_manager_ossec_wodle_syscollector_browser_extensions: "yes"
-wazuh_manager_ossec_wodle_syscollector_synchronization_enabled: "yes"
-wazuh_manager_ossec_wodle_syscollector_synchronization_interval: 5m
 wazuh_manager_ossec_wodle_syscollector_synchronization_max_eps: 10
 
 wazuh_manager_ossec_sca_enabled: "yes"
