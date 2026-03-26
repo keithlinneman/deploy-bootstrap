@@ -25,6 +25,8 @@
     wazuh_manager_ossec_cluster_key: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_ossec_cluster_key_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_manager_filebeat_indexer_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_filebeat_indexer_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
     wazuh_manager_api_jwt_keys: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_api_jwt_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_manager_dashboard_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_dashboard_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
+    wazuh_manager_api_credentials: "{{ lookup('amazon.aws.aws_secret', wazuh_manager_api_credentials_secret_name, region=ansible_ec2_instance_identity_document_region) }}"
   no_log: true
 
 - name: Set facts from environment variables
@@ -359,3 +361,12 @@
     name: "{{ filebeat_systemd_service_name }}"
     enabled: true
     state: started
+
+- name: Set Wazuh API passwords
+  ansible.builtin.expect:
+    command: /var/ossec/framework/python/bin/python3 /var/ossec/framework/scripts/rbac_control.py change-password
+    responses:
+      "'wazuh'.*:": "{{ wazuh_manager_api_credentials.password }}"
+      "'wazuh-wui'.*:": "{{ wazuh_manager_dashboard_credentials.password }}"
+  when: availability_zone_short == wazuh_manager_ossec_cluster_master_az
+  changed_when: true
