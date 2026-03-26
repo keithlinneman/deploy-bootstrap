@@ -1,7 +1,7 @@
 ---
 osquery_package_name: osquery
 # osquery_package_version: 5.22.1-1.linux
-osquery_systemd_service_name: osquery
+osquery_systemd_service_name: osqueryd
 osquery_system_user: root
 osquery_config_base_path: /etc/osquery
 osquery_packs_path: /opt/osquery/share/osquery/packs
