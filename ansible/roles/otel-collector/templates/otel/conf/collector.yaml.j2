@@ -92,6 +92,17 @@ receivers:
         from: attributes.message
         to: body
 
+  filelog/wazuh:
+      include:
+        - /var/ossec/logs/ossec.log
+        - /var/ossec/logs/api.log
+        - /var/ossec/logs/cluster.log
+        - /var/log/wazuh-indexer/wazuh-indexer.log
+        - /var/log/filebeat/filebeat
+      start_at: end
+      include_file_path: true
+      include_file_name: true
+
 processors:
   resourcedetection/ec2:
     detectors: [ec2, system]
@@ -275,6 +286,17 @@ service:
         - batch
       exporters: [otlphttp/loki]
 
+    logs/wazuh:
+      receivers: [filelog/wazuh]
+      processors:
+        - resourcedetection/ec2
+        - resource/system_metadata
+        - resource/source_file
+        - transform/level_common
+        - attributes/prune_noise_logs
+        - batch
+      exporters: [otlphttp/loki]
+
     traces/otlp:
       receivers: [otlp]
       processors:
@@ -283,3 +305,4 @@ service:
         - resource/source_otlp
         - batch
       exporters: [otlphttp/tempo]
+
