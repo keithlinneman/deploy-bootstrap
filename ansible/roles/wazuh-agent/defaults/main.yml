@@ -1,0 +1,106 @@
+---
+# trust_root_ca_path: /etc/phxi/trust/root-ca.crt
+# wazuh_trust_materials_cert_chain_path: certs/wazuh-component-ca.crt
+
+wazuh_agent_ossec_client_server_address: wazuh-manager.{{ hosted_zone_name }}
+wazuh_agent_ossec_client_server_port: 1514
+wazuh_agent_ossec_client_server_protocol: tcp
+
+wazuh_agent_ossec_client_config_profile: >-
+  {{ ansible_distribution | lower }},
+  {{ ansible_distribution | lower }}{{ ansible_distribution_major_version }},
+  {{ ansible_distribution | lower }}{{ ansible_distribution_version }}
+
+wazuh_agent_ossec_client_notify_time: 20
+wazuh_agent_ossec_client_time_reconnect: 60
+wazuh_agent_ossec_client_auto_restart: "yes"
+wazuh_agent_ossec_client_crypto_method: aes
+
+wazuh_agent_ossec_client_buffer_disabled: "no"
+wazuh_agent_ossec_client_buffer_queue_size: 5000
+wazuh_agent_ossec_client_buffer_events_per_second: 500
+
+wazuh_agent_ossec_rootcheck_disabled: "no"
+wazuh_agent_ossec_rootcheck_check_files: "yes"
+wazuh_agent_ossec_rootcheck_check_trojans: "yes"
+wazuh_agent_ossec_rootcheck_check_dev: "yes"
+wazuh_agent_ossec_rootcheck_check_sys: "yes"
+wazuh_agent_ossec_rootcheck_check_pids: "yes"
+wazuh_agent_ossec_rootcheck_check_ports: "yes"
+wazuh_agent_ossec_rootcheck_check_if: "yes"
+wazuh_agent_ossec_rootcheck_frequency: 43200
+wazuh_agent_ossec_rootcheck_skip_nfs: "yes"
+
+wazuh_agent_ossec_wodle_osquery_disabled: "no"
+wazuh_agent_ossec_wodle_osquery_run_daemon: "yes"
+wazuh_agent_ossec_wodle_osquery_log_path: /var/log/osquery/osqueryd.results.log
+wazuh_agent_ossec_wodle_osquery_config_path: /var/ossec/etc/shared/osquery/osquery.conf
+wazuh_agent_ossec_wodle_osquery_add_labels: "yes"
+
+wazuh_agent_ossec_wodle_syscollector_disabled: "no"
+wazuh_agent_ossec_wodle_syscollector_interval: 1h
+wazuh_agent_ossec_wodle_syscollector_scan_on_start: "yes"
+wazuh_agent_ossec_wodle_syscollector_hardware: "yes"
+wazuh_agent_ossec_wodle_syscollector_os: "yes"
+wazuh_agent_ossec_wodle_syscollector_network: "yes"
+wazuh_agent_ossec_wodle_syscollector_packages: "yes"
+wazuh_agent_ossec_wodle_syscollector_ports_all: "yes"
+wazuh_agent_ossec_wodle_syscollector_processes: "yes"
+wazuh_agent_ossec_wodle_syscollector_users: "yes"
+wazuh_agent_ossec_wodle_syscollector_groups: "yes"
+wazuh_agent_ossec_wodle_syscollector_service: "yes"
+wazuh_agent_ossec_wodle_syscollector_browser_extensions: "yes"
+wazuh_agent_ossec_wodle_syscollector_synchronization_max_eps: 10
+
+wazuh_agent_ossec_sca_enabled: "yes"
+wazuh_agent_ossec_sca_scan_on_start: "yes"
+wazuh_agent_ossec_sca_interval: 12h
+wazuh_agent_ossec_sca_skip_nfs: "yes"
+
+wazuh_agent_ossec_syscheck_disabled: "no"
+wazuh_agent_ossec_syscheck_frequency: 43200
+wazuh_agent_ossec_syscheck_scan_on_start: "yes"
+wazuh_agent_ossec_syscheck_alert_new_files: "yes"
+wazuh_agent_ossec_syscheck_auto_ignore:
+  - { frequency: 10, timeframe: 3600 }
+wazuh_agent_ossec_syscheck_directories:
+  - /etc
+  - /usr/bin
+  - /usr/sbin
+  - /bin
+  - /sbin
+  - /boot
+  - /opt
+wazuh_agent_ossec_syscheck_ignore_path:
+  - /etc/mtab
+  - /etc/hosts.deny
+  - /etc/mail/statistics
+  - /etc/random-seed
+  - /etc/random.seed
+  - /etc/adjtime
+  - /etc/httpd/logs
+  - /etc/utmpx
+  - /etc/wtmpx
+  - /etc/cups/certs
+  - /etc/dumpdates
+  - /etc/svc/volatile
+wazuh_agent_ossec_syscheck_ignore_types:
+  - .log$
+  - .swp$
+wazuh_agent_ossec_syscheck_nodiff_files:
+  - "{{ wazuh_agent_ossec_config_base_path }}/client.keys"
+  - "{{ wazuh_agent_ossec_config_base_path }}/ossec.conf"
+wazuh_agent_ossec_syscheck_nodiff_paths: []
+wazuh_agent_ossec_syscheck_skip_nfs: "yes"
+wazuh_agent_ossec_syscheck_skip_dev: "yes"
+wazuh_agent_ossec_syscheck_skip_proc: "yes"
+wazuh_agent_ossec_syscheck_skip_sys: "yes"
+wazuh_agent_ossec_syscheck_process_priority: 10
+wazuh_agent_ossec_syscheck_max_eps: 50
+wazuh_agent_ossec_syscheck_synchronization_enabled: "yes"
+wazuh_agent_ossec_syscheck_synchronization_interval: 5m
+wazuh_agent_ossec_syscheck_synchronization_max_eps: 10
+
+wazuh_agent_ossec_active_response_disabled: "yes"
+
+wazuh_agent_ossec_logging_log_format: json

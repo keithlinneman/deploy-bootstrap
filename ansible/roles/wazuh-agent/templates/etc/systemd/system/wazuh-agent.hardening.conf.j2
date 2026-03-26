@@ -1,0 +1,47 @@
+[Service]
+StandardOutput=journal
+StandardError=journal
+KillMode=control-group
+TimeoutStopSec=30
+LimitNOFILE=100000
+Restart=on-failure
+RestartSec=5s
+
+UMask=0077
+WorkingDirectory=/var/ossec
+
+# process hardening
+NoNewPrivileges=true
+PrivateDevices=yes
+DevicePolicy=closed
+# working through what capabilities agents will need
+CapabilityBoundingSet=~
+# CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_READ_SEARCH CAP_SYS_PTRACE CAP_CHOWN CAP_FOWNER
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+# rootcheck and syscollector need access to /proc for process scanning, port monitoring, and hardware inventory
+ProtectProc=default
+ProcSubset=all
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+
+# fs hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# StateDirectory={{ wazuh_agent_system_user }}
+ReadWritePaths={{ wazuh_agent_ossec_base_path }} /run 
+
+# kernel/mem hardening
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# network hardening
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

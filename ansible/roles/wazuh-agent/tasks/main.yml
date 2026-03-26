@@ -1,0 +1,107 @@
+---
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Get instance metadata
+  amazon.aws.ec2_metadata_facts:
+
+- name: Print all environment vars for debugging
+  ansible.builtin.debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 2
+
+- name: Set facts from ssm here since they require ec2 metadata to lookup region
+  ansible.builtin.set_fact:
+    account_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/account/name', region=ansible_ec2_instance_identity_document_region) }}"
+    artifacts_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/artifacts/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/s3/bucket/name', region=ansible_ec2_instance_identity_document_region) }}"
+    company_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/company/name', region=ansible_ec2_instance_identity_document_region) }}"
+    hosted_zone_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/dns/hosted_zone/name', region=ansible_ec2_instance_identity_document_region) }}"
+    platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
+    region_short: "{{ ansible_ec2_placement_availability_zone_id.split('-')[0] }}"
+    availability_zone_short: "{{ ansible_ec2_placement_availability_zone[-2:] }}"
+    host_nounique: "{{ ansible_hostname | regex_replace('-[a-f0-9]+$', '') }}"
+  no_log: true
+
+- name: Set facts from environment variables
+  ansible.builtin.set_fact:
+    service_name: "{{ ansible_env.SERVICENAME | default('unknown') }}"
+    service_component: "{{ ansible_env.SERVICECOMPONENT | default(ansible_env.SERVICENAME | default('unknown')) }}"
+    project: "{{ ansible_env.PROJECT | default('unknown') }}"
+    service_namespace: "{{ ansible_env.NAMESPACE | default('unknown') }}"
+
+- name: Ensure required variables are defined
+  ansible.builtin.fail:
+    msg: "{{ item }} must be defined use -e {{ item }}=value"
+  when: (lookup('vars', item, default=None)) is none
+  loop:
+    - account_name
+    - artifacts_bucket_name
+    - company_name
+    - hosted_zone_name
+    - platform_env
+    - service_name
+    - service_component
+    - project
+    - service_namespace
+
+- name: Add wazuh apt repository GPG key
+  ansible.builtin.copy:
+    # dearmored from source: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    src: wazuh/wazuh-apt.gpg
+    dest: /usr/share/keyrings/wazuh.gpg
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the wazuh apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main"
+    state: present
+    filename: wazuh
+    update_cache: true
+
+- name: Install the wazuh-agent package
+  ansible.builtin.package:
+    name: "{{ wazuh_agent_package_name }}={{ wazuh_agent_package_version }}"
+    state: present
+
+- name: Hold wazuh-agent version
+  ansible.builtin.dpkg_selections:
+    name: "{{ wazuh_agent_package_name }}"
+    selection: hold
+
+- name: Modify wazuh-agent configuration file
+  ansible.builtin.template:
+    src: var/ossec/etc/ossec.conf.j2
+    dest: "{{ wazuh_agent_ossec_config_base_path }}/ossec.conf"
+    mode: "0660"
+    owner: "{{ wazuh_agent_system_user }}"
+    group: "{{ wazuh_agent_system_user }}"
+  notify: Restart wazuh-agent service
+
+- name: Create systemd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/{{ wazuh_agent_systemd_service_name }}.service.d
+    state: directory
+    mode: '0755'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Create wazuh systemd service overrides for hardening
+  ansible.builtin.template:
+    src: etc/systemd/system/{{ wazuh_agent_systemd_service_name }}.hardening.conf.j2
+    dest: /etc/systemd/system/{{ wazuh_agent_systemd_service_name }}.service.d/hardening.conf
+    mode: "0644"
+  notify: Restart wazuh-agent service
+  when: ansible_distribution == 'Ubuntu'
+
+# flush handlers for service restart, then ensure its started after.
+# prevents starting in task -> restarting in notified handlers during bootstrap, ensures its running for idempotent runs
+- name: Flush pending handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable wazuh-agent systemd service
+  ansible.builtin.service:
+    name: "{{ wazuh_agent_systemd_service_name }}"
+    enabled: true
+    state: started

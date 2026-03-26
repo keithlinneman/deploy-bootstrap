@@ -1,0 +1,202 @@
+<ossec_config>
+  <client>
+    <server>
+      <address>{{ wazuh_agent_ossec_client_server_address }}</address>
+      <port>{{ wazuh_agent_ossec_client_server_port }}</port>
+      <protocol>{{ wazuh_agent_ossec_client_server_protocol }}</protocol>
+    </server>
+    <config-profile>{{ wazuh_agent_ossec_client_config_profile }}</config-profile>
+    
+    <notify_time>{{ wazuh_agent_ossec_client_notify_time }}</notify_time>
+    <time-reconnect>{{ wazuh_agent_ossec_client_time_reconnect }}</time-reconnect>
+    <auto_restart>{{ wazuh_agent_ossec_client_auto_restart }}</auto_restart>
+    <crypto_method>{{ wazuh_agent_ossec_client_crypto_method }}</crypto_method>
+  </client>
+
+  <client_buffer>
+    <!-- Agent buffer options -->
+    <disabled>{{ wazuh_agent_ossec_client_buffer_disabled }}</disabled>
+    <queue_size>{{ wazuh_agent_ossec_client_buffer_queue_size }}</queue_size>
+    <events_per_second>{{ wazuh_agent_ossec_client_buffer_events_per_second }}</events_per_second>
+  </client_buffer>
+
+  <!-- Policy monitoring -->
+  <rootcheck>
+    <disabled>{{ wazuh_agent_ossec_rootcheck_disabled }}</disabled>
+    <check_files>{{ wazuh_agent_ossec_rootcheck_check_files }}</check_files>
+    <check_trojans>{{ wazuh_agent_ossec_rootcheck_check_trojans }}</check_trojans>
+    <check_dev>{{ wazuh_agent_ossec_rootcheck_check_dev }}</check_dev>
+    <check_sys>{{ wazuh_agent_ossec_rootcheck_check_sys }}</check_sys>
+    <check_pids>{{ wazuh_agent_ossec_rootcheck_check_pids }}</check_pids>
+    <check_ports>{{ wazuh_agent_ossec_rootcheck_check_ports }}</check_ports>
+    <check_if>{{ wazuh_agent_ossec_rootcheck_check_if }}</check_if>
+
+    <!-- Frequency that rootcheck is executed - every 12 hours -->
+    <frequency>{{ wazuh_agent_ossec_rootcheck_frequency }}</frequency>
+
+    <rootkit_files>etc/shared/rootkit_files.txt</rootkit_files>
+    <rootkit_trojans>etc/shared/rootkit_trojans.txt</rootkit_trojans>
+
+    <skip_nfs>{{ wazuh_agent_ossec_rootcheck_skip_nfs }}</skip_nfs>
+
+    <ignore>/var/lib/containerd</ignore>
+    <ignore>/var/lib/docker/overlay2</ignore>
+  </rootcheck>
+
+  <wodle name="cis-cat">
+    <disabled>yes</disabled>
+    <timeout>1800</timeout>
+    <interval>1d</interval>
+    <scan-on-start>yes</scan-on-start>
+
+    <java_path>wodles/java</java_path>
+    <ciscat_path>wodles/ciscat</ciscat_path>
+  </wodle>
+
+  <!-- Osquery integration -->
+  <wodle name="osquery">
+    <disabled>{{ wazuh_agent_ossec_wodle_osquery_disabled }}</disabled>
+    <run_daemon>{{ wazuh_agent_ossec_wodle_osquery_run_daemon }}</run_daemon>
+    <log_path>{{ wazuh_agent_ossec_wodle_osquery_log_path }}</log_path>
+    <config_path>{{ wazuh_agent_ossec_wodle_osquery_config_path }}</config_path>
+    <add_labels>{{ wazuh_agent_ossec_wodle_osquery_add_labels }}</add_labels>
+  </wodle>
+
+  <!-- System inventory -->
+  <wodle name="syscollector">
+    <disabled>{{ wazuh_agent_ossec_wodle_syscollector_disabled }}</disabled>
+    <interval>{{ wazuh_agent_ossec_wodle_syscollector_interval }}</interval>
+    <scan_on_start>{{ wazuh_agent_ossec_wodle_syscollector_scan_on_start }}</scan_on_start>
+    <hardware>{{ wazuh_agent_ossec_wodle_syscollector_hardware }}</hardware>
+    <os>{{ wazuh_agent_ossec_wodle_syscollector_os }}</os>
+    <network>{{ wazuh_agent_ossec_wodle_syscollector_network }}</network>
+    <packages>{{ wazuh_agent_ossec_wodle_syscollector_packages }}</packages>
+    <ports all="yes">{{ wazuh_agent_ossec_wodle_syscollector_ports_all }}</ports>
+    <processes>{{ wazuh_agent_ossec_wodle_syscollector_processes }}</processes>
+    <users>{{ wazuh_agent_ossec_wodle_syscollector_users }}</users>
+    <groups>{{ wazuh_agent_ossec_wodle_syscollector_groups }}</groups>
+    <services>{{ wazuh_agent_ossec_wodle_syscollector_service }}</services>
+    <browser_extensions>{{ wazuh_agent_ossec_wodle_syscollector_browser_extensions }}</browser_extensions>
+
+    <!-- Database synchronization settings -->
+    <synchronization>
+      <max_eps>{{ wazuh_agent_ossec_wodle_syscollector_synchronization_max_eps }}</max_eps>
+    </synchronization>
+  </wodle>
+
+  <sca>
+    <enabled>{{ wazuh_agent_ossec_sca_enabled }}</enabled>
+    <scan_on_start>{{ wazuh_agent_ossec_sca_scan_on_start }}</scan_on_start>
+    <interval>{{ wazuh_agent_ossec_sca_interval }}</interval>
+    <skip_nfs>{{ wazuh_agent_ossec_sca_skip_nfs }}</skip_nfs>
+  </sca>
+
+  <!-- File integrity monitoring -->
+  <syscheck>
+    <disabled>{{ wazuh_agent_ossec_syscheck_disabled }}</disabled>
+
+    <!-- Frequency that syscheck is executed default every 12 hours -->
+    <frequency>{{ wazuh_agent_ossec_syscheck_frequency }}</frequency>
+
+    <scan_on_start>{{ wazuh_agent_ossec_syscheck_scan_on_start }}</scan_on_start>
+
+    <!-- Generate alert when new file detected -->
+    <alert_new_files>{{ wazuh_agent_ossec_syscheck_alert_new_files }}</alert_new_files>
+
+    <!-- Don't ignore files that change more than 'frequency' times -->
+{% for autoignore in wazuh_agent_ossec_syscheck_auto_ignore %}
+    <auto_ignore frequency="{{ autoignore.frequency }}" timeframe="{{ autoignore.timeframe }}">no</auto_ignore>
+{% endfor %}
+
+    <!-- Directories to check  (perform all possible verifications) -->
+    <directories>{{ wazuh_agent_ossec_syscheck_directories | join(',') }}</directories>
+
+    <!-- Files/directories to ignore -->
+{% for path in wazuh_agent_ossec_syscheck_ignore_path %}
+      <ignore>{{ path }}</ignore>
+{% endfor %}
+
+    <!-- File types to ignore -->
+    <ignore type="sregex">{{ wazuh_agent_ossec_syscheck_ignore_types | join('|') }}</ignore>
+
+    <!-- Check the file, but never compute the diff -->
+{% for nodiff_file in wazuh_agent_ossec_syscheck_nodiff_files %}
+    <nodiff>{{ nodiff_file }}</nodiff>
+{% endfor %}
+{% for nodiff_path in wazuh_agent_ossec_syscheck_nodiff_paths %}
+    <nodiff type="{{ nodiff_path.type }}">{{ nodiff_path.path }}</nodiff>
+{% endfor %}
+
+    <skip_nfs>{{ wazuh_agent_ossec_syscheck_skip_nfs }}</skip_nfs>
+    <skip_dev>{{ wazuh_agent_ossec_syscheck_skip_dev }}</skip_dev>
+    <skip_proc>{{ wazuh_agent_ossec_syscheck_skip_proc }}</skip_proc>
+    <skip_sys>{{ wazuh_agent_ossec_syscheck_skip_sys }}</skip_sys>
+
+    <!-- Nice value for Syscheck process -->
+    <process_priority>{{ wazuh_agent_ossec_syscheck_process_priority }}</process_priority>
+
+    <!-- Maximum output throughput -->
+    <max_eps>{{ wazuh_agent_ossec_syscheck_max_eps }}</max_eps>
+
+    <!-- Database synchronization settings -->
+    <synchronization>
+      <enabled>{{ wazuh_agent_ossec_syscheck_synchronization_enabled }}</enabled>
+      <interval>{{ wazuh_agent_ossec_syscheck_synchronization_interval }}</interval>
+      <max_eps>{{ wazuh_agent_ossec_syscheck_synchronization_max_eps }}</max_eps>
+    </synchronization>
+  </syscheck>
+
+  <!-- Log analysis -->
+  <localfile>
+    <log_format>command</log_format>
+    <command>df -P</command>
+    <frequency>360</frequency>
+  </localfile>
+
+  <localfile>
+    <log_format>full_command</log_format>
+    <command>{{ wazuh_agent_ossec_netstat_listening_ports_cmd }}</command>
+    <alias>netstat listening ports</alias>
+    <frequency>360</frequency>
+  </localfile>
+
+  <localfile>
+    <log_format>full_command</log_format>
+    <command>last -n 20</command>
+    <frequency>360</frequency>
+  </localfile>
+
+  <!-- Active response -->
+  <active-response>
+    <disabled>{{ wazuh_agent_ossec_active_response_disabled }}</disabled>
+  </active-response>
+
+  <!-- Choose between "plain", "json", or "plain,json" for the format of internal logs -->
+  <logging>
+    <log_format>{{ wazuh_agent_ossec_logging_log_format }}</log_format>
+  </logging>
+
+</ossec_config>
+
+<ossec_config>
+  <localfile>
+    <log_format>journald</log_format>
+    <location>journald</location>
+  </localfile>
+
+  <localfile>
+    <log_format>audit</log_format>
+    <location>/var/log/audit/audit.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/ossec/logs/active-responses.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/dpkg.log</location>
+  </localfile>
+
+</ossec_config>
