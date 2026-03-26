@@ -97,17 +97,17 @@
 
 - name: Create config directory for osquery
   ansible.builtin.file:
-    path: "{{ osquery_config_base_path }}/shared/osquery/"
+    path: "{{ wazuh_agent_ossec_config_base_path }}/shared/osquery/"
     state: directory
     mode: '0750'
 
 - name: Create empty osquery config file to be populated by config management system
   ansible.builtin.file:
-    path: "{{ osquery_config_base_path }}/shared/osquery/osquery.conf"
+    path: "{{ wazuh_agent_ossec_config_base_path }}/shared/osquery/osquery.conf"
     state: touch
     mode: '0640'
-    owner: "{{ osquery_system_user }}"
-    group: "{{ osquery_system_user }}"
+    owner: "{{ wazuh_agent_system_user }}"
+    group: "{{ wazuh_agent_system_user }}"
 
 
 # flush handlers for service restart, then ensure its started after.
