@@ -32,7 +32,7 @@ wazuh_agent_ossec_rootcheck_frequency: 43200
 wazuh_agent_ossec_rootcheck_skip_nfs: "yes"
 
 wazuh_agent_ossec_wodle_osquery_disabled: "no"
-wazuh_agent_ossec_wodle_osquery_run_daemon: "yes"
+wazuh_agent_ossec_wodle_osquery_run_daemon: "no"
 wazuh_agent_ossec_wodle_osquery_log_path: /var/log/osquery/osqueryd.results.log
 wazuh_agent_ossec_wodle_osquery_config_path: /var/ossec/etc/shared/osquery/osquery.conf
 wazuh_agent_ossec_wodle_osquery_add_labels: "yes"
