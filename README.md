@@ -32,8 +32,6 @@ All nodes are designed for ephemeral local storage. State is stored in RDS, S3, 
 
 ### Supply Chain & Trust
 
-Binaries are built in GitHub Actions using my [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by a YubiKey-backed root CA.
-
 ```mermaid
 graph LR
     subgraph "Build & Sign"
@@ -66,8 +64,9 @@ graph LR
     end
 ```
 
+Binaries are built in GitHub Actions using my [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by a YubiKey-backed root CA.
+
 ### Observability & Alerting
-Metrics are scraped by per-account Prometheus instances and remote-written to Mimir for long-term storage. Logs and traces flow through OTel Collector to Loki and Tempo. Alloy handles continuous profiling to Pyroscope and also forwards instrumented application profiles. Tempo generates RED metrics from traces back to Mimir. Alerts route through Alertmanager to both Slack and [Vigil](https://github.com/linnemanlabs/vigil), which uses the Claude API to query Prometheus, Loki, and AWS at alert time and post AI-assisted triage to Slack.
 
 ```mermaid
 graph LR
@@ -104,6 +103,76 @@ graph LR
     end
 ```
 
+Metrics are scraped by per-account Prometheus instances and remote-written to Mimir for long-term storage. Logs and traces flow through OTel Collector to Loki and Tempo. Alloy handles continuous profiling to Pyroscope and also forwards instrumented application profiles. Tempo generates RED metrics from traces back to Mimir. Alerts route through Alertmanager to both Slack and [Vigil](https://github.com/linnemanlabs/vigil), which uses the Claude API to query Prometheus, Loki, and AWS at alert time and post AI-assisted triage to Slack.
+
+### Security Monitoring
+
+```mermaid
+graph LR
+    subgraph "Endpoint Agents"
+        OQ[osquery]:::agent -->|results log| WA[Wazuh Agent]:::agent
+        WA -->|FIM, SCA, rootcheck| LD[Local Detection]:::agent
+        LD -->|events| WA
+    end
+
+    subgraph "Agent Traffic"
+        NLB[NLB]:::infra
+    end
+
+    subgraph "User Traffic"
+        ALB[ALB]:::infra
+    end
+
+    WA -->|events 1514| NLB
+    WA -->|enrollment 1515| MM
+
+    subgraph "Manager Cluster"
+        subgraph MASTER[Master]
+            MM[Manager Master]:::manager
+        end
+        subgraph WORKERS[Workers]
+            MW1[Manager Worker 1]:::manager
+            MW2[Manager Worker 2]:::manager
+        end
+        MM <-->|cluster 1516| MW1
+        MM <-->|cluster 1516| MW2
+    end
+
+    NLB --> MASTER
+    NLB --> WORKERS
+
+    subgraph INDEXERS[Indexer Cluster]
+        IDX1[Indexer 1]:::indexer
+        IDX2[Indexer 2]:::indexer
+        IDX3[Indexer 3]:::indexer
+        IDX1 <-->|transport 9300| IDX2
+        IDX2 <-->|transport 9300| IDX3
+    end
+
+    MASTER -->|Filebeat direct| INDEXERS
+    WORKERS -->|Filebeat direct| INDEXERS
+    INDEXERS -->|segments + translog| S3[S3 Remote Store]:::storage
+
+    subgraph "Visualization"
+        DB[Dashboard]:::dashboard
+    end
+
+    USER[User/VPN]:::infra -->|HTTPS 443| ALB
+    ALB -->|5601| DB
+    DB -->|API 55000 direct| MM
+    DB -->|queries 9200| ALB
+    ALB -->|9200| INDEXERS
+
+    classDef agent fill:#2d5a3d,stroke:#4a9,color:#fff
+    classDef manager fill:#4a3d5a,stroke:#96c,color:#fff
+    classDef indexer fill:#3d4a5a,stroke:#69c,color:#fff
+    classDef storage fill:#5a4a2d,stroke:#c96,color:#fff
+    classDef dashboard fill:#2d4a5a,stroke:#6cc,color:#fff
+    classDef infra fill:#3a3a3a,stroke:#999,color:#fff
+```
+
+Wazuh provides host intrusion detection, file integrity monitoring, vulnerability detection, and CIS compliance scanning across all nodes. Agents report to a clustered manager which ships alerts via Filebeat to an S3-backed OpenSearch indexer cluster. osquery provides deep endpoint visibility with BPF process tracing, listening port snapshots, and system inventory. All component TLS is backed by KMS-signed certificates chained to a YubiKey root CA.
+
 ## Roles
 
 ### System
@@ -131,6 +200,13 @@ graph LR
 - `rekor-tiles` - Sigstore Rekor transparency log (v2/Tessera backend)
 - `tesseract` - TesseraCT certificate transparency log
 - `timestamp-authority` - Sigstore Timestamp Authority (RFC 3161)
+
+### Security
+- `wazuh-indexer` - Wazuh indexer cluster (OpenSearch) with S3 remote-backed storage, KMS-signed component certificates
+- `wazuh-manager` - Wazuh manager cluster with Filebeat alert shipping, clustered master/worker topology
+- `wazuh-dashboard` - Wazuh dashboard (OpenSearch Dashboards) with Wazuh plugin
+- `wazuh-agent` - Wazuh agent for endpoint monitoring, file integrity, SCA, vulnerability detection
+- `osquery` - osquery endpoint visibility with BPF process monitoring, scheduled queries, and Wazuh integration
 
 ### Infrastructure
 - `memcached` - Memcached with Prometheus exporter
