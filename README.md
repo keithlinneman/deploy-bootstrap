@@ -64,7 +64,7 @@ graph LR
     end
 ```
 
-Binaries are built in GitHub Actions using my [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by a YubiKey-backed root CA.
+Binaries are built in GitHub Actions using my [build system](https://github.com/keithlinneman/build-system), signed with Cosign via KMS and also keyless with a Fulcio-backed certificate, timestamped via timestamp-authority, and logged to Rekor and TesseraCT for transparency. Nodes fetch artifacts from S3 and verify signatures and checksums before deploying. SPIRE provides runtime workload identity via SPIFFE SVIDs backed by a KMS upstream certificate authority signed by a YubiKey-backed root CA.
 
 ### Observability & Alerting
 
