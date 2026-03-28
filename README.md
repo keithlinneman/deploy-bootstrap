@@ -6,7 +6,7 @@ Ansible roles for infrastructure configuration management, security hardening an
 
 Each role is self-contained with its own defaults and templates. Infrastructure-specific configuration (endpoints, ARNs, resource IDs) is pulled from AWS SSM Parameter Store at runtime, set by CloudFormation stacks. Application-level config (versions, ports, TTLs, tuning) lives in role defaults.
 
-Roles generally pull in `vars/default.yml` and `vars/<OS family>.yml` for OS-specific configuration.
+Roles generally pull in `defaults/main.yml` and `vars/<OS family>.yml` for OS-specific configuration.
 
 ## Usage
 ```
