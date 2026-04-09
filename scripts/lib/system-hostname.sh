@@ -10,7 +10,7 @@ localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet
 # testing to see why aws cli is failing in only this script all of a sudden
 echo "PATH: ${PATH}"
 ls -al /snap/bin
-which aws
+which aws || echo "No aws in path"
 echo "date: $(date)"
 echo "uptime: $(uptime)"
 systemctl is-active snapd || echo "snapd not active"
@@ -29,7 +29,7 @@ fi
 
 echo "PATH: ${PATH}"
 ls -al /snap/bin
-which aws
+which aws || echo "No aws in path after waiting"
 echo "date: $(date)"
 echo "uptime: $(uptime)"
 systemctl is-active snapd || echo "snapd not active"
