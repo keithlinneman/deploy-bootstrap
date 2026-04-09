@@ -8,7 +8,7 @@ localname="$( hostname )"
 localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet / { print $2; exit }' | cut -d "/" -f 1 )"
 
 echo "PATH: ${PATH}"
-PATH="${PATH}:/opt/snap/bin/"
+export PATH="${PATH}:/opt/snap/bin/"
 
 # Lots of sanity checks - dns is critical
 
