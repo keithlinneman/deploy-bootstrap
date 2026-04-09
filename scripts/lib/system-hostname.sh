@@ -7,6 +7,9 @@ trap 'RC=$?; echo "ERROR(rc=$RC) at ${BASH_SOURCE[0]:-?}:${LINENO:-?} in ${FUNCN
 localname="$( hostname )"
 localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet / { print $2; exit }' | cut -d "/" -f 1 )"
 
+echo "PATH: ${PATH}"
+PATH="${PATH}:/opt/snap/bin/"
+
 # Lots of sanity checks - dns is critical
 
 # check that we have a valid ip
