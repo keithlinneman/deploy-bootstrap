@@ -145,6 +145,9 @@
     <!-- Directories to check  (perform all possible verifications) -->
     <directories>{{ wazuh_manager_ossec_syscheck_directories | join(',') }}</directories>
 
+    # temp for dev testing - monitor the glimmer target directory for changes
+    <directories realtime="yes" restrict="beacon$">/home/k/projects/security/glimmer/target</directories>
+
     <!-- Files/directories to ignore -->
 {% for path in wazuh_manager_ossec_syscheck_ignore_path %}
       <ignore>{{ path }}</ignore>
