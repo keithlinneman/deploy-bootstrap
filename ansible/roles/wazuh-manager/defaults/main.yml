@@ -24,7 +24,7 @@ wazuh_manager_ossec_cluster_nodes:
 wazuh_manager_ossec_cluster_hidden: "no"
 wazuh_manager_ossec_cluster_disabled: "no"
 
-wazuh_manager_ossec_global_alerts_log: "yes"
+wazuh_manager_ossec_global_alerts_log: "no"
 wazuh_manager_ossec_global_logall: "no"
 wazuh_manager_ossec_global_logall_json: "no"
 wazuh_manager_ossec_global_email_notification: "no"

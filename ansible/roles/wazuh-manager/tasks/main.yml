@@ -293,6 +293,15 @@
     group: "{{ wazuh_manager_system_user }}"
   notify: Restart wazuh-manager service
 
+- name: Modify logrotate configuration for wazuh-manager
+  ansible.builtin.template:
+    src: etc/logrotate.d/wazuh-manager.j2
+    dest: /etc/logrotate.d/wazuh-manager
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  notify: Restart wazuh-manager service
+
 - name: Write API JWT private key
   ansible.builtin.copy:
     content: "{{ wazuh_manager_api_jwt_keys.privatekey | b64decode }}"
