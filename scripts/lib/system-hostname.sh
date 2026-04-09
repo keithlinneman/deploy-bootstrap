@@ -7,16 +7,37 @@ trap 'RC=$?; echo "ERROR(rc=$RC) at ${BASH_SOURCE[0]:-?}:${LINENO:-?} in ${FUNCN
 localname="$( hostname )"
 localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet / { print $2; exit }' | cut -d "/" -f 1 )"
 
-echo "system-hostname: PATH: ${PATH}"
+# testing to see why aws cli is failing in only this script all of a sudden
+echo "PATH: ${PATH}"
 ls -al /snap/bin
 which aws
+echo "date: $(date)"
+echo "uptime: $(uptime)"
+systemctl is-active snapd || echo "snapd not active"
+systemctl is-active snapd.seeded.service || echo "snapd.seeded not active"
+snap list 2>&1 || echo "snap list failed"
+ls -la /snap/bin/ 2>&1
+ls -la /snap/aws-cli/ 2>&1 || echo "no /snap/aws-cli mount"
+mount | grep snap 2>&1 | head -5
 
-# Wait for snapd to be ready
-for i in $(seq 1 30); do
-    aws sts get-caller-identity &>/dev/null && break
-    sleep 2
-done
+if [ ! -L /snap/bin/aws ]; then
+    for i in $(seq 1 60); do
+        [ -L /snap/bin/aws ] && break
+        sleep 2
+    done
+fi
 
+echo "PATH: ${PATH}"
+ls -al /snap/bin
+which aws
+echo "date: $(date)"
+echo "uptime: $(uptime)"
+systemctl is-active snapd || echo "snapd not active"
+systemctl is-active snapd.seeded.service || echo "snapd.seeded not active"
+snap list 2>&1 || echo "snap list failed"
+ls -la /snap/bin/ 2>&1
+ls -la /snap/aws-cli/ 2>&1 || echo "no /snap/aws-cli mount"
+mount | grep snap 2>&1 | head -5
 
 # Lots of sanity checks - dns is critical
 
