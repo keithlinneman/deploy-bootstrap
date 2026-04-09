@@ -284,6 +284,15 @@
     group: "{{ wazuh_manager_system_user }}"
   notify: Restart wazuh-manager service
 
+- name: Modify wazuh-manager local_rules file
+  ansible.builtin.template:
+    src: var/ossec/etc/rules/local_rules.xml.j2
+    dest: "{{ wazuh_manager_ossec_config_base_path }}/rules/local_rules.xml"
+    mode: "0660"
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+  notify: Restart wazuh-manager service
+
 - name: Write API JWT private key
   ansible.builtin.copy:
     content: "{{ wazuh_manager_api_jwt_keys.privatekey | b64decode }}"

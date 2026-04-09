@@ -1,0 +1,11 @@
+<group name="yara,">
+    <!--
+    2026/04/08 20:49:35 active-response/bin/yara.sh: INFO - YARA match: rule=glimmer_crypto_profile file=/home/k/projects/security/glimmer/target/x86_64-unknown-linux-gnu/release/beacon
+    -->
+    <rule id="100101" level="12">
+        <if_sid>650</if_sid>
+        <match>YARA match</match>
+        <description>YARA rule matched: potential malware detected</description>
+        <group>yara,malware,</group>
+    </rule>
+</group>
