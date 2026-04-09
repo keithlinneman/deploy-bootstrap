@@ -7,8 +7,16 @@ trap 'RC=$?; echo "ERROR(rc=$RC) at ${BASH_SOURCE[0]:-?}:${LINENO:-?} in ${FUNCN
 localname="$( hostname )"
 localip="$( ip addr show primary scope global | grep -Ev "wg[0-9]+" | awk '/inet / { print $2; exit }' | cut -d "/" -f 1 )"
 
-echo "PATH: ${PATH}"
-export PATH="${PATH}:/opt/snap/bin/"
+echo "system-hostname: PATH: ${PATH}"
+ls -al /snap/bin
+which aws
+
+# Wait for snapd to be ready
+for i in $(seq 1 30); do
+    aws sts get-caller-identity &>/dev/null && break
+    sleep 2
+done
+
 
 # Lots of sanity checks - dns is critical
 
