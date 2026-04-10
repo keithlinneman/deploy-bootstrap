@@ -1,0 +1,5 @@
+<decoder name="yara_log">
+    <prematch>yara</prematch>
+    <regex>"rule":"(\S+?)","file":"(\S+?)"</regex>
+    <order>data.yara.rule, data.yara.file</order>
+</decoder>

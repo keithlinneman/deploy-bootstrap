@@ -293,6 +293,15 @@
     group: "{{ wazuh_manager_system_user }}"
   notify: Restart wazuh-manager service
 
+- name: Modify wazuh-manager local_decoder file
+  ansible.builtin.template:
+    src: var/ossec/etc/decoders/local_decoder.xml.j2
+    dest: "{{ wazuh_manager_ossec_config_base_path }}/decoders/local_decoder.xml"
+    mode: "0660"
+    owner: "{{ wazuh_manager_system_user }}"
+    group: "{{ wazuh_manager_system_user }}"
+  notify: Restart wazuh-manager service
+
 - name: Modify logrotate configuration for wazuh-manager
   ansible.builtin.template:
     src: etc/logrotate.d/wazuh-manager.j2

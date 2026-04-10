@@ -1,11 +1,50 @@
 <group name="yara,">
-    <!--
-    2026/04/08 20:49:35 active-response/bin/yara.sh: INFO - YARA match: rule=glimmer_crypto_profile file=/home/k/projects/security/glimmer/target/x86_64-unknown-linux-gnu/release/beacon
-    -->
-    <rule id="100101" level="12">
-        <if_sid>650</if_sid>
-        <match>YARA match</match>
-        <description>YARA rule matched: potential malware detected</description>
+    <rule id="100101" level="10">
+        <decoded_as>json</decoded_as>
+        <field name="yara.rule">\.+</field>
+        <description>YARA rule matched</description>
+        <group>yara,</group>
+    </rule>
+
+    <rule id="100102" level="12">
+        <if_sid>100101</if_sid>
+        <field name="yara.rule">glimmer_syscall_pattern</field>
+        <description>YARA: Binary with direct syscall networking</description>
         <group>yara,malware,</group>
+    </rule>
+
+    <rule id="100103" level="14">
+        <if_sid>100101</if_sid>
+        <field name="yara.rule">glimmer_stripped_rust_implant</field>
+        <description>YARA: High-confidence implant detection</description>
+        <group>yara,malware,</group>
+    </rule>
+
+    <rule id="100104" level="10">
+        <if_sid>100101</if_sid>
+        <field name="yara.rule">glimmer_crypto_profile</field>
+        <description>YARA: P-256 ECDH + AES-GCM crypto profile</description>
+        <group>yara,malware,</group>
+    </rule>
+
+    <rule id="100105" level="8">
+        <if_sid>100101</if_sid>
+        <field name="yara.rule">glimmer_serde_config</field>
+        <description>YARA: Serde config with crypto artifacts</description>
+        <group>yara,</group>
+    </rule>
+
+    <rule id="100106" level="6">
+        <if_sid>100101</if_sid>
+        <field name="yara.rule">glimmer_high_entropy_small_elf</field>
+        <description>YARA: High entropy small ELF binary</description>
+        <group>yara,</group>
+    </rule>
+
+    <rule id="100200" level="6">
+        <if_sid>80700</if_sid>
+        <field name="audit.key">network_connect</field>
+        <description>Auditd: Network connect syscall detected</description>
+        <group>audit,network,</group>
     </rule>
 </group>
