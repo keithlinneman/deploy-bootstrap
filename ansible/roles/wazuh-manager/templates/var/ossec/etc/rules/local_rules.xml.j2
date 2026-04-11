@@ -48,3 +48,57 @@
         <group>audit,network,</group>
     </rule>
 </group>
+
+<group name="suricata,glimmer,">
+    <!-- Glimmer-specific parent rule - evaluated first -->
+    <rule id="100300" level="10">
+        <if_sid>86601</if_sid>
+        <field name="alert.signature">GLIMMER</field>
+        <description>Suricata: $(alert.signature)</description>
+        <group>suricata,glimmer,</group>
+    </rule>
+
+    <rule id="100301" level="12">
+        <if_sid>100300</if_sid>
+        <field name="alert.signature_id">1000001</field>
+        <description>Suricata: C2 POST with data/token form pattern</description>
+        <group>suricata,glimmer,malware,</group>
+    </rule>
+
+    <rule id="100302" level="10">
+        <if_sid>100300</if_sid>
+        <field name="alert.signature_id">1000002</field>
+        <description>Suricata: C2 session cookie with hex node ID</description>
+        <group>suricata,glimmer,malware,</group>
+    </rule>
+
+    <rule id="100303" level="10">
+        <if_sid>100300</if_sid>
+        <field name="alert.signature_id">1000003</field>
+        <description>Suricata: POST to root with Connection close</description>
+        <group>suricata,glimmer,malware,</group>
+    </rule>
+
+    <rule id="100304" level="10">
+        <if_sid>100300</if_sid>
+        <field name="alert.signature_id">1000004</field>
+        <description>Suricata: C2 server empty nginx response</description>
+        <group>suricata,glimmer,malware,</group>
+    </rule>
+
+    <rule id="100305" level="14">
+        <if_sid>100300</if_sid>
+        <field name="alert.signature_id">1000005</field>
+        <description>Suricata: Repeated beacon pattern detected</description>
+        <group>suricata,glimmer,malware,</group>
+    </rule>
+
+    <!-- General trojan catch-all - excludes Glimmer-specific alerts -->
+    <rule id="100310" level="10">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Network Trojan</field>
+        <field name="alert.signature" negate="yes">GLIMMER</field>
+        <description>Suricata: Network Trojan - $(alert.signature)</description>
+        <group>suricata,malware,</group>
+    </rule>
+</group>
