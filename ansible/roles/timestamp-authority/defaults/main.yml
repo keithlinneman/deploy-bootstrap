@@ -1,11 +1,11 @@
 ---
-tsa_version: 2.0.5
-tsa_binary_sha256: a1e40c122bdd1e736a48ee95289d9496356ea41b6236f6f8b7972dac16acd7e2
+tsa_version: 2.0.6
+tsa_binary_sha256: 6fba662bddacfc00e1d082e7266c1f23ddf3cc346702d339775a8ab6c98ebcb9
 
 tsa_server_address: 0.0.0.0
 tsa_server_port: 3002
 tsa_server_scheme: http
-tsa_kms_signer_param: "arn:aws:ssm:us-east-2:987020212918:parameter/app/tsa/signing/timestamp/signer"
+tsa_kms_signer_param: "arn:aws:ssm:us-east-2:242777378327:parameter/app/tsa/signing/timestamp/signer"
 tsa_kms_hash_algorithm: sha384
 tsa_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 tsa_trust_materials_cert_chain_path: certs/tsa-chain.pem
