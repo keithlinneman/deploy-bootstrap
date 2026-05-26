@@ -17,6 +17,8 @@
     platform_env: "{{ lookup('amazon.aws.aws_ssm', '/platform/env/name', region=ansible_ec2_instance_identity_document_region) }}"
     fulcio_config_timestamp_signer: "{{ lookup('amazon.aws.aws_ssm', fulcio_kms_signer_param, region=ansible_ec2_instance_identity_document_region) }}"
     trust_materials_bucket_name: "{{ lookup('amazon.aws.aws_ssm', fulcio_trust_materials_bucket_param, region=ansible_ec2_instance_identity_document_region) }}"
+    trust_domain_name: "{{ lookup('amazon.aws.aws_ssm', '/platform/trust/domain/name', region=ansible_ec2_instance_identity_document_region) }}"
+
 
 - name: Set facts from environment variables
   ansible.builtin.set_fact:

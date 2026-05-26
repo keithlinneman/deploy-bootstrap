@@ -3,7 +3,7 @@ fulcio_version: 1.8.5
 fulcio_binary_sha256: d5e4b689e3f58bd478c19b21d265ac66198c1e123ce7d8ea8c355960852d982c
 
 fulcio_ca_type: kmsca
-fulcio_ct_log_url: https://tesseract.{{ hosted_zone_name }}/
+fulcio_ct_log_url: https://tesseract.{{ trust_domain_name }}/
 fulcio_fileca_watch: false
 fulcio_kms_signer_param: "arn:aws:ssm:us-east-2:242777378327:parameter/app/fulcio/signing/intermediate/signer"
 fulcio_log_type: prod
