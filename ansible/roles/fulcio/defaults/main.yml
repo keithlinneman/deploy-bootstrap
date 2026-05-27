@@ -15,3 +15,4 @@ fulcio_server_metrics_port: 2116
 fulcio_trust_materials_bucket_param: /platform/trust/s3/bucket/name
 fulcio_trust_materials_cert_chain_path: certs/fulcio-ca.crt
 fulcio_trust_materials_tesseract_checkpoint_pubkey_path: certs/tesseract-checkpoint.pub
+github_oidc_note: "hello@linnemanlabs.com"

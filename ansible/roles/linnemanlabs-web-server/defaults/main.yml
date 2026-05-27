@@ -1,6 +1,9 @@
 ---
 linnemanlabs_web_server_admin_tcp_port: 9000
+linnemanlabs_web_server_content_bucket_name: "{{ artifacts_bucket_name }}"
+linnemanlabs_web_server_evidence_key_param: "arn:aws:ssm:us-east-2:242777378327:parameter/app/linnemanlabs-web/signing/kms/arn"
+linnemanlabs_web_server_content_key_param: "arn:aws:ssm:us-east-2:242777378327:parameter/app/linnemanlabs-web/signing/content/kms/arn"
 linnemanlabs_web_server_tcp_port: 8080
 linnemanlabs_web_server_trusted_proxy_hops: 1
-cosign_pubkey_path: /etc/phxi/trust/cosign_pubkey.pem
 # tuf_trust_root: /etc/phxi/trust/root_pubkey.pem
+cosign_trusted_root_path: /etc/phxi/trust/cosign/trusted_root.json
