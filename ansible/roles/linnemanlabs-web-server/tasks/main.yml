@@ -68,8 +68,7 @@
     mode: "0750"
     state: directory
   loop:
-    - server
-    - server/bin
+    - bin
 
 - name: Set architecture format based on normalized naming
   ansible.builtin.set_fact:
@@ -202,9 +201,9 @@
     - name: Ensure binary has correct permissions
       ansible.builtin.file:
         path: "{{ staging_dir }}/linnemanlabs-web-server"
-        mode: "0755"
+        mode: "0750"
         owner: root
-        group: root
+        group: "{{ linnemanlabs_web_server_system_user }}"
 
     - name: Move verified binary into place
       ansible.builtin.command:
