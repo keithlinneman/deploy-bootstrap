@@ -209,7 +209,6 @@
       ansible.builtin.command:
         cmd: mv "{{ staging_dir }}/linnemanlabs-web-server" "{{ linnemanlabs_web_app_dir }}/bin/linnemanlabs-web-server"
         removes: "{{ staging_dir }}/linnemanlabs-web-server"
-        creates: "{{ linnemanlabs_web_app_dir }}/bin/linnemanlabs-web-server"
       notify: Restart linnemanlabs-web server service
 
     - name: Clean staging directory

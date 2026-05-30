@@ -208,7 +208,6 @@
       ansible.builtin.command:
         cmd: mv "{{ staging_dir }}/trustportal-server" "{{ trustportal_app_dir }}/bin/trustportal-server"
         removes: "{{ staging_dir }}/trustportal-server"
-        creates: "{{ trustportal_app_dir }}/bin/trustportal-server"
       notify: Restart trustportal server service
 
     - name: Clean staging directory
